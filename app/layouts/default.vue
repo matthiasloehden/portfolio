@@ -13,7 +13,8 @@ const {
 const automaticBackground = computed<BackgroundPreference>(() => {
   if (normalizedPath.value === '/') return 'wave';
   if (normalizedPath.value === '/work') return 'triangles';
-  if (['/projects', '/personal'].includes(normalizedPath.value)) return 'particles';
+  if (normalizedPath.value === '/projects') return 'particles';
+  if (normalizedPath.value === '/personal') return 'mesh';
   return 'none';
 });
 
@@ -23,6 +24,7 @@ const selectedBackground = computed(() =>
 const isWaveBackground = computed(() => selectedBackground.value === 'wave');
 const isTriangleBackground = computed(() => selectedBackground.value === 'triangles');
 const isParticleBackground = computed(() => selectedBackground.value === 'particles');
+const isMeshBackground = computed(() => selectedBackground.value === 'mesh');
 
 onMounted(initializePreferences);
 onBeforeUnmount(disposePreferences);
@@ -58,6 +60,11 @@ useHead({
       class="background-scene"
       :class="{ 'background-scene-active': isParticleBackground }"
       :active="isParticleBackground && backgroundMotionEnabled"
+    />
+    <PersonalTriangleMeshBackground
+      class="background-scene"
+      :class="{ 'background-scene-active': isMeshBackground }"
+      :active="isMeshBackground && backgroundMotionEnabled"
     />
     <LayoutSiteHeader />
     <slot />

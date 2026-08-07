@@ -24,6 +24,7 @@ const backgroundOptions: { value: BackgroundPreference; label: string }[] = [
   { value: 'wave', label: 'Wave grid' },
   { value: 'particles', label: 'Particles' },
   { value: 'triangles', label: 'Triangles' },
+  { value: 'mesh', label: 'Living mesh' },
   { value: 'none', label: 'None' },
 ];
 

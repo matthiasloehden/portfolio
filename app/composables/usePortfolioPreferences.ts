@@ -1,12 +1,12 @@
 export type ThemePreference = 'system' | 'light' | 'dark';
-export type BackgroundPreference = 'auto' | 'wave' | 'particles' | 'triangles' | 'none';
+export type BackgroundPreference = 'auto' | 'wave' | 'particles' | 'triangles' | 'mesh' | 'none';
 
 const THEME_STORAGE_KEY = 'portfolio-theme';
 const BACKGROUND_STORAGE_KEY = 'portfolio-background';
 const BACKGROUND_MOTION_STORAGE_KEY = 'portfolio-background-motion';
 
 const themePreferences: ThemePreference[] = ['system', 'light', 'dark'];
-const backgroundPreferences: BackgroundPreference[] = ['auto', 'wave', 'particles', 'triangles', 'none'];
+const backgroundPreferences: BackgroundPreference[] = ['auto', 'wave', 'particles', 'triangles', 'mesh', 'none'];
 
 let colorSchemeQuery: MediaQueryList | null = null;
 let initialized = false;
