@@ -12,7 +12,7 @@
     "format": "oxfmt .",
     "format:check": "oxfmt . --check",
     "test:e2e": "xvfb-run -a playwright test",
-    "type-check": "vue-tsc --build",
+    "type-check": "nuxi prepare && vue-tsc --build",
     "check": "yarn type-check && yarn lint && yarn format:check"
   },
   "dependencies": {
