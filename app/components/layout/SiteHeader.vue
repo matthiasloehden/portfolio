@@ -21,11 +21,12 @@ watch(
 
 <template>
   <header
-    class="relative z-20 site-container flex min-h-19 items-center justify-between border-b border-line md:min-h-22"
+    class="site-header relative z-20 site-container flex min-h-19 items-center justify-between border-b border-line md:min-h-22"
+    data-reveal="down"
     @keydown.esc="menuOpen = false"
   >
     <NuxtLink
-      class="group inline-flex items-center gap-3.5"
+      class="site-identity group inline-flex items-center gap-3.5"
       to="/"
       :aria-label="`${site.name}, home`"
     >
@@ -111,11 +112,34 @@ watch(
 </template>
 
 <style scoped>
+.site-identity {
+  transition: transform 240ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.site-identity:hover,
+.site-identity:focus-visible {
+  transform: translateY(-0.12rem) scale(1.015);
+}
+
+.nav-indicator {
+  transform: scaleX(0);
+  transform-origin: right;
+  transition:
+    background-color 180ms ease,
+    transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.nav-link:hover .nav-indicator,
+.nav-link:focus-visible .nav-indicator,
 .nav-link.is-active {
   color: var(--text);
 }
 
+.nav-link:hover .nav-indicator,
+.nav-link:focus-visible .nav-indicator,
 .nav-link.is-active .nav-indicator {
   background: var(--accent);
+  transform: scaleX(1);
+  transform-origin: left;
 }
 </style>

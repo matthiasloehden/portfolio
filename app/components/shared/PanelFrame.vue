@@ -6,7 +6,10 @@ defineProps<{
 </script>
 
 <template>
-  <figure class="m-0 border border-line-strong bg-raised shadow-panel">
+  <figure
+    class="motion-panel m-0 border border-line-strong bg-raised shadow-panel"
+    data-reveal="scale"
+  >
     <figcaption>
       <span>{{ title }}</span
       ><span>{{ meta }}</span>

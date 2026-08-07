@@ -16,14 +16,19 @@ defineProps<{
     class="case-study-list grid border-t border-line"
     :aria-labelledby="titleId"
   >
-    <div>
+    <div
+      class="motion-hover"
+      data-reveal="left"
+    >
       <SharedSectionKicker :label="label" />
       <h2 :id="titleId">{{ title }}</h2>
     </div>
     <ol>
       <li
-        v-for="item in items"
+        v-for="(item, index) in items"
         :key="item.href"
+        data-reveal="right"
+        :style="`--reveal-delay: ${index * 75}ms`"
       >
         <a :href="item.href">
           <span>{{ item.number }}</span>

@@ -15,8 +15,17 @@ defineProps<
     :aria-labelledby="`${id}-title`"
   >
     <header class="work-case-header">
-      <span aria-hidden="true">{{ number }}</span>
-      <div>
+      <span
+        aria-hidden="true"
+        data-reveal="left"
+      >
+        {{ number }}
+      </span>
+      <div
+        class="motion-hover"
+        data-reveal="up"
+        style="--reveal-delay: 80ms"
+      >
         <SharedSectionKicker
           :prefix="category"
           :label="type"
@@ -29,15 +38,21 @@ defineProps<
     <div :class="['work-case-layout', { reverse }]">
       <div class="work-case-copy">
         <p
-          v-for="paragraph in paragraphs"
+          v-for="(paragraph, index) in paragraphs"
           :key="paragraph"
+          class="motion-hover"
+          data-reveal="up"
+          :style="`--reveal-delay: ${index * 70}ms`"
         >
           {{ paragraph }}
         </p>
         <dl class="work-facts">
           <div
-            v-for="fact in facts"
+            v-for="(fact, index) in facts"
             :key="fact.label"
+            class="motion-hover"
+            data-reveal="up"
+            :style="`--reveal-delay: ${index * 55}ms`"
           >
             <dt>{{ fact.label }}</dt>
             <dd>{{ fact.value }}</dd>

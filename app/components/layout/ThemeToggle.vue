@@ -43,7 +43,7 @@ onBeforeUnmount(() => colorSchemeQuery?.removeEventListener('change', syncSystem
 
 <template>
   <button
-    class="grid size-9 cursor-pointer place-items-center border border-line bg-raised font-mono text-xs text-muted transition-colors hover:border-line-strong hover:text-foreground focus-visible:border-line-strong focus-visible:text-foreground"
+    class="theme-toggle grid size-9 cursor-pointer place-items-center border border-line bg-raised font-mono text-xs text-muted transition-colors hover:border-line-strong hover:text-foreground focus-visible:border-line-strong focus-visible:text-foreground"
     type="button"
     :aria-label="isDark ? 'Switch to light theme' : 'Switch to dark theme'"
     :title="isDark ? 'Switch to light theme' : 'Switch to dark theme'"
@@ -61,3 +61,18 @@ onBeforeUnmount(() => colorSchemeQuery?.removeEventListener('change', syncSystem
     >
   </button>
 </template>
+
+<style scoped>
+.theme-toggle {
+  transition:
+    color 180ms ease,
+    border-color 180ms ease,
+    background-color 180ms ease,
+    transform 300ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.theme-toggle:hover,
+.theme-toggle:focus-visible {
+  transform: rotate(12deg) scale(1.08);
+}
+</style>

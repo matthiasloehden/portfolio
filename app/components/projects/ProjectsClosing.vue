@@ -8,15 +8,30 @@
       label="More work ahead"
       hide-prefix-from-screen-readers
     />
-    <h2 id="projects-close-title">Curiosity is the common stack.</h2>
-    <p class="closing-copy">
+    <h2
+      id="projects-close-title"
+      class="motion-hover"
+      data-reveal="scale"
+    >
+      Curiosity is the common stack.
+    </h2>
+    <p
+      class="closing-copy motion-hover"
+      data-reveal="up"
+      style="--reveal-delay: 100ms"
+    >
       These projects connect technical implementation with the systems, standards, and people around it.
     </p>
-    <SharedActionLink
-      class="mt-9"
-      label="Start a conversation"
-      href="mailto:m.loehden@yahoo.de"
-    />
+    <div
+      data-reveal="up"
+      style="--reveal-delay: 180ms"
+    >
+      <SharedActionLink
+        class="mt-9"
+        label="Start a conversation"
+        href="mailto:m.loehden@yahoo.de"
+      />
+    </div>
   </section>
 </template>
 

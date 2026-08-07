@@ -12,17 +12,35 @@ defineProps<{
     class="content-section"
     aria-labelledby="capabilities-title"
   >
-    <p class="section-index"><span>02</span> Capabilities</p>
+    <p
+      class="section-index"
+      data-reveal="up"
+    >
+      <span>02</span> Capabilities
+    </p>
     <div class="section-heading flex items-end justify-between">
-      <h2 id="capabilities-title">A full-stack <em>toolkit.</em></h2>
-      <p>Core skills from my résumé, applied across client platforms, operational tools, and university work.</p>
+      <h2
+        id="capabilities-title"
+        class="motion-hover"
+        data-reveal="left"
+      >
+        A full-stack <em>toolkit.</em>
+      </h2>
+      <p
+        class="motion-hover"
+        data-reveal="right"
+        style="--reveal-delay: 100ms"
+      >
+        Core skills from my résumé, applied across client platforms, operational tools, and university work.
+      </p>
     </div>
 
     <div class="capability-grid grid">
       <HomeCapabilityCard
-        v-for="capability in capabilities"
+        v-for="(capability, index) in capabilities"
         :key="capability.title"
         v-bind="capability"
+        :style="`--reveal-delay: ${index * 80}ms`"
       />
     </div>
   </section>

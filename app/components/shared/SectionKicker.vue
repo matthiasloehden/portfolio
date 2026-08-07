@@ -12,7 +12,10 @@ withDefaults(
 </script>
 
 <template>
-  <p class="font-mono text-[0.66rem] tracking-[0.08em] text-muted uppercase">
+  <p
+    class="font-mono text-[0.66rem] tracking-[0.08em] text-muted uppercase"
+    data-reveal="up"
+  >
     <span
       v-if="prefix"
       class="mr-2.5 text-primary"

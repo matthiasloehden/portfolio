@@ -8,7 +8,10 @@ defineProps<{
 </script>
 
 <template>
-  <article class="relative overflow-hidden">
+  <article
+    class="relative overflow-hidden"
+    data-reveal="up"
+  >
     <div class="capability-meta">
       <span>{{ number }}</span
       ><span>{{ layer }}</span>

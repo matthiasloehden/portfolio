@@ -1,6 +1,6 @@
 <template>
   <aside
-    class="system-card"
+    class="system-card motion-float"
     aria-label="Developer profile summary"
   >
     <div class="system-card-header flex items-center justify-between">

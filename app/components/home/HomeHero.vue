@@ -4,15 +4,34 @@
     aria-labelledby="hero-title"
   >
     <div class="hero-main grid items-center">
-      <div class="hero-copy-block">
-        <p class="eyebrow flex items-center"><span aria-hidden="true" /> Based in Germany · Building for the web</p>
-        <h1 id="hero-title">I build <em>web products</em> that feel effortless.</h1>
-        <p class="hero-copy">
+      <div class="hero-copy-block motion-hover">
+        <p
+          class="eyebrow flex items-center"
+          data-reveal="up"
+        >
+          <span aria-hidden="true" /> Based in Germany · Building for the web
+        </p>
+        <h1
+          id="hero-title"
+          data-reveal="up"
+          style="--reveal-delay: 80ms"
+        >
+          I build <em>web products</em> that feel effortless.
+        </h1>
+        <p
+          class="hero-copy"
+          data-reveal="up"
+          style="--reveal-delay: 160ms"
+        >
           I’m Matthias, a full-stack developer focused on fast, maintainable web experiences across Laravel, Vue, and
           modern frontend systems.
         </p>
 
-        <div class="hero-actions flex flex-wrap items-center">
+        <div
+          class="hero-actions flex flex-wrap items-center"
+          data-reveal="up"
+          style="--reveal-delay: 240ms"
+        >
           <SharedActionLink
             label="Start a conversation"
             href="mailto:m.loehden@yahoo.de"
@@ -26,22 +45,38 @@
         </div>
       </div>
 
-      <HomeDeveloperProfileCard />
+      <div
+        data-reveal="right"
+        style="--reveal-delay: 180ms"
+      >
+        <HomeDeveloperProfileCard />
+      </div>
     </div>
 
     <dl
       class="highlights grid"
       aria-label="Career highlights"
     >
-      <div>
+      <div
+        class="motion-hover"
+        data-reveal="up"
+      >
         <dt><span aria-hidden="true">01</span> Since 2019</dt>
         <dd>Professional software development</dd>
       </div>
-      <div>
+      <div
+        class="motion-hover"
+        data-reveal="up"
+        style="--reveal-delay: 70ms"
+      >
         <dt><span aria-hidden="true">02</span> B.Sc. Informatics</dt>
         <dd>Currently studying at IU</dd>
       </div>
-      <div>
+      <div
+        class="motion-hover"
+        data-reveal="up"
+        style="--reveal-delay: 140ms"
+      >
         <dt><span aria-hidden="true">03</span> Frontend + backend</dt>
         <dd>From interface to deployment</dd>
       </div>

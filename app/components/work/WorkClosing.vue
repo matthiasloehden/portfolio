@@ -8,12 +8,26 @@
       label="A note on client work"
       hide-prefix-from-screen-readers
     />
-    <h2 id="work-close-title">Built for the people operating it every day.</h2>
-    <p class="closing-copy">
+    <h2
+      id="work-close-title"
+      class="motion-hover"
+      data-reveal="scale"
+    >
+      Built for the people operating it every day.
+    </h2>
+    <p
+      class="closing-copy motion-hover"
+      data-reveal="up"
+      style="--reveal-delay: 100ms"
+    >
       These projects are described at a system level. The common thread is practical software that connects content,
       workflows, data, and physical operations.
     </p>
-    <div class="close-actions flex items-center justify-center">
+    <div
+      class="close-actions flex items-center justify-center"
+      data-reveal="up"
+      style="--reveal-delay: 180ms"
+    >
       <SharedActionLink
         label="Start a conversation"
         href="mailto:m.loehden@yahoo.de"

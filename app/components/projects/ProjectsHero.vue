@@ -9,22 +9,32 @@
       hide-prefix-from-screen-readers
     />
     <div class="projects-hero-grid grid items-end">
-      <h1 id="projects-title">Systems,<br /><em>security</em> &amp;<br />service.</h1>
-      <div class="projects-intro">
-        <p>
+      <h1
+        id="projects-title"
+        class="motion-hover"
+        data-reveal="left"
+      >
+        Systems,<br /><em>security</em> &amp;<br />service.
+      </h1>
+      <div
+        class="projects-intro"
+        data-reveal="right"
+        style="--reveal-delay: 130ms"
+      >
+        <p class="motion-hover">
           Three university projects exploring how modern software moves data, establishes trust, and supports the people
           who depend on it.
         </p>
         <dl class="grid border-t border-line">
-          <div class="flex justify-between gap-4 border-b border-line">
+          <div class="motion-hover flex justify-between gap-4 border-b border-line">
             <dt>Scope</dt>
             <dd>Prototypes &amp; concepts</dd>
           </div>
-          <div class="flex justify-between gap-4 border-b border-line">
+          <div class="motion-hover flex justify-between gap-4 border-b border-line">
             <dt>Focus</dt>
             <dd>Applied computer science</dd>
           </div>
-          <div class="flex justify-between gap-4 border-b border-line">
+          <div class="motion-hover flex justify-between gap-4 border-b border-line">
             <dt>Format</dt>
             <dd>University coursework</dd>
           </div>
@@ -34,6 +44,8 @@
     <a
       class="scroll-cue mt-auto inline-flex items-center self-start"
       href="#project-list"
+      data-reveal="up"
+      style="--reveal-delay: 260ms"
     >
       View projects <span aria-hidden="true">↓</span>
     </a>

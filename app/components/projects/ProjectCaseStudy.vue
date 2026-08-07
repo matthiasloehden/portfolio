@@ -18,10 +18,15 @@ defineProps<
       <div
         class="case-number"
         aria-hidden="true"
+        data-reveal="left"
       >
         {{ number }}
       </div>
-      <div>
+      <div
+        class="motion-hover"
+        data-reveal="up"
+        style="--reveal-delay: 80ms"
+      >
         <SharedSectionKicker
           :prefix="category"
           :label="type"
@@ -32,13 +37,27 @@ defineProps<
 
     <div :class="['case-layout', { reverse }]">
       <div class="case-copy">
-        <p class="case-lead">{{ lead }}</p>
-        <p>{{ description }}</p>
+        <p
+          class="case-lead motion-hover"
+          data-reveal="up"
+        >
+          {{ lead }}
+        </p>
+        <p
+          class="motion-hover"
+          data-reveal="up"
+          style="--reveal-delay: 70ms"
+        >
+          {{ description }}
+        </p>
 
         <div class="case-notes">
           <section
-            v-for="note in notes"
+            v-for="(note, index) in notes"
             :key="note.title"
+            class="motion-hover"
+            data-reveal="up"
+            :style="`--reveal-delay: ${120 + index * 65}ms`"
           >
             <h3>{{ note.title }}</h3>
             <p>{{ note.text }}</p>

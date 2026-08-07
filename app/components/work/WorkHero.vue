@@ -3,7 +3,7 @@
     class="work-hero grid items-end"
     aria-labelledby="work-title"
   >
-    <div class="work-hero-copy">
+    <div class="work-hero-copy motion-hover">
       <SharedSectionKicker
         prefix="[ 2019—2025 ]"
         label="Client &amp; product systems"
@@ -12,26 +12,31 @@
       <h1
         id="work-title"
         aria-label="Software for work that matters."
+        data-reveal="left"
       >
         Software for<br />work that<br /><em>matters.</em>
       </h1>
     </div>
 
-    <aside class="work-brief">
-      <p>
+    <aside
+      class="work-brief"
+      data-reveal="right"
+      style="--reveal-delay: 130ms"
+    >
+      <p class="motion-hover">
         At TopRed Media GmbH, I helped deliver operational software for an enterprise telecommunications and retail
         client—and worked on a flexible platform for TopRed’s own clients.
       </p>
       <dl class="border-t border-line">
-        <div class="flex justify-between gap-4 border-b border-line">
+        <div class="motion-hover flex justify-between gap-4 border-b border-line">
           <dt>Company</dt>
           <dd>TopRed Media GmbH</dd>
         </div>
-        <div class="flex justify-between gap-4 border-b border-line">
+        <div class="motion-hover flex justify-between gap-4 border-b border-line">
           <dt>Role</dt>
           <dd>Apprentice → full-stack developer</dd>
         </div>
-        <div class="flex justify-between gap-4 border-b border-line">
+        <div class="motion-hover flex justify-between gap-4 border-b border-line">
           <dt>Systems</dt>
           <dd>Four selected projects</dd>
         </div>
@@ -41,6 +46,8 @@
     <a
       class="scroll-cue inline-flex items-center"
       href="#work-list"
+      data-reveal="up"
+      style="--reveal-delay: 260ms"
     >
       Explore the systems <span aria-hidden="true">↓</span>
     </a>
