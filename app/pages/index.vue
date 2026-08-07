@@ -1,14 +1,12 @@
 <template>
   <div class="site-shell">
+    <WaveGridBackground />
+
     <a
       class="skip-link"
       href="#content"
       >Skip to content</a
     >
-    <div
-      class="ambient"
-      aria-hidden="true"
-    />
 
     <header class="site-header">
       <a
@@ -16,14 +14,23 @@
         href="#content"
         aria-label="Matthias Löhden, home"
       >
-        <span class="monogram">ML</span>
-        <span>Matthias Löhden</span>
+        <span
+          class="monogram"
+          aria-hidden="true"
+          >ML</span
+        >
+        <span class="identity-copy">
+          <strong>Matthias Löhden</strong>
+          <small>Full-stack developer</small>
+        </span>
       </a>
 
       <nav aria-label="Main navigation">
-        <a href="#about">About</a>
-        <a href="#capabilities">Skills</a>
-        <a href="mailto:m.loehden@yahoo.de">Contact</a>
+        <a href="#about"><span aria-hidden="true">01</span> About</a>
+        <a href="#capabilities"><span aria-hidden="true">02</span> Skills</a>
+        <NuxtLink to="/work"><span aria-hidden="true">03</span> Work</NuxtLink>
+        <NuxtLink to="/projects"><span aria-hidden="true">04</span> University</NuxtLink>
+        <a href="mailto:m.loehden@yahoo.de"><span aria-hidden="true">05</span> Contact</a>
       </nav>
     </header>
 
@@ -32,28 +39,76 @@
         class="hero"
         aria-labelledby="hero-title"
       >
-        <p class="eyebrow"><span aria-hidden="true" /> Full-stack developer · Germany</p>
-        <h1 id="hero-title">I build web products that feel effortless.</h1>
-        <p class="hero-copy">
-          I’m Matthias, a full-stack developer focused on fast, maintainable web experiences across Laravel, Vue, and
-          modern frontend systems.
-        </p>
+        <div class="hero-main">
+          <div class="hero-copy-block">
+            <p class="eyebrow"><span aria-hidden="true" /> Based in Germany · Building for the web</p>
+            <h1 id="hero-title">I build <em>web products</em> that feel effortless.</h1>
+            <p class="hero-copy">
+              I’m Matthias, a full-stack developer focused on fast, maintainable web experiences across Laravel, Vue,
+              and modern frontend systems.
+            </p>
 
-        <div class="hero-actions">
-          <a
-            class="primary-action"
-            href="mailto:m.loehden@yahoo.de"
+            <div class="hero-actions">
+              <a
+                class="primary-action"
+                href="mailto:m.loehden@yahoo.de"
+              >
+                Start a conversation
+                <span aria-hidden="true">↗</span>
+              </a>
+              <a
+                class="text-action"
+                href="#about"
+              >
+                Explore profile
+                <span aria-hidden="true">↓</span>
+              </a>
+            </div>
+          </div>
+
+          <aside
+            class="system-card"
+            aria-label="Developer profile summary"
           >
-            Start a conversation
-            <span aria-hidden="true">↗</span>
-          </a>
-          <a
-            class="text-action"
-            href="#about"
-          >
-            Explore my profile
-            <span aria-hidden="true">↓</span>
-          </a>
+            <div class="system-card-header">
+              <span>profile.ts</span>
+              <span
+                class="window-controls"
+                aria-hidden="true"
+                ><i /><i /><i
+              /></span>
+            </div>
+            <div
+              class="code-block"
+              aria-hidden="true"
+            >
+              <p><span class="code-line">01</span><span class="code-keyword">const</span> developer = {</p>
+              <p><span class="code-line">02</span>&nbsp;&nbsp;name: <span class="code-string">'Matthias'</span>,</p>
+              <p>
+                <span class="code-line">03</span>&nbsp;&nbsp;discipline: <span class="code-string">'full-stack'</span>,
+              </p>
+              <p><span class="code-line">04</span>&nbsp;&nbsp;focus: [</p>
+              <p>
+                <span class="code-line">05</span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">'performance'</span>,
+              </p>
+              <p>
+                <span class="code-line">06</span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string"
+                  >'maintainability'</span
+                >,
+              </p>
+              <p>
+                <span class="code-line">07</span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string"
+                  >'user experience'</span
+                >
+              </p>
+              <p><span class="code-line">08</span>&nbsp;&nbsp;]</p>
+              <p><span class="code-line">09</span>};<span class="code-cursor" /></p>
+            </div>
+            <div class="system-card-footer">
+              <span><i aria-hidden="true" /> Systems operational</span>
+              <span>DE / CET</span>
+            </div>
+          </aside>
         </div>
 
         <dl
@@ -61,15 +116,15 @@
           aria-label="Career highlights"
         >
           <div>
-            <dt>Since 2019</dt>
+            <dt><span aria-hidden="true">01</span> Since 2019</dt>
             <dd>Professional software development</dd>
           </div>
           <div>
-            <dt>B.Sc. Informatics</dt>
+            <dt><span aria-hidden="true">02</span> B.Sc. Informatics</dt>
             <dd>Currently studying at IU</dd>
           </div>
           <div>
-            <dt>Frontend + backend</dt>
+            <dt><span aria-hidden="true">03</span> Frontend + backend</dt>
             <dd>From interface to deployment</dd>
           </div>
         </dl>
@@ -80,9 +135,9 @@
         class="content-section about-grid"
         aria-labelledby="about-title"
       >
-        <div>
-          <p class="section-index">01 / About</p>
-          <h2 id="about-title">Practical experience, backed by strong fundamentals.</h2>
+        <div class="section-heading-block">
+          <p class="section-index"><span>01</span> About</p>
+          <h2 id="about-title">Practical experience, backed by <em>strong fundamentals.</em></h2>
         </div>
         <div class="section-copy">
           <p>
@@ -93,6 +148,15 @@
             My focus is straightforward: understand the real problem, choose the simplest durable solution, and deliver
             an experience that is fast for users and pleasant for teams to maintain.
           </p>
+          <div
+            class="principles"
+            aria-label="Development principles"
+          >
+            <span>Semantic</span>
+            <span>Responsive</span>
+            <span>Accessible</span>
+            <span>Performant</span>
+          </div>
         </div>
       </section>
 
@@ -101,35 +165,50 @@
         class="content-section"
         aria-labelledby="capabilities-title"
       >
-        <p class="section-index">02 / Capabilities</p>
+        <p class="section-index"><span>02</span> Capabilities</p>
         <div class="section-heading">
-          <h2 id="capabilities-title">A full-stack toolkit.</h2>
-          <p>Initial skills from my résumé. Project case studies and the broader toolkit are coming next.</p>
+          <h2 id="capabilities-title">A full-stack <em>toolkit.</em></h2>
+          <p>Core skills from my résumé, applied across client platforms, operational tools, and university work.</p>
         </div>
 
         <div class="capability-grid">
           <article>
-            <span>01</span>
+            <div class="capability-meta"><span>01</span><span>Client layer</span></div>
             <h3>Frontend</h3>
-            <p>JavaScript, Vue.js, CSS, Tailwind CSS</p>
+            <p>JavaScript <i /> Vue.js <i /> CSS <i /> Tailwind CSS</p>
+            <span
+              class="card-arrow"
+              aria-hidden="true"
+              >↗</span
+            >
           </article>
           <article>
-            <span>02</span>
+            <div class="capability-meta"><span>02</span><span>Server layer</span></div>
             <h3>Backend</h3>
-            <p>PHP, Laravel, SQL</p>
+            <p>PHP <i /> Laravel <i /> SQL</p>
+            <span
+              class="card-arrow"
+              aria-hidden="true"
+              >↗</span
+            >
           </article>
           <article>
-            <span>03</span>
+            <div class="capability-meta"><span>03</span><span>Systems layer</span></div>
             <h3>Engineering</h3>
-            <p>DevOps, Laravel Forge, Python, Java</p>
+            <p>DevOps <i /> Laravel Forge <i /> Python <i /> Java</p>
+            <span
+              class="card-arrow"
+              aria-hidden="true"
+              >↗</span
+            >
           </article>
         </div>
       </section>
     </main>
 
     <footer>
-      <p>Matthias Löhden <span aria-hidden="true">—</span> Full-stack developer</p>
-      <a href="mailto:m.loehden@yahoo.de">m.loehden@yahoo.de</a>
+      <p>© Matthias Löhden <span aria-hidden="true">/</span> Full-stack developer</p>
+      <a href="mailto:m.loehden@yahoo.de">m.loehden@yahoo.de <span aria-hidden="true">↗</span></a>
     </footer>
   </div>
 </template>

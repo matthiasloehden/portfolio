@@ -11,15 +11,19 @@
     "lint:fix": "oxlint --fix",
     "format": "oxfmt .",
     "format:check": "oxfmt . --check",
+    "test:e2e": "xvfb-run -a playwright test",
     "type-check": "vue-tsc --build",
     "check": "yarn type-check && yarn lint && yarn format:check"
   },
   "dependencies": {
-    "nuxt": "^4.5.1"
+    "nuxt": "^4.5.1",
+    "three": "^0.185.1"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "@tailwindcss/vite": "^4.3.3",
     "@types/node": "^26.1.2",
+    "@types/three": "^0.185.0",
     "oxfmt": "^0.61.0",
     "oxlint": "^1.76.0",
     "tailwindcss": "^4.3.3",

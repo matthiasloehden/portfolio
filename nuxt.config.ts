@@ -11,6 +11,10 @@ export default defineNuxtConfig({
 
   app: {
     baseURL,
+    pageTransition: {
+      name: 'page',
+      mode: 'out-in',
+    },
     head: {
       htmlAttrs: {
         lang: 'en',
@@ -22,8 +26,8 @@ export default defineNuxtConfig({
           content: 'Portfolio of Matthias Löhden, a full-stack developer building fast, thoughtful web experiences.',
         },
         { name: 'color-scheme', content: 'dark light' },
-        { name: 'theme-color', content: '#090b10', media: '(prefers-color-scheme: dark)' },
-        { name: 'theme-color', content: '#f4f5f7', media: '(prefers-color-scheme: light)' },
+        { name: 'theme-color', content: '#030509', media: '(prefers-color-scheme: dark)' },
+        { name: 'theme-color', content: '#f3f7fc', media: '(prefers-color-scheme: light)' },
       ],
       link: [{ rel: 'icon', type: 'image/svg+xml', href: `${baseURL}favicon.svg` }],
     },

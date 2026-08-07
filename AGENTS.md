@@ -11,7 +11,6 @@ The résumé in the repository root is an initial content source. Matthias has a
 - Minimal and editorial rather than template-like or crowded.
 - Dark mode is a first-class experience. Respect the visitor's system preference and preserve a path for a manual theme control.
 - Use subtle ambient background motion and purposeful micro-interactions. Prefer CSS transforms, opacity, and gradients over heavy canvas, WebGL, video, or animation libraries.
-- Motion must never block reading and must honor `prefers-reduced-motion`.
 - Responsive from small phones through large desktop screens.
 - Accessible keyboard navigation, visible focus states, semantic HTML, sufficient contrast, and meaningful labels are required.
 - Optimize for excellent Core Web Vitals: minimal JavaScript, no unnecessary dependencies, responsive media, and no layout shifts.
@@ -21,16 +20,7 @@ The résumé in the repository root is an initial content source. Matthias has a
 - Nuxt 4, Vue 3, TypeScript, Tailwind CSS 4, and Vite.
 - Frontend-only static site. Production output is generated with `yarn generate`.
 - Deployment target is GitHub Pages, including repository subpath support via `NUXT_APP_BASE_URL`.
-- Do not add server routes, middleware, runtime secrets, databases, authentication, or other backend-only features.
 - Prefer static content and compile-time data. Add client-side state only when a real interaction requires it.
-- Use yarn only. Do not introduce another package manager or lockfile.
-
-## Content and privacy
-
-- Public professional facts may be drawn from the résumé: name, profile summary, professional experience, education, and skills.
-- Do not publish the résumé's street address, phone number, birth date, or other sensitive personal data unless Matthias explicitly asks for it.
-- The résumé PDF is source material, not automatically a public download.
-- Keep portfolio copy concise, specific, credible, and available in English first. A second language can be added later if requested.
 
 ## Code conventions
 

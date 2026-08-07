@@ -13,6 +13,8 @@ dist/
 # Logs and coverage
 *.log
 coverage/
+playwright-report/
+test-results/
 
 # Local configuration
 .env
