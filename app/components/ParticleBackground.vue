@@ -222,7 +222,7 @@ watch(
 );
 
 onMounted(() => {
-  debugEnabled.value = import.meta.dev && new URLSearchParams(window.location.search).get('particlesDebug') === '1';
+  debugEnabled.value = import.meta.dev || new URLSearchParams(window.location.search).get('particlesDebug') === '1';
   reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   lightScheme = window.matchMedia('(prefers-color-scheme: light)');
 

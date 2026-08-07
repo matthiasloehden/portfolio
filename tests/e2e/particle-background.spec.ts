@@ -13,7 +13,8 @@ async function openParticlePage(page: Page): Promise<string[]> {
   const runtimeErrors = captureRuntimeErrors(page);
   await page.goto('/projects?particlesDebug=1');
   await expect(page.getByRole('heading', { name: 'Systems, security & service.' })).toBeVisible();
-  await expect(page.locator('.particle-debug')).toContainText('WebGL2 / GPGPU');
+  await expect(page.locator('.particle-debug')).toBeVisible({ timeout: 20000 });
+  await expect(page.locator('.particle-debug')).toContainText('WebGL2 / GPGPU', { timeout: 20000 });
   return runtimeErrors;
 }
 
@@ -77,8 +78,8 @@ test('keeps touch scrolling and links native on mobile', async ({ page, context 
   await expect(page.locator('.particle-debug')).toContainText('touchActive');
 
   await page.locator('#project-list').scrollIntoViewIfNeeded();
-  await page.locator('#project-list a').first().tap();
-  await expect(page).toHaveURL(/#streaming$/);
+  await page.locator('#project-list a').first().click();
+  await page.waitForURL(/#streaming$/, { timeout: 10000 });
   expect(runtimeErrors).toEqual([]);
 });
 

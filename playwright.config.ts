@@ -11,7 +11,7 @@ export default defineConfig({
   reporter: 'line',
   use: {
     baseURL: 'http://127.0.0.1:4173',
-    headless: false,
+    headless: process.env.CI ? true : false,
     launchOptions: {
       args: ['--use-gl=angle', '--use-angle=swiftshader-webgl', '--enable-unsafe-swiftshader'],
     },
