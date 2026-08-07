@@ -33,7 +33,7 @@ test('offers the complete navigation in the mobile menu', async ({ page }, testI
   await menuButton.click();
   await expect(menuButton).toHaveAttribute('aria-expanded', 'true');
   await expect(menu).toBeVisible();
-  await expect(menu.getByRole('link')).toHaveCount(4);
+  await expect(menu.getByRole('link')).toHaveCount(5);
 
   await page.keyboard.press('Escape');
   await expect(menu).toBeHidden();
@@ -42,4 +42,21 @@ test('offers the complete navigation in the mobile menu', async ({ page }, testI
   await menu.getByRole('link', { name: '02 Work' }).click();
   await expect(page).toHaveURL(/\/work$/);
   await expect(menu).toBeHidden();
+});
+
+test('presents personal projects and interests as a complete page', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'desktop-chromium', 'One content check is sufficient');
+
+  await page.goto('/personal');
+
+  await expect(page.getByRole('heading', { name: 'Built from curiosity.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Improving the tools I already use.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Running software beyond localhost.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Ideas explained from first principles.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'The machine matters too.' })).toBeVisible();
+  await expect(page.getByText('3Blue1Brown', { exact: true })).toBeVisible();
+  await expect(page.getByText('4 radiators', { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole('navigation', { name: 'Main navigation' }).getByRole('link', { name: '04 Personal' }),
+  ).toHaveAttribute('aria-current', 'page');
 });

@@ -47,7 +47,7 @@ watch(
         <ul
           id="site-navigation"
           :class="[
-            'absolute top-full right-0 left-0 z-20 m-0 list-none flex-col border-b border-line bg-background/95 px-6 py-4 shadow-xl backdrop-blur-xl md:static md:flex md:flex-row md:items-center md:gap-[clamp(1.25rem,3vw,3.25rem)] md:border-0 md:bg-transparent md:p-0 md:shadow-none md:backdrop-blur-none',
+            'absolute top-full right-0 left-0 z-20 m-0 list-none flex-col border-b border-line bg-background/95 px-6 py-4 shadow-xl backdrop-blur-xl md:static md:flex md:flex-row md:items-center md:gap-[clamp(1rem,2vw,2.25rem)] md:border-0 md:bg-transparent md:p-0 md:shadow-none md:backdrop-blur-none',
             menuOpen ? 'flex' : 'hidden md:flex',
           ]"
         >

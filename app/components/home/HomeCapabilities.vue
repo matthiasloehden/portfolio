@@ -24,14 +24,15 @@ defineProps<{
         class="motion-hover"
         data-reveal="left"
       >
-        A full-stack <em>toolkit.</em>
+        Experience,<br /><em>in context.</em>
       </h2>
       <p
         class="motion-hover"
         data-reveal="right"
         style="--reveal-delay: 100ms"
       >
-        Core skills from my résumé, applied across client platforms, operational tools, and university work.
+        Technologies grouped by where I have used them: in production, through academic work, and in projects I pursue
+        independently.
       </p>
     </div>
 

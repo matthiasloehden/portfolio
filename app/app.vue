@@ -3,15 +3,23 @@ import type { TransitionProps } from 'vue';
 
 const transitionCovered = ref(false);
 
+function revealPage(): void {
+  // Give newly mounted WebGL backgrounds enough time to paint their first frame
+  // before the transition layer becomes transparent.
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      transitionCovered.value = false;
+    });
+  });
+}
+
 const pageTransition: TransitionProps = {
   name: 'page',
   mode: 'out-in',
   onBeforeLeave: () => {
     transitionCovered.value = true;
   },
-  onBeforeEnter: () => {
-    transitionCovered.value = false;
-  },
+  onEnter: revealPage,
 };
 </script>
 

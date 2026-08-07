@@ -51,3 +51,26 @@ export interface WorkCaseStudyContent {
   paragraphs: string[];
   facts: WorkFact[];
 }
+
+export interface PersonalSectionContent {
+  id: string;
+  number: string;
+  category: string;
+  type: string;
+  title: string;
+  lead: string;
+  paragraphs: string[];
+  tags: string[];
+}
+
+export interface OpenSourceContribution {
+  status: string;
+  category: string;
+  title: string;
+  description: string;
+}
+
+export interface LearningSource {
+  name: string;
+  focus: string;
+}
