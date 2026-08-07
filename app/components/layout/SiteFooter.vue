@@ -12,7 +12,7 @@ const navigationItems = computed(() =>
 
 <template>
   <footer
-    class="site-container flex flex-col gap-6 border-t border-line py-9 font-mono text-[0.63rem] text-muted sm:flex-row sm:items-center sm:justify-between"
+    class="relative z-1 site-container flex flex-col gap-6 border-t border-line py-9 font-mono text-[0.63rem] text-muted sm:flex-row sm:items-center sm:justify-between"
   >
     <p>
       © {{ site.name }}

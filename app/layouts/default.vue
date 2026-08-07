@@ -1,4 +1,7 @@
 <script setup lang="ts">
+const route = useRoute();
+const isWorkPage = computed(() => route.path === '/work' || route.path === '/work/');
+
 useHead({
   script: [
     {
@@ -14,6 +17,7 @@ useHead({
   <div class="relative isolate min-h-screen overflow-hidden">
     <NuxtRouteAnnouncer />
     <LayoutSiteSkipLink target="#content" />
+    <TriangleBackground v-if="isWorkPage" />
     <LayoutSiteHeader />
     <slot />
     <LayoutSiteFooter />

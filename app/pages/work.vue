@@ -10,8 +10,6 @@ useSeoMeta({
 
 <template>
   <div class="work-shell relative isolate min-h-screen overflow-hidden">
-    <TriangleBackground />
-
     <main
       id="content"
       class="relative z-1 site-container"

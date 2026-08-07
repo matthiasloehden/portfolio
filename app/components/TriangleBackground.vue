@@ -1,13 +1,54 @@
 <script setup lang="ts">
 const background = ref<HTMLElement | null>(null);
+const bandCount = ref(1);
+const triangleDirections = [
+  ['polygon(0 0, 100% 0, 0 100%)', 'polygon(100% 0, 100% 100%, 0 100%)'],
+  ['polygon(0 0, 100% 0, 100% 100%)', 'polygon(0 0, 100% 100%, 0 100%)'],
+  ['polygon(100% 0, 100% 100%, 0 100%)', 'polygon(0 0, 100% 0, 0 100%)'],
+  ['polygon(0 0, 100% 100%, 0 100%)', 'polygon(0 0, 100% 0, 100% 100%)'],
+] as const;
 
 let animationFrame: number | null = null;
+let resizeObserver: ResizeObserver | null = null;
 let activeCell: HTMLElement | null = null;
 let finePointerEnabled = false;
 let touchInteractionEnabled = false;
 let pointerAvailable = false;
 let pointerX = 0;
 let pointerY = 0;
+
+function pseudoRandom(seed: number): number {
+  let value = Math.imul(seed ^ (seed >>> 16), 0x45d9f3b);
+  value = Math.imul(value ^ (value >>> 16), 0x45d9f3b);
+  return ((value ^ (value >>> 16)) >>> 0) / 4_294_967_295;
+}
+
+function getCellStyle(band: number, cell: number): Record<string, string> {
+  const seed = band * 137 + cell * 53;
+  const duration = 3 + pseudoRandom(seed + 11) * 7;
+  const shadeLow = 0.83 + pseudoRandom(seed + 23) * 0.08;
+  const shadeHigh = Math.min(0.98, shadeLow + 0.05 + pseudoRandom(seed + 37) * 0.04);
+  const direction =
+    triangleDirections[Math.floor(pseudoRandom(seed) * triangleDirections.length)] ?? triangleDirections[0];
+
+  return {
+    '--triangle-a': direction[0],
+    '--triangle-b': direction[1],
+    '--duration': `${duration.toFixed(2)}s`,
+    '--delay': `${(-pseudoRandom(seed + 71) * duration).toFixed(2)}s`,
+    '--shade-low': shadeLow.toFixed(3),
+    '--shade-mid': ((shadeLow + shadeHigh) / 2).toFixed(3),
+    '--shade-high': shadeHigh.toFixed(3),
+  };
+}
+
+function updateBandCount(): void {
+  if (!background.value) return;
+
+  const backgroundHeight = background.value.getBoundingClientRect().height;
+  const viewportHeight = Math.max(window.innerHeight, 1);
+  bandCount.value = Math.max(1, Math.ceil(backgroundHeight / viewportHeight));
+}
 
 function setActiveCell(nextCell: HTMLElement | null): void {
   if (nextCell === activeCell) return;
@@ -100,6 +141,14 @@ function clearPointer(): void {
 }
 
 onMounted(() => {
+  const backgroundElement = background.value;
+  if (!backgroundElement) return;
+
+  updateBandCount();
+  resizeObserver = new ResizeObserver(updateBandCount);
+  resizeObserver.observe(backgroundElement);
+  window.addEventListener('resize', updateBandCount, { passive: true });
+
   finePointerEnabled = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
   touchInteractionEnabled = window.matchMedia('(pointer: coarse)').matches;
 
@@ -121,6 +170,9 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
+  resizeObserver?.disconnect();
+  window.removeEventListener('resize', updateBandCount);
+
   if (animationFrame !== null) window.cancelAnimationFrame(animationFrame);
   setActiveCell(null);
 
@@ -144,14 +196,13 @@ onBeforeUnmount(() => {
 
 <template>
   <div
-    v-once
     ref="background"
     class="triangle-background"
     aria-hidden="true"
   >
     <div class="triangle-field">
       <div
-        v-for="band in 12"
+        v-for="band in bandCount"
         :key="band"
         class="triangle-band"
       >
@@ -159,6 +210,7 @@ onBeforeUnmount(() => {
           v-for="cell in 60"
           :key="cell"
           class="triangle-cell"
+          :style="getCellStyle(band, cell)"
         />
       </div>
     </div>
@@ -185,7 +237,7 @@ onBeforeUnmount(() => {
   position: absolute;
   inset: 0;
   display: grid;
-  grid-template-rows: repeat(12, 100vh);
+  grid-auto-rows: 100vh;
   overflow: hidden;
 }
 
@@ -203,6 +255,11 @@ onBeforeUnmount(() => {
 .triangle-cell {
   --duration: 11s;
   --delay: -3s;
+  --triangle-a: polygon(0 0, 100% 0, 0 100%);
+  --triangle-b: polygon(100% 0, 100% 100%, 0 100%);
+  --shade-low: 0.82;
+  --shade-mid: 0.88;
+  --shade-high: 0.94;
   --drift-x: 1px;
   --drift-y: -1px;
   --rotation: 0.8deg;
@@ -217,6 +274,7 @@ onBeforeUnmount(() => {
   contain: layout paint style;
   opacity: 0.86;
   transform-origin: center;
+  animation: triangle-idle var(--duration) ease-in-out var(--delay) infinite alternate;
 }
 
 .triangle-cell::before,
@@ -232,26 +290,16 @@ onBeforeUnmount(() => {
 }
 
 .triangle-cell::before {
-  clip-path: polygon(0 0, 100% 0, 0 100%);
+  clip-path: var(--triangle-a);
   opacity: var(--plate-a);
 }
 
 .triangle-cell::after {
-  clip-path: polygon(100% 0, 100% 100%, 0 100%);
+  clip-path: var(--triangle-b);
   opacity: var(--plate-b);
 }
 
-.triangle-cell:nth-child(even)::before {
-  clip-path: polygon(0 0, 100% 0, 100% 100%);
-}
-
-.triangle-cell:nth-child(even)::after {
-  clip-path: polygon(0 0, 100% 100%, 0 100%);
-}
-
 .triangle-cell:nth-child(3n) {
-  --duration: 13.5s;
-  --delay: -8s;
   --drift-x: -1px;
   --rotation: -0.65deg;
   --tilt-x: -0.5deg;
@@ -261,8 +309,6 @@ onBeforeUnmount(() => {
 }
 
 .triangle-cell:nth-child(4n + 1) {
-  --duration: 8.5s;
-  --delay: -5.5s;
   --drift-y: 1px;
   --rotation: 0.45deg;
   --tilt-x: 1.1deg;
@@ -271,8 +317,6 @@ onBeforeUnmount(() => {
 }
 
 .triangle-cell:nth-child(5n + 2) {
-  --duration: 15s;
-  --delay: -11s;
   --drift-x: 2px;
   --drift-y: 0;
   --tilt-x: -0.8deg;
@@ -282,8 +326,6 @@ onBeforeUnmount(() => {
 }
 
 .triangle-cell:nth-child(7n + 3) {
-  --duration: 10s;
-  --delay: -2s;
   --rotation: -1.1deg;
   --tilt-x: 0.4deg;
   --tilt-y: 1.2deg;
@@ -293,8 +335,6 @@ onBeforeUnmount(() => {
 }
 
 .triangle-cell:nth-child(11n + 4) {
-  --duration: 6.5s;
-  --delay: -4s;
   --drift-x: 0;
   --drift-y: 2px;
   --tilt-x: -1.15deg;
@@ -304,8 +344,6 @@ onBeforeUnmount(() => {
 }
 
 .triangle-cell:nth-child(13n + 6) {
-  --duration: 14.5s;
-  --delay: -9s;
   --rotation: 0.2deg;
   --tilt-x: 0.25deg;
   --tilt-y: -0.4deg;
@@ -314,25 +352,21 @@ onBeforeUnmount(() => {
   --plate-b: 0.035;
 }
 
-.triangle-cell:nth-child(2n) {
-  animation: triangle-idle var(--duration) ease-in-out var(--delay) infinite alternate;
-}
-
 @keyframes triangle-idle {
   0% {
-    opacity: 0.72;
+    opacity: var(--shade-low);
     transform: translate3d(0, 0, 0) rotateX(0) rotateY(0) rotateZ(0) scale(1);
   }
 
   55% {
-    opacity: 0.93;
+    opacity: var(--shade-mid);
     transform: translate3d(calc(var(--drift-x) * -0.35), calc(var(--drift-y) * -0.35), 0)
       rotateX(calc(var(--tilt-x) * -0.45)) rotateY(calc(var(--tilt-y) * -0.45)) rotateZ(calc(var(--rotation) * 0.2))
       scale(0.998);
   }
 
   100% {
-    opacity: 1;
+    opacity: var(--shade-high);
     transform: translate3d(var(--drift-x), var(--drift-y), 0) rotateX(var(--tilt-x)) rotateY(var(--tilt-y))
       rotateZ(var(--rotation)) scale(var(--idle-scale));
   }
