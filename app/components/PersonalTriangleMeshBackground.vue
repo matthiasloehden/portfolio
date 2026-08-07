@@ -297,14 +297,7 @@ function drawScene(): void {
 
   const pointerScreenY = pointerY - scrollOffset;
   if (pointerStrength > 0.002) {
-    const glow = meshContext.createRadialGradient(
-      pointerX,
-      pointerScreenY,
-      0,
-      pointerX,
-      pointerScreenY,
-      pointerRadius,
-    );
+    const glow = meshContext.createRadialGradient(pointerX, pointerScreenY, 0, pointerX, pointerScreenY, pointerRadius);
     glow.addColorStop(0, `rgba(${palette.ambient}, ${0.075 * pointerStrength})`);
     glow.addColorStop(0.42, `rgba(${palette.ambient}, ${0.025 * pointerStrength})`);
     glow.addColorStop(1, `rgba(${palette.ambient}, 0)`);
@@ -368,8 +361,7 @@ function render(now: number): void {
     const releaseProgress = Math.min(1, Math.max(0, (now - releaseStartedAt) / POINTER_WAKE_DURATION));
     const easedReleaseProgress = smoothstep(0, 1, releaseProgress);
     pointerStrength = releaseStartStrength * (1 - easedReleaseProgress);
-    pointerRadius =
-      releaseStartRadius + (POINTER_WAKE_MIN_RADIUS - releaseStartRadius) * easedReleaseProgress;
+    pointerRadius = releaseStartRadius + (POINTER_WAKE_MIN_RADIUS - releaseStartRadius) * easedReleaseProgress;
   }
 
   if (!props.active) {

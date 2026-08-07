@@ -43,9 +43,7 @@ let lightScheme: MediaQueryList | null = null;
 let contextLost = false;
 
 function getParticleColor(): string {
-  return document.documentElement.dataset.theme === 'light'
-    ? PARTICLE_CONFIG.lightColor
-    : PARTICLE_CONFIG.darkColor;
+  return document.documentElement.dataset.theme === 'light' ? PARTICLE_CONFIG.lightColor : PARTICLE_CONFIG.darkColor;
 }
 
 function resizeRenderer(): void {

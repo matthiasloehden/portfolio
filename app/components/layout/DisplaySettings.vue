@@ -72,9 +72,21 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onDocumentPoin
         aria-hidden="true"
       >
         <path d="M2 4h7M12 4h2M2 12h2M7 12h7M2 8h3M8 8h6" />
-        <circle cx="10.5" cy="4" r="1.5" />
-        <circle cx="5.5" cy="12" r="1.5" />
-        <circle cx="6.5" cy="8" r="1.5" />
+        <circle
+          cx="10.5"
+          cy="4"
+          r="1.5"
+        />
+        <circle
+          cx="5.5"
+          cy="12"
+          r="1.5"
+        />
+        <circle
+          cx="6.5"
+          cy="8"
+          r="1.5"
+        />
       </svg>
     </button>
 
@@ -125,7 +137,9 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onDocumentPoin
       <label class="mt-4 flex cursor-pointer items-center justify-between gap-4 border-t border-line pt-4">
         <span class="grid gap-1">
           <strong class="font-mono text-[0.65rem] font-semibold text-foreground">Background motion</strong>
-          <small class="font-mono text-[0.56rem] leading-relaxed text-muted">Keep the scene visible but pause it.</small>
+          <small class="font-mono text-[0.56rem] leading-relaxed text-muted"
+            >Keep the scene visible but pause it.</small
+          >
         </span>
         <input
           class="motion-toggle"

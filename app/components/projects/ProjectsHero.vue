@@ -22,21 +22,21 @@
         style="--reveal-delay: 130ms"
       >
         <p class="motion-hover">
-          Three university projects exploring how modern software moves data, establishes trust, and supports the people
-          who depend on it.
+          Three selected projects sit within broader coursework spanning programming paradigms, web applications, event
+          streaming, security, and service management.
         </p>
         <dl class="grid border-t border-line">
           <div class="motion-hover flex justify-between gap-4 border-b border-line">
-            <dt>Scope</dt>
-            <dd>Prototypes &amp; concepts</dd>
+            <dt>Languages</dt>
+            <dd>JavaScript, Java, Python &amp; Prolog</dd>
+          </div>
+          <div class="motion-hover flex justify-between gap-4 border-b border-line">
+            <dt>Platforms</dt>
+            <dd>Kafka &amp; Jakarta Faces</dd>
           </div>
           <div class="motion-hover flex justify-between gap-4 border-b border-line">
             <dt>Focus</dt>
             <dd>Applied computer science</dd>
-          </div>
-          <div class="motion-hover flex justify-between gap-4 border-b border-line">
-            <dt>Format</dt>
-            <dd>University coursework</dd>
           </div>
         </dl>
       </div>

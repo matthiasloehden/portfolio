@@ -30,7 +30,7 @@
         <dl class="border-t border-line">
           <div class="motion-hover flex justify-between gap-4 border-b border-line">
             <dt>Code</dt>
-            <dd>Features &amp; fixes</dd>
+            <dd>C#, Unity &amp; open source</dd>
           </div>
           <div class="motion-hover flex justify-between gap-4 border-b border-line">
             <dt>Systems</dt>

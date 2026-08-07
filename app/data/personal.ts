@@ -1,9 +1,4 @@
-import type {
-  CaseStudyListItem,
-  LearningSource,
-  OpenSourceContribution,
-  PersonalSectionContent,
-} from '@/types/content';
+import type { CaseStudyListItem, LearningGroup, OpenSourceContribution, PersonalSectionContent } from '@/types/content';
 
 export const personalList: CaseStudyListItem[] = [
   { href: '#open-source', number: '01', title: 'Open-source contributions', category: 'Features & fixes' },
@@ -48,10 +43,10 @@ export const learningSection: PersonalSectionContent = {
   title: 'Ideas explained from first principles.',
   lead: 'The creators I value most make complex systems tangible through careful explanation, visual thinking, and hands-on exploration.',
   paragraphs: [
-    'My favourites range from mathematics and infrastructure to electronics, computer science, and creative coding.',
+    'My favourites form three complementary groups: computer science from code down to hardware, engineering in the physical world, and visual mathematics.',
     'Together they are a steady source of new questions—and a reminder that the clearest explanations usually come from understanding a subject deeply.',
   ],
-  tags: ['Mathematics', 'Engineering', 'Electronics', 'Computer science'],
+  tags: ['Computer science', 'Engineering', 'Mathematics', 'Creative coding'],
 };
 
 export const hardwareSection: PersonalSectionContent = {
@@ -89,11 +84,27 @@ export const contributions: OpenSourceContribution[] = [
   },
 ];
 
-export const learningSources: LearningSource[] = [
-  { name: '3Blue1Brown', focus: 'Mathematics, made visual' },
-  { name: 'Practical Engineering', focus: 'Infrastructure & engineering' },
-  { name: 'Sebastian Lague', focus: 'Creative coding & algorithms' },
-  { name: 'Ben Eater', focus: 'Computers from first principles' },
-  { name: 'Branch Education', focus: 'Engineering visualised' },
-  { name: 'Core Dumped', focus: 'Computer science, unpacked' },
+export const learningGroups: LearningGroup[] = [
+  {
+    category: 'Computer science',
+    description: 'From algorithms and creative coding to logic gates and operating systems.',
+    sources: [
+      { name: 'Sebastian Lague', focus: 'Creative coding & algorithms' },
+      { name: 'Ben Eater', focus: 'Computers from first principles' },
+      { name: 'Core Dumped', focus: 'Computer science, unpacked' },
+    ],
+  },
+  {
+    category: 'Engineering',
+    description: 'Physical systems made understandable through careful visual explanation.',
+    sources: [
+      { name: 'Practical Engineering', focus: 'Infrastructure & engineering' },
+      { name: 'Branch Education', focus: 'Engineering visualised' },
+    ],
+  },
+  {
+    category: 'Mathematics',
+    description: 'Abstract ideas made intuitive through geometry and animation.',
+    sources: [{ name: '3Blue1Brown', focus: 'Mathematics, made visual' }],
+  },
 ];

@@ -7,7 +7,7 @@ node_modules/
 # Nuxt output
 .nuxt/
 .output/
-dist/
+/dist
 *.tsbuildinfo
 
 # Logs and coverage
@@ -20,6 +20,9 @@ test-results/
 .env
 .env.*
 !.env.example
+
+# Private source material
+lebenslauf*.pdf
 
 # Editors and operating systems
 .idea/

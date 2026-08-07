@@ -74,3 +74,9 @@ export interface LearningSource {
   name: string;
   focus: string;
 }
+
+export interface LearningGroup {
+  category: string;
+  description: string;
+  sources: LearningSource[];
+}

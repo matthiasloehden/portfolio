@@ -1,4 +1,4 @@
-export default defineNuxtPlugin((nuxtApp) => {
+export default defineNuxtPlugin(() => {
   const motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)');
 
   function reveal(element: HTMLElement): void {
@@ -51,7 +51,7 @@ export default defineNuxtPlugin((nuxtApp) => {
     document.querySelectorAll<HTMLElement>('[data-reveal]').forEach(reveal);
   }
 
-  nuxtApp.hook('app:mounted', () => {
+  onNuxtReady(() => {
     document.documentElement.classList.add('motion-ready');
     bindScope(document);
     domObserver.observe(document.body, { childList: true, subtree: true });

@@ -3,12 +3,8 @@ import type { BackgroundPreference } from '@/composables/usePortfolioPreferences
 
 const route = useRoute();
 const normalizedPath = computed(() => route.path.replace(/\/+$/, '') || '/');
-const {
-  backgroundPreference,
-  backgroundMotionEnabled,
-  initializePreferences,
-  disposePreferences,
-} = usePortfolioPreferences();
+const { backgroundPreference, backgroundMotionEnabled, initializePreferences, disposePreferences } =
+  usePortfolioPreferences();
 
 const automaticBackground = computed<BackgroundPreference>(() => {
   if (normalizedPath.value === '/') return 'wave';

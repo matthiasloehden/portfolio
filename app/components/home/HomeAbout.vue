@@ -16,8 +16,9 @@
         class="motion-hover"
         data-reveal="right"
       >
-        I trained and worked at TopRed Media, progressing from application development into a full-stack role. Today I
-        pair that hands-on experience with ongoing computer science studies.
+        I completed my application-development apprenticeship at TopRed Media from 2019 to 2022 and continued there as a
+        full-stack developer until 2025. Since 2022, I have paired that hands-on experience with computer science
+        studies at IU.
       </p>
       <p
         class="motion-hover"

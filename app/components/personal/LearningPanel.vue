@@ -1,77 +1,115 @@
 <script setup lang="ts">
-import { learningSources } from '@/data/personal';
+import { learningGroups } from '@/data/personal';
 </script>
 
 <template>
   <SharedPanelFrame
     class="learning-panel"
     title="watch.list"
-    meta="6 favourite creators"
+    meta="6 creators / 3 fields"
   >
-    <ol
-      class="creator-grid"
-      aria-label="Favourite educational YouTube creators"
+    <div
+      class="learning-groups"
+      aria-label="Favourite educational YouTube creators grouped by subject"
     >
-      <li
-        v-for="(source, index) in learningSources"
-        :key="source.name"
+      <section
+        v-for="(group, groupIndex) in learningGroups"
+        :key="group.category"
+        class="creator-group"
       >
-        <span>{{ String(index + 1).padStart(2, '0') }}</span>
-        <div>
-          <h3>{{ source.name }}</h3>
-          <p>{{ source.focus }}</p>
-        </div>
-        <i aria-hidden="true">↗</i>
-      </li>
-    </ol>
+        <header>
+          <span>{{ String(groupIndex + 1).padStart(2, '0') }}</span>
+          <div>
+            <h3>{{ group.category }}</h3>
+            <p>{{ group.description }}</p>
+          </div>
+        </header>
+        <ol class="creator-grid">
+          <li
+            v-for="(source, sourceIndex) in group.sources"
+            :key="source.name"
+          >
+            <span>{{ String(sourceIndex + 1).padStart(2, '0') }}</span>
+            <div>
+              <h4>{{ source.name }}</h4>
+              <p>{{ source.focus }}</p>
+            </div>
+          </li>
+        </ol>
+      </section>
+    </div>
   </SharedPanelFrame>
 </template>
 
 <style scoped>
+.learning-groups {
+  display: grid;
+  gap: 0.75rem;
+  padding: clamp(1rem, 3vw, 1.8rem);
+}
+
+.creator-group {
+  border: 1px solid var(--border);
+  background: linear-gradient(135deg, var(--surface), transparent 75%);
+}
+
+.creator-group > header {
+  display: grid;
+  grid-template-columns: 2rem 1fr;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.creator-group > header > span,
+.creator-grid li > span {
+  color: var(--accent);
+  font-family: var(--mono-font);
+  font-size: 0.58rem;
+}
+
+.creator-group h3 {
+  font-size: clamp(1.35rem, 2.5vw, 1.9rem);
+  letter-spacing: -0.03em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.creator-group p {
+  margin-top: 0.45rem;
+  color: var(--muted);
+  font-family: var(--mono-font);
+  font-size: 0.55rem;
+  line-height: 1.5;
+}
+
 .creator-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
   margin: 0;
-  padding: clamp(1rem, 3vw, 1.8rem);
+  padding: 0;
   list-style: none;
 }
 
 .creator-grid li {
   display: grid;
-  grid-template-columns: 1.8rem 1fr auto;
+  grid-template-columns: 1.8rem 1fr;
   gap: 0.7rem;
-  min-height: 7.5rem;
+  min-height: 6.5rem;
   padding: 1rem;
-  border: 1px solid var(--border);
-  background: linear-gradient(135deg, var(--surface), transparent 75%);
+  border-right: 1px solid var(--border);
 }
 
-.creator-grid li:nth-child(even) {
-  border-left: 0;
+.creator-grid li:last-child {
+  border-right: 0;
 }
 
-.creator-grid li:nth-child(n + 3) {
-  border-top: 0;
-}
-
-.creator-grid li > span,
-.creator-grid li > i {
-  color: var(--accent);
-  font-family: var(--mono-font);
-  font-size: 0.58rem;
-  font-style: normal;
-}
-
-.creator-grid li > i {
-  color: var(--quiet);
-  transition:
-    color 180ms ease,
-    transform 180ms ease;
-}
-
-.creator-grid h3 {
+.creator-grid h4 {
+  margin: 0;
+  font-family: var(--display-font);
   max-width: 12ch;
   font-size: clamp(1.15rem, 2.3vw, 1.65rem);
+  font-weight: 700;
   letter-spacing: -0.03em;
   line-height: 0.95;
   text-transform: uppercase;
@@ -79,17 +117,6 @@ import { learningSources } from '@/data/personal';
 
 .creator-grid p {
   margin-top: 0.7rem;
-  color: var(--muted);
-  font-family: var(--mono-font);
-  font-size: 0.55rem;
-  line-height: 1.5;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .creator-grid li:hover > i {
-    color: var(--accent-bright);
-    transform: translate(0.15rem, -0.15rem);
-  }
 }
 
 @media (max-width: 520px) {
@@ -97,12 +124,13 @@ import { learningSources } from '@/data/personal';
     grid-template-columns: 1fr;
   }
 
-  .creator-grid li:nth-child(even) {
-    border-left: 1px solid var(--border);
+  .creator-grid li {
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
   }
 
-  .creator-grid li:nth-child(n + 2) {
-    border-top: 0;
+  .creator-grid li:last-child {
+    border-bottom: 0;
   }
 }
 </style>
