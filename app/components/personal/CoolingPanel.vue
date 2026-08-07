@@ -6,32 +6,229 @@
   >
     <div
       class="loop-diagram"
-      aria-label="Custom PC water-cooling loop with four radiators and two pumps"
+      aria-label="Custom PC water-cooling system with four radiators, dual pumps, CPU, RAM and GPU water blocks"
     >
-      <div class="loop-path loop-path-top"><i /><i /><i /></div>
-      <div class="loop-path loop-path-right"><i /><i /></div>
-      <div class="loop-path loop-path-bottom"><i /><i /><i /></div>
-      <div class="loop-path loop-path-left"><i /><i /></div>
+      <!--
+        Tubing — single serial loop:
+        bottom radiator → GPU → RAM → CPU → top radiator
+        → right radiator → left radiator → left pump → right pump → bottom radiator
+      -->
+      <svg
+        class="loop-tubing"
+        viewBox="0 0 1000 700"
+        preserveAspectRatio="none"
+        aria-hidden="true"
+      >
+        <path
+          class="tube tube-base"
+          d="
+            M 200 615
+            V 475
+            Q 200 450 225 450
+            H 480
+            Q 505 450 505 425
+            V 300
+            Q 505 275 480 275
+            H 250
+            Q 225 275 225 250
+            V 85
+            Q 225 60 250 60
+            H 807
+            Q 832 60 832 85
+            V 275
+            Q 832 300 807 300
+            H 741
+            Q 716 300 716 325
+            V 448
+            Q 716 473 741 473
+            H 807
+            Q 832 473 832 498
+            V 615
+            Q 832 640 807 640
+            H 225
+            Q 200 640 200 615
+            Z
+          "
+        />
 
-      <div class="radiator radiator-one"><span>R01</span><strong>Radiator</strong></div>
-      <div class="radiator radiator-two"><span>R02</span><strong>Radiator</strong></div>
-      <div class="radiator radiator-three"><span>R03</span><strong>Radiator</strong></div>
-      <div class="radiator radiator-four"><span>R04</span><strong>Radiator</strong></div>
+        <path
+          class="tube tube-flow"
+          d="
+            M 200 615
+            V 475
+            Q 200 450 225 450
+            H 480
+            Q 505 450 505 425
+            V 300
+            Q 505 275 480 275
+            H 250
+            Q 225 275 225 250
+            V 85
+            Q 225 60 250 60
+            H 807
+            Q 832 60 832 85
+            V 275
+            Q 832 300 807 300
+            H 741
+            Q 716 300 716 325
+            V 448
+            Q 716 473 741 473
+            H 807
+            Q 832 473 832 498
+            V 615
+            Q 832 640 807 640
+            H 225
+            Q 200 640 200 615
+            Z
+          "
+        />
+      </svg>
 
-      <div class="pump pump-one"><span>P01</span><strong>Pump</strong><i aria-hidden="true" /></div>
-      <div class="pump pump-two"><span>P02</span><strong>Pump</strong><i aria-hidden="true" /></div>
+      <!-- Top radiator -->
+      <div class="radiator radiator-top">
+        <div class="radiator-label">
+          <span>R01</span>
+          <strong>Top radiator</strong>
+        </div>
 
-      <div class="loop-core">
-        <small>CUSTOM PC</small>
-        <strong>Water<br />cooling</strong>
-        <span>Closed loop</span>
+        <div
+          class="radiator-fins"
+          aria-hidden="true"
+        >
+          <i v-for="n in 14" :key="n" />
+        </div>
+      </div>
+
+      <!-- Motherboard -->
+      <div class="motherboard">
+        <div class="board-header">
+          <span>MB01</span>
+          <span>MAINBOARD</span>
+        </div>
+
+        <div class="board-grid" aria-hidden="true" />
+
+        <div class="cpu-ram-group">
+          <div class="cpu-block hardware-block">
+            <small>CPU</small>
+            <i />
+          </div>
+
+          <div class="ram-zone hardware-block">
+            <span class="ram-label">RAM</span>
+
+            <div
+              class="ram-bank"
+              aria-hidden="true"
+            >
+              <i />
+              <i />
+              <i />
+              <i />
+            </div>
+
+
+          </div>
+        </div>
+
+        <div class="gpu-block">
+          <div class="gpu-edge">
+            <span>GPU</span>
+            <small>VERTICAL</small>
+          </div>
+
+          <div class="gpu-core">
+            <span>FULL COVER</span>
+            <strong>WATER<br />BLOCK</strong>
+          </div>
+
+          <div class="gpu-lines" aria-hidden="true">
+            <i />
+            <i />
+            <i />
+          </div>
+        </div>
+      </div>
+
+      <!-- Side cooling -->
+      <div class="side-cooling">
+        <div class="rear-radiators">
+          <div class="radiator radiator-rear radiator-three">
+            <span>R03</span>
+
+            <div
+              class="vertical-fins"
+              aria-hidden="true"
+            >
+              <i v-for="n in 7" :key="n" />
+            </div>
+          </div>
+
+          <div class="radiator radiator-rear radiator-four">
+            <span>R04</span>
+
+            <div
+              class="vertical-fins"
+              aria-hidden="true"
+            >
+              <i v-for="n in 7" :key="n" />
+            </div>
+          </div>
+        </div>
+
+        <div class="pump-bank">
+          <div class="pump">
+            <span>P01</span>
+            <strong>PUMP</strong>
+            <i aria-hidden="true" />
+          </div>
+
+          <div class="pump">
+            <span>P02</span>
+            <strong>PUMP</strong>
+            <i aria-hidden="true" />
+          </div>
+        </div>
+
+        <span class="side-label">DUAL LOOP DRIVE</span>
+      </div>
+
+      <!-- Bottom radiator -->
+      <div class="radiator radiator-bottom">
+        <div class="radiator-label">
+          <span>R02</span>
+          <strong>Bottom radiator</strong>
+        </div>
+
+        <div
+          class="radiator-fins"
+          aria-hidden="true"
+        >
+          <i v-for="n in 14" :key="n" />
+        </div>
+      </div>
+
+      <div class="diagram-status">
+        <span>LIQUID COOLING</span>
+        <strong>Custom loop</strong>
       </div>
     </div>
 
     <div class="cooling-meta grid border-t border-line">
-      <div><span>Heat exchange</span><strong>04×</strong></div>
-      <div><span>Flow</span><strong>02×</strong></div>
-      <div><span>Build</span><strong>Custom</strong></div>
+      <div>
+        <span>Radiators</span>
+        <strong>04×</strong>
+      </div>
+
+      <div>
+        <span>Pumps</span>
+        <strong>02×</strong>
+      </div>
+
+      <div>
+        <span>Blocks</span>
+        <strong>CPU / RAM / GPU</strong>
+      </div>
     </div>
   </SharedPanelFrame>
 </template>
@@ -40,179 +237,475 @@
 .loop-diagram {
   position: relative;
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  grid-template-rows: repeat(5, minmax(3rem, 1fr));
-  gap: 0.55rem;
-  min-height: clamp(24rem, 45vw, 32rem);
-  padding: clamp(1.2rem, 4vw, 2.3rem);
+  grid-template-columns: repeat(12, 1fr);
+  grid-template-rows: 4.5rem repeat(8, 1fr) 4.5rem;
+  gap: 0.6rem;
+  min-height: clamp(30rem, 52vw, 38rem);
+  padding: clamp(1rem, 3vw, 1.8rem);
+  overflow: hidden;
+  background:
+    linear-gradient(var(--border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border) 1px, transparent 1px);
+  background-size: 2rem 2rem;
 }
 
-.loop-path {
+/* ---------------------------------
+   Cooling loop
+   --------------------------------- */
+
+.loop-tubing {
   position: absolute;
-  border-color: var(--border-strong);
+  z-index: 0;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   pointer-events: none;
 }
 
-.loop-path-top,
-.loop-path-bottom {
-  right: 13%;
-  left: 13%;
-  height: 1px;
-  border-top: 1px solid var(--border-strong);
+.tube {
+  fill: none;
+  vector-effect: non-scaling-stroke;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
-.loop-path-top {
-  top: 15%;
+.tube-base {
+  stroke: var(--border-strong);
+  stroke-width: 2;
 }
 
-.loop-path-bottom {
-  bottom: 15%;
+.tube-flow {
+  stroke: var(--accent-bright);
+  stroke-width: 1.5;
+  stroke-dasharray: 2 18;
+  filter: drop-shadow(0 0 0.35rem var(--accent));
+  animation: coolant-flow 8s linear infinite;
 }
 
-.loop-path-left,
-.loop-path-right {
-  top: 15%;
-  bottom: 15%;
-  width: 1px;
-  border-left: 1px solid var(--border-strong);
-}
-
-.loop-path-left {
-  left: 13%;
-}
-
-.loop-path-right {
-  right: 13%;
-}
-
-.loop-path i {
-  position: absolute;
-  width: 0.35rem;
-  aspect-ratio: 1;
-  border-radius: 50%;
-  background: var(--accent-bright);
-  box-shadow: 0 0 0.7rem var(--accent);
-}
-
-.loop-path-top i,
-.loop-path-bottom i {
-  top: -0.2rem;
-  animation: coolant-x 3.8s linear infinite;
-}
-
-.loop-path-left i,
-.loop-path-right i {
-  left: -0.2rem;
-  animation: coolant-y 3.8s linear infinite;
-}
-
-.loop-path i:nth-child(2) {
-  animation-delay: -1.27s;
-}
-
-.loop-path i:nth-child(3) {
-  animation-delay: -2.54s;
-}
+/* ---------------------------------
+   Shared components
+   --------------------------------- */
 
 .radiator,
-.pump,
-.loop-core {
-  z-index: 1;
-  display: grid;
-  place-items: center;
-  border: 1px solid var(--border);
-  background: color-mix(in srgb, var(--background-raised) 92%, transparent);
-  text-align: center;
+.motherboard,
+.pump {
+  border: 1px solid var(--border-strong);
+  background: color-mix(
+    in srgb,
+    var(--background-raised) 95%,
+    transparent
+  );
 }
 
 .radiator {
-  align-self: center;
-  min-height: 4.3rem;
+  position: relative;
+  z-index: 2;
+  overflow: hidden;
 }
 
-.radiator-one {
+.radiator-label {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  left: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  transform: translateY(-50%);
+}
+
+.radiator-label span,
+.radiator-rear > span,
+.board-header,
+.cpu-block small,
+.ram-zone > span,
+.ram-zone small,
+.gpu-edge,
+.gpu-core span,
+.side-label,
+.diagram-status span,
+.pump span {
+  font-family: var(--mono-font);
+  font-size: 0.5rem;
+  letter-spacing: 0.08em;
+}
+
+.radiator-label span,
+.radiator-rear > span,
+.cpu-block small,
+.ram-zone > span,
+.gpu-edge span,
+.diagram-status span,
+.pump span {
+  color: var(--accent);
+}
+
+.radiator-label strong {
+  font-family: var(--display-font);
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* ---------------------------------
+   Top / bottom radiators
+   --------------------------------- */
+
+.radiator-top {
   grid-row: 1;
-  grid-column: 2;
+  grid-column: 2 / 12;
 }
 
-.radiator-two {
-  grid-row: 1;
-  grid-column: 4;
+.radiator-bottom {
+  grid-row: 10;
+  grid-column: 2 / 12;
 }
 
-.radiator-three {
-  grid-row: 5;
-  grid-column: 2;
+.radiator-fins {
+  position: absolute;
+  inset: 0.5rem 0.65rem;
+  display: grid;
+  grid-template-columns: repeat(14, 1fr);
+  gap: 0.28rem;
+  opacity: 0.5;
 }
 
-.radiator-four {
-  grid-row: 5;
-  grid-column: 4;
+.radiator-fins i {
+  border-right: 1px solid var(--border-strong);
+  border-left: 1px solid var(--border-strong);
+  background:
+    repeating-linear-gradient(
+      180deg,
+      transparent 0,
+      transparent 3px,
+      var(--border) 3px,
+      var(--border) 4px
+    );
+}
+
+/* ---------------------------------
+   Motherboard
+   --------------------------------- */
+
+.motherboard {
+  position: relative;
+  z-index: 2;
+  grid-row: 3 / 9;
+  grid-column: 2 / 9;
+  min-height: 0;
+  padding: 0.8rem;
+  overflow: hidden;
+}
+
+.board-header {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  justify-content: space-between;
+  color: var(--muted);
+}
+
+.board-grid {
+  position: absolute;
+  inset: 0;
+  opacity: 0.34;
+  background:
+    linear-gradient(
+      90deg,
+      transparent 49%,
+      var(--border) 50%,
+      transparent 51%
+    ),
+    linear-gradient(
+      transparent 49%,
+      var(--border) 50%,
+      transparent 51%
+    );
+  background-size: 2.4rem 2.4rem;
+}
+
+/* ---------------------------------
+   CPU + RAM group
+   --------------------------------- */
+
+.cpu-ram-group {
+  position: absolute;
+  z-index: 3;
+  top: 12%;
+  left: 12%;
+  display: flex;
+  align-items: center;
+  gap: 4rem;
+  width: clamp(15rem, 30vw, 21rem);
+}
+
+/* ---------------------------------
+   CPU block
+   --------------------------------- */
+
+.cpu-block {
+  position: relative;
+  display: grid;
+  width: clamp(4.2rem, 9vw, 5.5rem);
+  aspect-ratio: 1;
+  place-items: center;
+  border: 1px solid var(--accent);
+  background:
+    radial-gradient(
+      circle,
+      color-mix(in srgb, var(--accent) 18%, transparent),
+      transparent 68%
+    ),
+    var(--background-raised);
+}
+
+.cpu-block strong {
+  font-family: var(--display-font);
+  font-size: 0.8rem;
+}
+
+.cpu-block i {
+  position: absolute;
+  inset: 0.45rem;
+  border: 1px dashed var(--accent);
+  border-radius: 50%;
+  opacity: 0.65;
+}
+
+/* ---------------------------------
+   RAM
+   --------------------------------- */
+
+.ram-zone {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.ram-label {
+  color: var(--muted);
+  font-size: 0.7rem;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  line-height: 1;
+}
+
+.ram-bank {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.22rem;
+  width: clamp(3.6rem, 8vw, 4.6rem);
+  height: clamp(2.6rem, 6vw, 3.4rem);
+}
+
+.ram-bank i {
+  border: 1px solid var(--border-strong);
+  background:
+    linear-gradient(
+      to bottom,
+      var(--accent) 0 3px,
+      transparent 3px
+    ),
+    color-mix(
+      in srgb,
+      var(--background-raised) 90%,
+      transparent
+    );
+}
+
+.ram-zone small {
+  color: var(--muted);
+}
+
+/* ---------------------------------
+   GPU
+   --------------------------------- */
+
+.gpu-block {
+  position: absolute;
+  z-index: 4;
+  right: 10%;
+  bottom: 8%;
+  left: 12%;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  min-height: 28%;
+  border: 1px solid var(--border-strong);
+  background:
+    linear-gradient(
+      110deg,
+      color-mix(in srgb, var(--accent) 9%, transparent),
+      transparent 55%
+    ),
+    var(--background-raised);
+}
+
+.gpu-edge {
+  display: flex;
+  width: 3rem;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.65rem 0.45rem;
+  border-right: 1px solid var(--border);
+}
+
+.gpu-edge small {
+  color: var(--muted);
+  font-size: 0.42rem;
+  writing-mode: vertical-rl;
+}
+
+.gpu-core {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 1rem 1.25rem;
+}
+
+.gpu-core span {
+  color: var(--muted);
+}
+
+.gpu-core strong {
+  margin-top: 0.2rem;
+  font-family: var(--display-font);
+  font-size: clamp(1.3rem, 3vw, 2.3rem);
+  letter-spacing: -0.035em;
+  line-height: 0.82;
+  text-transform: uppercase;
+}
+
+.gpu-lines {
+  position: absolute;
+  top: 20%;
+  right: 1rem;
+  bottom: 20%;
+  display: grid;
+  width: 22%;
+  gap: 0.35rem;
+}
+
+.gpu-lines i {
+  border-top: 1px solid var(--accent);
+  opacity: 0.4;
+}
+
+/* ---------------------------------
+   Side radiators + pumps
+   --------------------------------- */
+
+.side-cooling {
+  position: relative;
+  z-index: 2;
+  grid-row: 3 / 9;
+  grid-column: 9 / 12;
+}
+
+.rear-radiators {
+  position: absolute;
+  inset: 0 0 38%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.45rem;
+}
+
+.radiator-rear {
+  min-width: 0;
+  opacity: 0.68;
+}
+
+.radiator-rear > span {
+  position: absolute;
+  top: 0.45rem;
+  left: 0.45rem;
+  z-index: 2;
+}
+
+.vertical-fins {
+  position: absolute;
+  inset: 1.4rem 0.45rem 0.45rem;
+  display: grid;
+  grid-template-rows: repeat(7, 1fr);
+  gap: 0.3rem;
+}
+
+.vertical-fins i {
+  border-top: 1px solid var(--border-strong);
+  border-bottom: 1px solid var(--border-strong);
+}
+
+.pump-bank {
+  position: absolute;
+  z-index: 4;
+  inset: auto 0 0;
+  display: grid;
+  height: 34%;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.45rem;
+  place-items: center;
 }
 
 .pump {
   position: relative;
-  align-self: center;
-  width: clamp(4.6rem, 9vw, 6rem);
+  display: grid;
+  width: clamp(3.8rem, 8vw, 5.3rem);
   aspect-ratio: 1;
-  border-color: var(--border-strong);
+  place-items: center;
   border-radius: 50%;
+  box-shadow:
+    0 0 0 0.35rem var(--background-raised),
+    0 0 0 0.4rem var(--border);
 }
 
-.pump-one {
-  grid-row: 3;
-  grid-column: 1;
-}
-
-.pump-two {
-  grid-row: 3;
-  grid-column: 5;
+.pump strong {
+  font-family: var(--display-font);
+  font-size: 0.65rem;
+  letter-spacing: 0.04em;
 }
 
 .pump i {
   position: absolute;
-  inset: 0.5rem;
+  inset: 0.45rem;
   border: 1px dashed var(--accent);
-  border-radius: 50%;
+  border-radius: inherit;
+  opacity: 0.75;
   animation: pump-spin 8s linear infinite;
 }
 
-.loop-core {
-  grid-row: 2 / 5;
-  grid-column: 2 / 5;
-  border-color: var(--border-strong);
-  background:
-    radial-gradient(circle, rgb(50 132 255 / 12%), transparent 65%),
-    color-mix(in srgb, var(--background-raised) 94%, transparent);
-}
-
-.loop-core strong {
-  font-family: var(--display-font);
-  font-size: clamp(2.4rem, 6vw, 4.8rem);
-  letter-spacing: -0.055em;
-  line-height: 0.78;
-  text-transform: uppercase;
-}
-
-.radiator span,
-.pump span,
-.loop-core small,
-.loop-core span {
-  color: var(--accent);
-  font-family: var(--mono-font);
-  font-size: 0.52rem;
-}
-
-.radiator strong,
-.pump strong {
-  font-family: var(--display-font);
-  font-size: 0.9rem;
-  text-transform: uppercase;
-}
-
-.loop-core span {
+.side-label {
+  position: absolute;
+  right: 0;
+  bottom: -1.1rem;
   color: var(--muted);
 }
+
+/* ---------------------------------
+   Status
+   --------------------------------- */
+
+.diagram-status {
+  position: absolute;
+  z-index: 5;
+  top: 6.8rem;
+  left: clamp(1rem, 3vw, 1.8rem);
+  display: grid;
+  gap: 0.1rem;
+}
+
+.diagram-status strong {
+  font-family: var(--display-font);
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* ---------------------------------
+   Footer
+   --------------------------------- */
 
 .cooling-meta {
   grid-template-columns: repeat(3, 1fr);
@@ -241,23 +734,13 @@
   font-size: inherit;
 }
 
-@keyframes coolant-x {
-  from {
-    left: 0;
-  }
+/* ---------------------------------
+   Motion
+   --------------------------------- */
 
+@keyframes coolant-flow {
   to {
-    left: 100%;
-  }
-}
-
-@keyframes coolant-y {
-  from {
-    top: 0;
-  }
-
-  to {
-    top: 100%;
+    stroke-dashoffset: -100;
   }
 }
 
@@ -267,18 +750,46 @@
   }
 }
 
-@media (max-width: 520px) {
+/* ---------------------------------
+   Responsive
+   --------------------------------- */
+
+@media (max-width: 680px) {
   .loop-diagram {
-    gap: 0.35rem;
-    padding: 0.9rem;
+    grid-template-rows: 4rem repeat(10, 1fr) 4rem;
+    min-height: 34rem;
+    padding: 0.8rem;
+  }
+
+  .radiator-top,
+  .radiator-bottom {
+    grid-column: 1 / 13;
+  }
+
+  .motherboard {
+    grid-row: 3 / 9;
+    grid-column: 1 / 9;
+  }
+
+  .side-cooling {
+    grid-row: 3 / 9;
+    grid-column: 9 / 13;
   }
 
   .pump {
-    width: 3.8rem;
+    width: 3.5rem;
   }
 
-  .loop-core {
-    grid-row: 2 / 5;
+  .gpu-core {
+    padding: 0.7rem;
+  }
+
+  .gpu-core strong {
+    font-size: 1.3rem;
+  }
+
+  .ram-zone {
+    width: 32%;
   }
 
   .cooling-meta {
@@ -291,8 +802,46 @@
   }
 }
 
+@media (max-width: 460px) {
+  .diagram-status {
+    display: none;
+  }
+
+  .motherboard {
+    grid-column: 1 / 10;
+  }
+
+  .side-cooling {
+    grid-column: 10 / 13;
+  }
+
+  .rear-radiators {
+    grid-template-columns: 1fr;
+  }
+
+  .radiator-four {
+    display: none;
+  }
+
+  .pump {
+    width: 3rem;
+  }
+
+  .radiator-label strong {
+    display: none;
+  }
+
+  .gpu-edge {
+    width: 2rem;
+  }
+
+  .gpu-core strong {
+    font-size: 1rem;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .loop-path i,
+  .tube-flow,
   .pump i {
     animation: none;
   }

@@ -87,24 +87,48 @@ export const contributions: OpenSourceContribution[] = [
 export const learningGroups: LearningGroup[] = [
   {
     category: 'Computer science',
-    description: 'From algorithms and creative coding to logic gates and operating systems.',
+    description:
+      'How computers work beneath the abstractions, from digital logic and architecture to operating systems, algorithms, simulations, and graphics.',
     sources: [
-      { name: 'Sebastian Lague', focus: 'Creative coding & algorithms' },
-      { name: 'Ben Eater', focus: 'Computers from first principles' },
-      { name: 'Core Dumped', focus: 'Computer science, unpacked' },
-    ],
-  },
-  {
-    category: 'Engineering',
-    description: 'Physical systems made understandable through careful visual explanation.',
-    sources: [
-      { name: 'Practical Engineering', focus: 'Infrastructure & engineering' },
-      { name: 'Branch Education', focus: 'Engineering visualised' },
+      {
+        name: 'Ben Eater',
+        focus: 'Digital electronics, computer architecture & networking',
+      },
+      {
+        name: 'Core Dumped',
+        focus: 'Operating systems & low-level computer science',
+      },
+      {
+        name: 'Sebastian Lague',
+        focus: 'Algorithms, simulations & computer graphics',
+      },
     ],
   },
   {
     category: 'Mathematics',
-    description: 'Abstract ideas made intuitive through geometry and animation.',
-    sources: [{ name: '3Blue1Brown', focus: 'Mathematics, made visual' }],
+    description:
+      'Building visual intuition for mathematical ideas across linear algebra, calculus, probability, and beyond.',
+    sources: [
+      {
+        name: '3Blue1Brown',
+        focus: 'Visual intuition for higher mathematics',
+      },
+    ],
+  },
+  {
+    category: 'Engineering',
+    description:
+      'Understanding how physical infrastructure, electronics, and engineered systems work from the inside out.',
+    sources: [
+            {
+        name: 'Branch Education',
+        focus: 'Hardware, electronics & engineering systems',
+      },
+      {
+        name: 'Practical Engineering',
+        focus: 'Civil infrastructure & public works',
+      },
+
+    ],
   },
 ];

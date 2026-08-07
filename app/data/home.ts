@@ -22,6 +22,7 @@ export const capabilities: Capability[] = [
       'Unity',
       'Game development',
       'C',
+      'Assembly',
       'TypeScript',
       'Nuxt',
       'Docker',

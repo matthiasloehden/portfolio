@@ -9,7 +9,7 @@
           class="eyebrow flex items-center"
           data-reveal="up"
         >
-          <span aria-hidden="true" /> Based in Germany · Building for the web
+          <span aria-hidden="true"></span> Based in Germany · Building for the web
         </p>
         <h1
           id="hero-title"
@@ -23,10 +23,8 @@
           data-reveal="up"
           style="--reveal-delay: 160ms"
         >
-          I’m Matthias, a full-stack developer focused on fast, maintainable web experiences across Laravel, Vue, and
-          modern frontend systems.
+          I’m Matthias, a software engineer focused on creating fast, thoughtful, and maintainable web products—from backend architecture to polished frontend experiences.
         </p>
-
         <div
           class="hero-actions flex flex-wrap items-center"
           data-reveal="up"

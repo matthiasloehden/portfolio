@@ -523,8 +523,8 @@ h2 {
   border-top: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
 }
-
-.capability-grid article {
+.capability-grid article,
+.capability-grid > a > article {
   min-height: 18rem;
   padding: 1.35rem;
   background: linear-gradient(135deg, var(--surface), transparent 70%);
@@ -532,12 +532,12 @@ h2 {
     background-color 180ms ease,
     transform 180ms ease;
 }
-
-.capability-grid article + article {
+.capability-grid article + article,
+.capability-grid > a + a > article {
   border-left: 1px solid var(--border);
 }
-
-.capability-grid article::after {
+.capability-grid article::after,
+.capability-grid > a > article::after {
   position: absolute;
   right: -3rem;
   bottom: -5rem;
@@ -552,13 +552,13 @@ h2 {
     opacity 200ms ease,
     transform 350ms ease;
 }
-
-.capability-grid article:hover {
+.capability-grid article:hover,
+.capability-grid > a:hover > article {
   background-color: var(--surface-hover);
   transform: translateY(-0.35rem);
 }
-
-.capability-grid article:hover::after {
+.capability-grid article:hover::after,
+.capability-grid > a:hover > article::after {
   opacity: 0.65;
   transform: scale(1);
 }
@@ -586,7 +586,8 @@ h2 {
   text-transform: uppercase;
 }
 
-.capability-grid > article > p {
+.capability-grid > article > p,
+.capability-grid > a > article > p {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -618,7 +619,8 @@ h2 {
     transform 180ms ease;
 }
 
-.capability-grid article:hover .card-arrow {
+.capability-grid article:hover .card-arrow,
+.capability-grid > a:hover .card-arrow {
   color: var(--accent-bright);
   transform: translate(0.15rem, -0.15rem);
 }

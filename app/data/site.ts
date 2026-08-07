@@ -2,7 +2,7 @@ import type { NavigationItem } from '@/types/content';
 
 export const site = {
   name: 'Matthias Löhden',
-  role: 'Full-stack developer',
+  role: 'Software Engineer',
   email: 'm.loehden@yahoo.de',
 } as const;
 

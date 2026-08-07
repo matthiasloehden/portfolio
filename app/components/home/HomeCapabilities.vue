@@ -4,6 +4,13 @@ import type { Capability } from '@/types/content';
 defineProps<{
   capabilities: Capability[];
 }>();
+
+const routeFor = (title: string) => {
+  if (title === 'Professional') return '/work';
+  if (title === 'Academic') return '/projects';
+  if (title === 'Personal') return '/personal';
+  return '/';
+};
 </script>
 
 <template>
@@ -37,12 +44,16 @@ defineProps<{
     </div>
 
     <div class="capability-grid grid">
-      <HomeCapabilityCard
+      <NuxtLink
         v-for="(capability, index) in capabilities"
         :key="capability.title"
-        v-bind="capability"
+        :to="routeFor(capability.title)"
+        class="capability-link"
+        :aria-label="`View ${capability.title} section`"
         :style="`--reveal-delay: ${index * 80}ms`"
-      />
+      >
+        <HomeCapabilityCard v-bind="capability" />
+      </NuxtLink>
     </div>
   </section>
 </template>
