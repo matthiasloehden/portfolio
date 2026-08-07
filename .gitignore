@@ -1,0 +1,25 @@
+# Dependencies and package-manager cache
+node_modules/
+.yarn/*
+!.yarn/releases
+!.yarn/plugins
+
+# Nuxt output
+.nuxt/
+.output/
+dist/
+*.tsbuildinfo
+
+# Logs and coverage
+*.log
+coverage/
+
+# Local configuration
+.env
+.env.*
+!.env.example
+
+# Editors and operating systems
+.idea/
+.vscode/
+.DS_Store

@@ -1,0 +1,14 @@
+{
+  "tabWidth": 2,
+  "useTabs": false,
+  "singleQuote": true,
+  "semi": true,
+  "trailingComma": "all",
+  "singleAttributePerLine": true,
+  "printWidth": 120,
+  "insertFinalNewline": true,
+  "ignorePatterns": ["node_modules", "dist", ".output", ".nuxt", ".yarn", "**/*.md"],
+  "sortTailwindcss": {
+    "stylesheet": "./app/assets/style/main.css",
+  },
+}

@@ -1,0 +1,22 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "vue"],
+  "env": {
+    "browser": true,
+  },
+  "ignorePatterns": ["node_modules", "dist", ".output", ".nuxt"],
+  "rules": {
+    "typescript/no-explicit-any": "error",
+    "typescript/no-non-null-assertion": "warn",
+    "typescript/consistent-type-imports": "error",
+    "vue/no-export-in-script-setup": "error",
+    "vue/no-deprecated-destroyed-lifecycle": "error",
+    "vue/prefer-import-from-vue": "error",
+    "vue/define-props-declaration": ["error", "type-based"],
+    "no-console": "warn",
+    "no-debugger": "error",
+    "eqeqeq": "error",
+    "prefer-const": "error",
+    "no-unused-vars": "error",
+  },
+}
