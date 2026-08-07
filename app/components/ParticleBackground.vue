@@ -20,6 +20,10 @@ interface DebugStats {
   quality: string;
 }
 
+const props = withDefaults(defineProps<{ active?: boolean }>(), {
+  active: true,
+});
+
 const canvas = ref<HTMLCanvasElement | null>(null);
 const failed = ref(false);
 const debugEnabled = ref(false);
@@ -39,7 +43,9 @@ let lightScheme: MediaQueryList | null = null;
 let contextLost = false;
 
 function getParticleColor(): string {
-  return lightScheme?.matches ? PARTICLE_CONFIG.lightColor : PARTICLE_CONFIG.darkColor;
+  return document.documentElement.dataset.theme === 'light'
+    ? PARTICLE_CONFIG.lightColor
+    : PARTICLE_CONFIG.darkColor;
 }
 
 function resizeRenderer(): void {
@@ -112,7 +118,7 @@ function renderFrame(now: number): void {
 
 function setAnimationState(): void {
   if (!renderer) return;
-  const shouldAnimate = !document.hidden && !reducedMotion?.matches && !contextLost;
+  const shouldAnimate = props.active && !document.hidden && !reducedMotion?.matches && !contextLost;
   previousTime = 0;
   renderer.setAnimationLoop(shouldAnimate ? renderFrame : null);
 
@@ -208,6 +214,15 @@ function onContextRestored(): void {
   initialize();
 }
 
+watch(
+  () => props.active,
+  (active) => {
+    if (active) resizeRenderer();
+    setAnimationState();
+  },
+  { flush: 'post' },
+);
+
 onMounted(() => {
   debugEnabled.value = import.meta.dev && new URLSearchParams(window.location.search).get('particlesDebug') === '1';
   reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -220,6 +235,7 @@ onMounted(() => {
   document.addEventListener('visibilitychange', onVisibilityChange);
   reducedMotion.addEventListener('change', onMotionPreferenceChange);
   lightScheme.addEventListener('change', onColorSchemeChange);
+  window.addEventListener('portfolio-theme-change', onColorSchemeChange);
   initialize();
 });
 
@@ -231,6 +247,7 @@ onBeforeUnmount(() => {
   document.removeEventListener('visibilitychange', onVisibilityChange);
   reducedMotion?.removeEventListener('change', onMotionPreferenceChange);
   lightScheme?.removeEventListener('change', onColorSchemeChange);
+  window.removeEventListener('portfolio-theme-change', onColorSchemeChange);
   cleanupGraphics(true);
 });
 </script>

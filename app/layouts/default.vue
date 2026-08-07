@@ -1,6 +1,31 @@
 <script setup lang="ts">
+import type { BackgroundPreference } from '@/composables/usePortfolioPreferences';
+
 const route = useRoute();
-const isWorkPage = computed(() => route.path === '/work' || route.path === '/work/');
+const normalizedPath = computed(() => route.path.replace(/\/+$/, '') || '/');
+const {
+  backgroundPreference,
+  backgroundMotionEnabled,
+  initializePreferences,
+  disposePreferences,
+} = usePortfolioPreferences();
+
+const automaticBackground = computed<BackgroundPreference>(() => {
+  if (normalizedPath.value === '/') return 'wave';
+  if (normalizedPath.value === '/work') return 'triangles';
+  if (['/projects', '/personal'].includes(normalizedPath.value)) return 'particles';
+  return 'none';
+});
+
+const selectedBackground = computed(() =>
+  backgroundPreference.value === 'auto' ? automaticBackground.value : backgroundPreference.value,
+);
+const isWaveBackground = computed(() => selectedBackground.value === 'wave');
+const isTriangleBackground = computed(() => selectedBackground.value === 'triangles');
+const isParticleBackground = computed(() => selectedBackground.value === 'particles');
+
+onMounted(initializePreferences);
+onBeforeUnmount(disposePreferences);
 
 useHead({
   script: [
@@ -17,7 +42,23 @@ useHead({
   <div class="relative isolate min-h-screen overflow-hidden">
     <NuxtRouteAnnouncer />
     <LayoutSiteSkipLink target="#content" />
-    <TriangleBackground v-if="isWorkPage" />
+    <WaveGridBackground
+      class="background-scene"
+      :class="{ 'background-scene-active': isWaveBackground }"
+      :active="isWaveBackground && backgroundMotionEnabled"
+    />
+    <TriangleBackground
+      class="background-scene"
+      :class="{
+        'background-scene-active': isTriangleBackground,
+        'background-motion-paused': !isTriangleBackground || !backgroundMotionEnabled,
+      }"
+    />
+    <ParticleBackground
+      class="background-scene"
+      :class="{ 'background-scene-active': isParticleBackground }"
+      :active="isParticleBackground && backgroundMotionEnabled"
+    />
     <LayoutSiteHeader />
     <slot />
     <LayoutSiteFooter />

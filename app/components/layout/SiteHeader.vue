@@ -96,7 +96,7 @@ watch(
         </ul>
       </nav>
 
-      <LayoutThemeToggle class="md:ml-3" />
+      <LayoutDisplaySettings class="md:ml-3" />
       <button
         class="grid size-9 cursor-pointer place-items-center border border-line bg-raised font-mono text-sm text-muted transition-colors hover:border-line-strong hover:text-foreground focus-visible:border-line-strong focus-visible:text-foreground md:hidden"
         type="button"

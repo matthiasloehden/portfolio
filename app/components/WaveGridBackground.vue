@@ -8,6 +8,10 @@ interface TrailPoint {
   velocity: number;
 }
 
+const props = withDefaults(defineProps<{ active?: boolean }>(), {
+  active: true,
+});
+
 const TRAIL_LENGTH = 32;
 const TRAIL_LIFETIME = 2_300;
 const GRID_WIDTH = 34;
@@ -164,7 +168,7 @@ function createGridGeometry(): THREE.BufferGeometry {
 }
 
 function getPalette(): { color: THREE.Color; waveColor: THREE.Color; opacity: number } {
-  if (colorScheme?.matches) {
+  if (document.documentElement.dataset.theme === 'light') {
     return {
       color: new THREE.Color('#37628f'),
       waveColor: new THREE.Color('#075fd7'),
@@ -320,7 +324,7 @@ function endTouchRipple(): void {
 
 function setAnimationState(): void {
   if (!renderer || !scene || !camera || !material) return;
-  const shouldAnimate = !document.hidden && !reducedMotion?.matches && !contextLost;
+  const shouldAnimate = props.active && !document.hidden && !reducedMotion?.matches && !contextLost;
   const motionUniform = material.uniforms.uMotion;
   if (motionUniform) motionUniform.value = reducedMotion?.matches ? 0 : 1;
   renderer.setAnimationLoop(shouldAnimate ? renderFrame : null);
@@ -425,6 +429,15 @@ function onContextRestored(): void {
   initialize();
 }
 
+watch(
+  () => props.active,
+  (active) => {
+    if (active) resize();
+    setAnimationState();
+  },
+  { flush: 'post' },
+);
+
 onMounted(() => {
   reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   colorScheme = window.matchMedia('(prefers-color-scheme: light)');
@@ -440,6 +453,7 @@ onMounted(() => {
   document.addEventListener('visibilitychange', setAnimationState);
   reducedMotion.addEventListener('change', onMotionPreferenceChange);
   colorScheme.addEventListener('change', applyPalette);
+  window.addEventListener('portfolio-theme-change', applyPalette);
   canvas.value?.addEventListener('webglcontextlost', onContextLost);
   canvas.value?.addEventListener('webglcontextrestored', onContextRestored);
   initialize();
@@ -455,6 +469,7 @@ onBeforeUnmount(() => {
   document.removeEventListener('visibilitychange', setAnimationState);
   reducedMotion?.removeEventListener('change', onMotionPreferenceChange);
   colorScheme?.removeEventListener('change', applyPalette);
+  window.removeEventListener('portfolio-theme-change', applyPalette);
   canvas.value?.removeEventListener('webglcontextlost', onContextLost);
   canvas.value?.removeEventListener('webglcontextrestored', onContextRestored);
   resizeObserver?.disconnect();

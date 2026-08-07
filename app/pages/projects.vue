@@ -10,8 +10,6 @@ useSeoMeta({
 
 <template>
   <div class="relative isolate min-h-screen overflow-hidden">
-    <ParticleBackground />
-
     <main
       id="content"
       class="relative z-1 site-container"

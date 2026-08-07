@@ -233,6 +233,14 @@ onBeforeUnmount(() => {
   background: var(--background);
 }
 
+.triangle-background.background-motion-paused {
+  pointer-events: none;
+}
+
+.triangle-background.background-motion-paused .triangle-cell {
+  animation-play-state: paused;
+}
+
 .triangle-field {
   position: absolute;
   inset: 0;

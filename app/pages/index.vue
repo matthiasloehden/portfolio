@@ -4,8 +4,6 @@ import { capabilities } from '@/data/home';
 
 <template>
   <div class="site-shell">
-    <WaveGridBackground />
-
     <main
       id="content"
       class="site-container"

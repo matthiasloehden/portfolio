@@ -45,14 +45,22 @@ export class ParticleSimulation {
     velocityUniforms.uNoiseScale = { value: PARTICLE_CONFIG.noiseScale };
     velocityUniforms.uNoiseSpeed = { value: PARTICLE_CONFIG.noiseSpeed };
     velocityUniforms.uDamping = { value: PARTICLE_CONFIG.damping };
+    velocityUniforms.uInteractionDamping = { value: PARTICLE_CONFIG.interactionDamping };
+    velocityUniforms.uInteractionMomentum = { value: 0 };
+    velocityUniforms.uInteractionMaxVelocity = { value: PARTICLE_CONFIG.interactionMaxVelocity };
     velocityUniforms.uPointerRadius = { value: PARTICLE_CONFIG.pointerRadius };
     velocityUniforms.uPointerRepulsion = { value: PARTICLE_CONFIG.pointerRepulsion };
     velocityUniforms.uPointerVelocityTransfer = { value: PARTICLE_CONFIG.pointerVelocityTransfer };
     velocityUniforms.uPointerVortexStrength = { value: PARTICLE_CONFIG.pointerVortexStrength };
     velocityUniforms.uPointerInfluence = { value: 0 };
+    velocityUniforms.uIdleRingRadius = { value: PARTICLE_CONFIG.idleRingRadius };
+    velocityUniforms.uIdleRingThickness = { value: PARTICLE_CONFIG.idleRingThickness };
+    velocityUniforms.uIdleAttraction = { value: PARTICLE_CONFIG.idleAttraction };
+    velocityUniforms.uIdleOrbitStrength = { value: PARTICLE_CONFIG.idleOrbitStrength };
     velocityUniforms.uScrollVelocity = { value: 0 };
     velocityUniforms.uScrollStrength = { value: PARTICLE_CONFIG.scrollStrength };
     velocityUniforms.uMaxVelocity = { value: PARTICLE_CONFIG.maxVelocity };
+    velocityUniforms.uAspect = { value: aspect };
     velocityUniforms.uPointer = { value: this.pointer };
     velocityUniforms.uPointerVelocity = { value: this.pointerVelocity };
 
@@ -104,6 +112,7 @@ export class ParticleSimulation {
       : PARTICLE_CONFIG.pointerRepulsion;
     this.getUniform(velocityUniforms, 'uPointerInfluence').value = interaction.pointerInfluence;
     this.getUniform(velocityUniforms, 'uScrollVelocity').value = interaction.scrollVelocity;
+    this.getUniform(velocityUniforms, 'uInteractionMomentum').value = interaction.interactionMomentum;
     this.getUniform(positionUniforms, 'uDelta').value = delta;
 
     this.compute.compute();
@@ -116,6 +125,7 @@ export class ParticleSimulation {
   }
 
   resize(aspect: number, dpr: number): void {
+    this.getUniform(this.velocityVariable.material.uniforms, 'uAspect').value = aspect;
     this.getUniform(this.positionVariable.material.uniforms, 'uAspect').value = aspect;
     this.getUniform(this.material.uniforms, 'uDpr').value = Math.min(dpr, this.quality.dprCap);
   }

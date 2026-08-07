@@ -5,34 +5,97 @@ export const velocityShader = /* glsl */ `
   uniform float uNoiseScale;
   uniform float uNoiseSpeed;
   uniform float uDamping;
+  uniform float uInteractionDamping;
+  uniform float uInteractionMomentum;
+  uniform float uInteractionMaxVelocity;
   uniform float uPointerRadius;
   uniform float uPointerRepulsion;
   uniform float uPointerVelocityTransfer;
   uniform float uPointerVortexStrength;
   uniform float uPointerInfluence;
+  uniform float uIdleRingRadius;
+  uniform float uIdleRingThickness;
+  uniform float uIdleAttraction;
+  uniform float uIdleOrbitStrength;
   uniform float uScrollVelocity;
   uniform float uScrollStrength;
   uniform float uMaxVelocity;
+  uniform float uAspect;
   uniform vec2 uPointer;
   uniform vec2 uPointerVelocity;
 
-  // The field is the curl of two smooth scalar potentials. It stays coherent
-  // over time and, unlike per-frame randomness, produces fluid-like paths.
+  // Each layer is the exact curl of a scalar potential. Keeping the field
+  // divergence-free prevents particles from settling into artificial sinks.
+  vec2 curlLayer(
+    vec2 point,
+    vec2 axisA,
+    vec2 axisB,
+    float frequencyA,
+    float frequencyB,
+    float phaseA,
+    float phaseB
+  ) {
+    float waveA = dot(point, axisA) * frequencyA + phaseA;
+    float waveB = dot(point, axisB) * frequencyB + phaseB;
+    vec2 gradient = axisA * frequencyA * cos(waveA) * sin(waveB)
+      + axisB * frequencyB * sin(waveA) * cos(waveB);
+
+    return vec2(gradient.y, -gradient.x);
+  }
+
   vec2 curlFlow(vec2 point, float seed) {
     vec2 p = point * uNoiseScale;
     float t = uTime * uNoiseSpeed;
+    vec2 first = curlLayer(
+      p,
+      normalize(vec2(1.0, 0.37)),
+      normalize(vec2(-0.28, 1.0)),
+      1.17,
+      1.61,
+      t + seed * 4.1,
+      -t * 0.83 - seed * 2.7
+    );
+    vec2 second = curlLayer(
+      p,
+      normalize(vec2(0.62, 1.0)),
+      normalize(vec2(-1.0, 0.48)),
+      2.03,
+      1.31,
+      -t * 0.61 - seed * 3.3,
+      t * 0.74 + seed * 5.2
+    );
 
-    float phaseA = p.x * 1.31 + t + seed * 4.1;
-    float phaseB = p.y * 1.73 - t * 0.83 - seed * 2.7;
-    float phaseC = p.x * 2.17 - t * 0.61 - seed * 3.3;
-    float phaseD = p.y * 1.19 + t * 0.74 + seed * 5.2;
+    return (first + second * 0.38) * 0.34;
+  }
 
-    float dPotentialDy = -1.73 * sin(phaseA) * sin(phaseB)
-      + 0.52 * 1.19 * cos(phaseC) * cos(phaseD);
-    float dPotentialDx = 1.31 * cos(phaseA) * cos(phaseB)
-      - 0.52 * 2.17 * sin(phaseC) * sin(phaseD);
+  vec2 scrollVortex(vec2 point, float seed) {
+    float fieldRadius = max(1.0, uAspect) * 0.92;
+    vec2 center = vec2(
+      sin(uTime * 0.29) * uAspect * 0.14,
+      cos(uTime * 0.23) * 0.12
+    );
+    vec2 fromCenter = point - center;
+    float distanceFromCenter = length(fromCenter);
+    float falloff = exp(-pow(distanceFromCenter / fieldRadius, 2.0));
+    vec2 tangent = vec2(-fromCenter.y, fromCenter.x) / max(distanceFromCenter, 0.08);
+    float variation = 0.82 + 0.18 * sin(seed * 12.7 + distanceFromCenter * 4.2);
 
-    return vec2(dPotentialDy, -dPotentialDx) * 0.42;
+    return tangent * falloff * variation;
+  }
+
+  vec2 idleRingFlow(vec2 point, float seed) {
+    float distanceFromCenter = length(point);
+    vec2 radial = distanceFromCenter > 0.001
+      ? point / distanceFromCenter
+      : vec2(cos(seed * 6.283), sin(seed * 6.283));
+    vec2 tangent = vec2(-radial.y, radial.x);
+    float radiusOffset = (fract(seed * 17.31) - 0.5) * uIdleRingThickness;
+    float flutter = sin(uTime * 0.37 + seed * 31.7) * uIdleRingThickness * 0.08;
+    float targetRadius = uIdleRingRadius + radiusOffset + flutter;
+    float radialPull = (targetRadius - distanceFromCenter) * uIdleAttraction;
+    float orbitVariation = 0.78 + fract(seed * 23.17) * 0.44;
+
+    return radial * radialPull + tangent * uIdleOrbitStrength * orbitVariation;
   }
 
   void main() {
@@ -44,7 +107,12 @@ export const velocityShader = /* glsl */ `
     float seed = positionData.w;
     float dt = min(uDelta, 0.033);
 
-    vec2 acceleration = curlFlow(position, seed) * uAmbientStrength;
+    float pointerActivity = clamp(uPointerInfluence, 0.0, 1.0);
+    float scrollActivity = smoothstep(0.03, 0.55, abs(uScrollVelocity));
+    float idleInfluence = 1.0 - max(pointerActivity, scrollActivity);
+    float ambientMix = mix(1.0, 0.38, idleInfluence);
+    vec2 acceleration = curlFlow(position, seed) * uAmbientStrength * ambientMix;
+    acceleration += idleRingFlow(position, seed) * idleInfluence;
 
     vec2 pointerDelta = position - uPointer;
     float pointerDistance = length(pointerDelta);
@@ -79,18 +147,20 @@ export const velocityShader = /* glsl */ `
         * min(pointerSpeed, 2.0);
     }
 
-    // Scroll adds a restrained global bias, while the sinusoidal x component
-    // prevents a fast flick from looking like a uniform screen translation.
-    acceleration += vec2(
-      sin(position.y * 2.7 + seed * 6.283) * abs(uScrollVelocity) * 0.16,
-      -uScrollVelocity
-    ) * uScrollStrength;
+    // A scroll impulse rotates the field around a slowly drifting center. A
+    // small opposing vertical bias preserves the physical sense of scrolling.
+    vec2 scrollFlow = scrollVortex(position, seed) * uScrollVelocity;
+    scrollFlow.y -= uScrollVelocity * 0.16;
+    acceleration += scrollFlow * uScrollStrength;
 
     velocity += acceleration * dt;
-    velocity *= pow(uDamping, dt * 60.0);
+    float momentum = clamp(uInteractionMomentum, 0.0, 1.0);
+    float activeDamping = mix(uDamping, uInteractionDamping, momentum);
+    velocity *= pow(activeDamping, dt * 60.0);
 
     float speed = length(velocity);
-    if (speed > uMaxVelocity) velocity *= uMaxVelocity / speed;
+    float maxVelocity = mix(uMaxVelocity, uInteractionMaxVelocity, momentum);
+    if (speed > maxVelocity) velocity *= maxVelocity / speed;
 
     float zVelocity = sin(uTime * 0.13 + seed * 12.0 + position.x) * 0.006;
     gl_FragColor = vec4(velocity, zVelocity, velocityData.w);

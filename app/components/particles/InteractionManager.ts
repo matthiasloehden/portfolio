@@ -9,6 +9,7 @@ export interface InteractionState {
   pointerInfluence: number;
   pointerType: string;
   scrollVelocity: number;
+  interactionMomentum: number;
   touchActive: boolean;
 }
 
@@ -22,6 +23,7 @@ export class InteractionManager {
     pointerInfluence: 0,
     pointerType: 'none',
     scrollVelocity: 0,
+    interactionMomentum: 0,
     touchActive: false,
   };
 
@@ -61,6 +63,7 @@ export class InteractionManager {
     const pointerDecay = Math.exp(-delta / PARTICLE_CONFIG.interactionDecay);
     const velocityDecay = Math.exp(-delta / 0.36);
     const scrollDecay = Math.exp(-delta / 0.42);
+    const momentumDecay = Math.exp(-delta / PARTICLE_CONFIG.interactionMomentumDecay);
 
     this.state.pointerVelocityX *= velocityDecay;
     this.state.pointerVelocityY *= velocityDecay;
@@ -70,6 +73,7 @@ export class InteractionManager {
 
     this.scrollTarget *= scrollDecay;
     this.state.scrollVelocity += (this.scrollTarget - this.state.scrollVelocity) * Math.min(1, delta * 12);
+    this.state.interactionMomentum *= momentumDecay;
 
     return this.state;
   }
@@ -109,6 +113,10 @@ export class InteractionManager {
       this.state.pointerInfluence,
       Math.min(1, 0.16 + this.state.pointerSpeed / PARTICLE_CONFIG.maxPointerSpeed),
     );
+    this.state.interactionMomentum = Math.max(
+      this.state.interactionMomentum,
+      Math.min(1, 0.2 + this.state.pointerSpeed / PARTICLE_CONFIG.maxPointerSpeed),
+    );
 
     this.lastPointerX = worldX;
     this.lastPointerY = worldY;
@@ -138,13 +146,19 @@ export class InteractionManager {
 
   private readonly onScroll = (): void => {
     const now = performance.now();
-    const elapsed = Math.max((now - this.lastScrollTime) / 1000, 1 / 120);
+    // Ignore long idle gaps between scroll gestures. Otherwise the first wheel
+    // tick after a pause is divided by the entire idle duration and disappears.
+    const elapsed = Math.min(Math.max((now - this.lastScrollTime) / 1000, 1 / 120), 1 / 15);
     const currentY = window.scrollY;
     const viewportVelocity = (currentY - this.lastScrollY) / this.height / elapsed;
 
     this.scrollTarget = Math.max(
       -PARTICLE_CONFIG.maxScrollImpulse,
       Math.min(PARTICLE_CONFIG.maxScrollImpulse, viewportVelocity),
+    );
+    this.state.interactionMomentum = Math.max(
+      this.state.interactionMomentum,
+      Math.abs(this.scrollTarget) / PARTICLE_CONFIG.maxScrollImpulse,
     );
     this.lastScrollY = currentY;
     this.lastScrollTime = now;
@@ -153,6 +167,7 @@ export class InteractionManager {
   private readonly onBlur = (): void => {
     this.state.touchActive = false;
     this.state.pointerInfluence = 0;
+    this.state.interactionMomentum = 0;
     this.scrollTarget = 0;
   };
 }

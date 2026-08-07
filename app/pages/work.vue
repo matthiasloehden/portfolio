@@ -51,28 +51,6 @@ useSeoMeta({
 </template>
 
 <style scoped>
-.work-shell::after {
-  position: fixed;
-  z-index: 10;
-  inset: 0;
-  background: var(--background);
-  content: '';
-  pointer-events: none;
-  animation: work-page-reveal 760ms cubic-bezier(0.22, 1, 0.36, 1) 80ms both;
-}
-
-@keyframes work-page-reveal {
-  from {
-    opacity: 1;
-    visibility: visible;
-  }
-
-  to {
-    opacity: 0;
-    visibility: hidden;
-  }
-}
-
 @media (hover: hover) and (pointer: fine) {
   .work-shell > main {
     pointer-events: none;
@@ -80,13 +58,6 @@ useSeoMeta({
 
   .work-shell main :deep(:is(a, h1, h2, h3, p, dt, dd, figcaption, .work-panel)) {
     pointer-events: auto;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .work-shell::after {
-    visibility: hidden;
-    animation: none;
   }
 }
 </style>
