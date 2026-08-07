@@ -39,7 +39,7 @@ test('renders and responds to desktop pointer and scroll input', async ({ page }
 
   await expect(page.locator('.particle-debug')).toContainText(/pointerSpeed/);
   await expect(page.locator('.particle-debug')).toContainText(/scrollVelocity/);
-  await expect(page.locator('#project-index')).toBeInViewport();
+  await expect(page.locator('#project-list')).toBeInViewport();
   expect(runtimeErrors).toEqual([]);
 });
 
@@ -76,8 +76,8 @@ test('keeps touch scrolling and links native on mobile', async ({ page, context 
   expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
   await expect(page.locator('.particle-debug')).toContainText('touchActive');
 
-  await page.locator('#project-index').scrollIntoViewIfNeeded();
-  await page.locator('#project-index a').first().tap();
+  await page.locator('#project-list').scrollIntoViewIfNeeded();
+  await page.locator('#project-list a').first().tap();
   await expect(page).toHaveURL(/#streaming$/);
   expect(runtimeErrors).toEqual([]);
 });

@@ -1,0 +1,29 @@
+<script setup lang="ts">
+import type { Capability } from '@/types/content';
+
+defineProps<{
+  capabilities: Capability[];
+}>();
+</script>
+
+<template>
+  <section
+    id="capabilities"
+    class="content-section"
+    aria-labelledby="capabilities-title"
+  >
+    <p class="section-index"><span>02</span> Capabilities</p>
+    <div class="section-heading flex items-end justify-between">
+      <h2 id="capabilities-title">A full-stack <em>toolkit.</em></h2>
+      <p>Core skills from my résumé, applied across client platforms, operational tools, and university work.</p>
+    </div>
+
+    <div class="capability-grid grid">
+      <HomeCapabilityCard
+        v-for="capability in capabilities"
+        :key="capability.title"
+        v-bind="capability"
+      />
+    </div>
+  </section>
+</template>

@@ -1,0 +1,45 @@
+import { expect, test } from '@playwright/test';
+
+test('shares active navigation and persists the selected theme', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'desktop-chromium', 'Desktop navigation test');
+
+  await page.goto('/work');
+
+  const mainNavigation = page.getByRole('navigation', { name: 'Main navigation' });
+  const footerNavigation = page.getByRole('navigation', { name: 'Footer navigation' });
+  await expect(mainNavigation.getByRole('link', { name: '02 Work' })).toHaveAttribute('aria-current', 'page');
+  await expect(footerNavigation.getByRole('link', { name: 'Work', exact: true })).toHaveAttribute(
+    'aria-current',
+    'page',
+  );
+
+  await page.getByRole('button', { name: 'Switch to light theme' }).click();
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+  await page.reload();
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+  await expect(page.getByRole('button', { name: 'Switch to dark theme' })).toBeVisible();
+});
+
+test('offers the complete navigation in the mobile menu', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'mobile-chromium', 'Mobile navigation test');
+
+  await page.addInitScript(() => localStorage.setItem('portfolio-theme', 'light'));
+  await page.goto('/projects');
+
+  const menu = page.locator('#site-navigation');
+  const menuButton = page.locator('button[aria-controls="site-navigation"]');
+  await expect(page.getByRole('button', { name: 'Switch to dark theme' })).toBeVisible();
+  await expect(menu).toBeHidden();
+  await menuButton.click();
+  await expect(menuButton).toHaveAttribute('aria-expanded', 'true');
+  await expect(menu).toBeVisible();
+  await expect(menu.getByRole('link')).toHaveCount(4);
+
+  await page.keyboard.press('Escape');
+  await expect(menu).toBeHidden();
+
+  await page.getByRole('button', { name: 'Open navigation' }).click();
+  await menu.getByRole('link', { name: '02 Work' }).click();
+  await expect(page).toHaveURL(/\/work$/);
+  await expect(menu).toBeHidden();
+});
