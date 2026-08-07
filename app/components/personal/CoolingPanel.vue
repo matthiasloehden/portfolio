@@ -10,27 +10,26 @@
     >
       <!--
         Tubing — single serial loop:
-        bottom radiator → GPU → RAM → CPU → top radiator
+        bottom radiator → GPU port → RAM port → CPU port → top radiator
         → right radiator → left radiator → left pump → right pump → bottom radiator
       -->
       <svg
         class="loop-tubing"
         viewBox="0 0 1000 700"
-        preserveAspectRatio="none"
+        preserveAspectRatio="xMidYMid meet"
         aria-hidden="true"
       >
         <path
           class="tube tube-base"
           d="
-            M 200 615
-            V 475
-            Q 200 450 225 450
-            H 480
-            Q 505 450 505 425
-            V 300
-            Q 505 275 480 275
+            M 249 640
+            V 424
+            Q 249 399 274 399
+            H 443
+            V 292
+            Q 443 267 418 267
             H 250
-            Q 225 275 225 250
+            Q 225 267 225 242
             V 85
             Q 225 60 250 60
             H 807
@@ -45,8 +44,7 @@
             Q 832 473 832 498
             V 615
             Q 832 640 807 640
-            H 225
-            Q 200 640 200 615
+            H 249
             Z
           "
         />
@@ -54,15 +52,14 @@
         <path
           class="tube tube-flow"
           d="
-            M 200 615
-            V 475
-            Q 200 450 225 450
-            H 480
-            Q 505 450 505 425
-            V 300
-            Q 505 275 480 275
+            M 249 640
+            V 424
+            Q 249 399 274 399
+            H 443
+            V 292
+            Q 443 267 418 267
             H 250
-            Q 225 275 225 250
+            Q 225 267 225 242
             V 85
             Q 225 60 250 60
             H 807
@@ -77,8 +74,7 @@
             Q 832 473 832 498
             V 615
             Q 832 640 807 640
-            H 225
-            Q 200 640 200 615
+            H 249
             Z
           "
         />
@@ -86,6 +82,9 @@
 
       <!-- Top radiator -->
       <div class="radiator radiator-top">
+        <span class="component-port radiator-port-bottom-left" aria-hidden="true" />
+        <span class="component-port radiator-port-bottom-right" aria-hidden="true" />
+
         <div class="radiator-label">
           <span>R01</span>
           <strong>Top radiator</strong>
@@ -110,11 +109,17 @@
 
         <div class="cpu-ram-group">
           <div class="cpu-block hardware-block">
+            <span class="component-port cpu-port-top" aria-hidden="true" />
+            <span class="component-port cpu-port-right" aria-hidden="true" />
+
             <small>CPU</small>
             <i />
           </div>
 
           <div class="ram-zone hardware-block">
+            <span class="component-port ram-port-left" aria-hidden="true" />
+            <span class="component-port ram-port-bottom" aria-hidden="true" />
+
             <span class="ram-label">RAM</span>
 
             <div
@@ -131,7 +136,10 @@
           </div>
         </div>
 
-        <div class="gpu-block">
+        <div class="gpu-block hardware-block">
+          <span class="component-port gpu-port-top" aria-hidden="true" />
+          <span class="component-port gpu-port-bottom" aria-hidden="true" />
+
           <div class="gpu-edge">
             <span>GPU</span>
             <small>VERTICAL</small>
@@ -154,6 +162,8 @@
       <div class="side-cooling">
         <div class="rear-radiators">
           <div class="radiator radiator-rear radiator-three">
+            <span class="component-port radiator-port-right" aria-hidden="true" />
+            <span class="component-port radiator-port-bottom" aria-hidden="true" />
             <span>R03</span>
 
             <div
@@ -165,6 +175,8 @@
           </div>
 
           <div class="radiator radiator-rear radiator-four">
+            <span class="component-port radiator-port-top" aria-hidden="true" />
+            <span class="component-port radiator-port-left" aria-hidden="true" />
             <span>R04</span>
 
             <div
@@ -178,12 +190,16 @@
 
         <div class="pump-bank">
           <div class="pump">
+            <span class="component-port pump-port-top" aria-hidden="true" />
+            <span class="component-port pump-port-right" aria-hidden="true" />
             <span>P01</span>
             <strong>PUMP</strong>
             <i aria-hidden="true" />
           </div>
 
           <div class="pump">
+            <span class="component-port pump-port-left" aria-hidden="true" />
+            <span class="component-port pump-port-bottom" aria-hidden="true" />
             <span>P02</span>
             <strong>PUMP</strong>
             <i aria-hidden="true" />
@@ -195,6 +211,9 @@
 
       <!-- Bottom radiator -->
       <div class="radiator radiator-bottom">
+        <span class="component-port radiator-port-top-left" aria-hidden="true" />
+        <span class="component-port radiator-port-bottom-right" aria-hidden="true" />
+
         <div class="radiator-label">
           <span>R02</span>
           <strong>Bottom radiator</strong>
@@ -237,11 +256,12 @@
 .loop-diagram {
   position: relative;
   display: grid;
-  grid-template-columns: repeat(12, 1fr);
-  grid-template-rows: 4.5rem repeat(8, 1fr) 4.5rem;
-  gap: 0.6rem;
-  min-height: clamp(30rem, 52vw, 38rem);
-  padding: clamp(1rem, 3vw, 1.8rem);
+  width: 100%;
+  aspect-ratio: 1000 / 700;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  grid-template-rows: minmax(0, 1fr) repeat(8, minmax(0, 1fr)) minmax(0, 1fr);
+  gap: 0.9%;
+  padding: 2.4%;
   overflow: hidden;
   background:
     linear-gradient(var(--border) 1px, transparent 1px),
@@ -255,7 +275,7 @@
 
 .loop-tubing {
   position: absolute;
-  z-index: 0;
+  z-index: 2;
   inset: 0;
   width: 100%;
   height: 100%;
@@ -280,6 +300,83 @@
   stroke-dasharray: 2 18;
   filter: drop-shadow(0 0 0.35rem var(--accent));
   animation: coolant-flow 8s linear infinite;
+}
+
+/* ---------------------------------
+   Component ports (tube <-> block connection points)
+   --------------------------------- */
+
+.component-port {
+  position: absolute;
+  z-index: 8;
+  width: clamp(0.45rem, 0.8%, 0.7rem);
+  aspect-ratio: 1;
+  border: 1px solid var(--accent-bright);
+  border-radius: 50%;
+  background: var(--background-raised);
+  box-shadow:
+    0 0 0 2px var(--background-raised),
+    0 0 0.45rem color-mix(in srgb, var(--accent) 65%, transparent);
+}
+
+.cpu-port-top {
+  top: -0.3rem;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.cpu-port-right {
+  top: 50%;
+  right: -0.3rem;
+  transform: translateY(-50%);
+}
+
+.ram-port-left {
+  top: 50%;
+  left: -0.3rem;
+  transform: translateY(-50%);
+}
+
+.ram-port-bottom {
+  bottom: -0.3rem;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.gpu-port-top {
+  top: -0.3rem;
+  left: 64%;
+  transform: translateX(-50%);
+}
+
+.gpu-port-bottom {
+  bottom: -0.3rem;
+  left: 18%;
+  transform: translateX(-50%);
+}
+
+.radiator-port-left {
+  top: 50%;
+  left: -0.3rem;
+  transform: translateY(-50%);
+}
+
+.radiator-port-right {
+  top: 50%;
+  right: -0.3rem;
+  transform: translateY(-50%);
+}
+
+.pump-port-top {
+  top: -0.3rem;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.pump-port-bottom {
+  bottom: -0.3rem;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 /* ---------------------------------
@@ -389,9 +486,9 @@
 
 .motherboard {
   position: relative;
-  z-index: 2;
+  z-index: 1;
   grid-row: 3 / 9;
-  grid-column: 2 / 9;
+  grid-column: 2 / 8;
   min-height: 0;
   padding: 0.8rem;
   overflow: hidden;
@@ -424,19 +521,23 @@
   background-size: 2.4rem 2.4rem;
 }
 
+.hardware-block {
+  z-index: 4;
+
+}
+
 /* ---------------------------------
    CPU + RAM group
    --------------------------------- */
 
 .cpu-ram-group {
   position: absolute;
-  z-index: 3;
   top: 12%;
-  left: 12%;
+  left: 18%;
   display: flex;
   align-items: center;
-  gap: 4rem;
-  width: clamp(15rem, 30vw, 21rem);
+  gap: 14%;
+  width: 100%;
 }
 
 /* ---------------------------------
@@ -446,7 +547,7 @@
 .cpu-block {
   position: relative;
   display: grid;
-  width: clamp(4.2rem, 9vw, 5.5rem);
+  width: 24%;
   aspect-ratio: 1;
   place-items: center;
   border: 1px solid var(--accent);
@@ -477,12 +578,22 @@
    --------------------------------- */
 
 .ram-zone {
+  margin-right: 36%;
   position: relative;
   display: flex;
   align-items: center;
   gap: 0.55rem;
   flex: 1;
   min-width: 0;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--accent);
+  background:
+    radial-gradient(
+      circle,
+      color-mix(in srgb, var(--accent) 14%, transparent),
+      transparent 72%
+    ),
+    var(--background-raised);
 }
 
 .ram-label {
@@ -527,12 +638,13 @@
 .gpu-block {
   position: absolute;
   z-index: 4;
-  right: 10%;
+  right: 12%;
   bottom: 8%;
   left: 12%;
   display: grid;
-  grid-template-columns: auto 1fr;
+  width: auto;
   min-height: 28%;
+  grid-template-columns: auto 1fr;
   border: 1px solid var(--border-strong);
   background:
     linear-gradient(
@@ -845,5 +957,6 @@
   .pump i {
     animation: none;
   }
+
 }
 </style>
