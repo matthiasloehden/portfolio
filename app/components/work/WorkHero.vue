@@ -24,9 +24,7 @@
       style="--reveal-delay: 130ms"
     >
       <p class="motion-hover">
-        At TopRed Media GmbH, I contributed across the full lifecycle of production enterprise applications, from
-        initial development through years of feature development, refactoring, integrations, and maintenance. I worked
-        as part of a development team while requirements, workflows, and the products themselves continuously evolved.
+        At TopRed Media GmbH, I contributed across the full lifecycle of production enterprise applications, from initial development through years of feature development, refactoring, integrations, and maintenance. Working in a three-developer team, I contributed across the stack as requirements, workflows, and the products themselves continuously evolved.
       </p>
       <dl class="border-t border-line">
         <div class="motion-hover flex justify-between gap-4 border-b border-line">
@@ -57,7 +55,7 @@
 
 <style scoped>
 .work-hero {
-  grid-template-columns: minmax(0, 1.2fr) minmax(18rem, 0.52fr);
+  grid-template-columns: minmax(0, 1.2fr) minmax(22rem, 0.65fr);
   grid-template-rows: 1fr auto;
   gap: 3rem clamp(3rem, 9vw, 9rem);
   min-height: min(53rem, calc(100svh - 5.5rem));
