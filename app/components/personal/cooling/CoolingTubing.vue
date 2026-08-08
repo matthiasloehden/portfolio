@@ -141,9 +141,9 @@ function createRoundedPath(
   let path = `M ${points[0].x} ${points[0].y}`
 
   for (let index = 1; index < points.length - 1; index++) {
-    const previous = points[index - 1]
-    const current = points[index]
-    const next = points[index + 1]
+    const previous = points[index - 1]!
+    const current = points[index]!
+    const next = points[index + 1]!
 
     const cornerRadius = Math.min(
       radius,
@@ -168,7 +168,7 @@ function createRoundedPath(
     path += ` ${afterCorner.x} ${afterCorner.y}`
   }
 
-  const last = points[points.length - 1]
+  const last = points[points.length - 1]!
 
   path += ` L ${last.x} ${last.y}`
 

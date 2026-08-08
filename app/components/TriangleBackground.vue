@@ -1,6 +1,30 @@
 <script setup lang="ts">
 const background = ref<HTMLElement | null>(null);
 const bandCount = ref(1);
+
+// Grid sizing: adjust these to control how many columns/rows appear per breakpoint.
+const COLUMNS_DESKTOP = 16;
+const ROWS_DESKTOP = 15;
+const COLUMNS_MEDIUM = 12; // <= 900px
+const ROWS_MEDIUM = 20;
+const COLUMNS_MOBILE = 8; // <= 600px
+const ROWS_MOBILE = 30;
+
+const windowWidth = ref(typeof window !== 'undefined' ? window.innerWidth : 1200);
+
+function getColumns(): number {
+  if (windowWidth.value <= 600) return COLUMNS_MOBILE;
+  if (windowWidth.value <= 900) return COLUMNS_MEDIUM;
+  return COLUMNS_DESKTOP;
+}
+
+function getRows(): number {
+  if (windowWidth.value <= 600) return ROWS_MOBILE;
+  if (windowWidth.value <= 900) return ROWS_MEDIUM;
+  return ROWS_DESKTOP;
+}
+
+const totalCells = computed(() => getColumns() * getRows());
 const triangleDirections = [
   ['polygon(0 0, 100% 0, 0 100%)', 'polygon(100% 0, 100% 100%, 0 100%)'],
   ['polygon(0 0, 100% 0, 100% 100%)', 'polygon(0 0, 100% 100%, 0 100%)'],
@@ -48,6 +72,8 @@ function updateBandCount(): void {
   const backgroundHeight = background.value.getBoundingClientRect().height;
   const viewportHeight = Math.max(window.innerHeight, 1);
   bandCount.value = Math.max(1, Math.ceil(backgroundHeight / viewportHeight));
+  // Keep reactive window width in sync so grid counts update on resize
+  windowWidth.value = window.innerWidth;
 }
 
 function setActiveCell(nextCell: HTMLElement | null): void {
@@ -95,8 +121,8 @@ function sampleTriangleAtPointer(): void {
   }
 
   const bandRect = band.getBoundingClientRect();
-  const columns = window.innerWidth <= 600 ? 5 : window.innerWidth <= 900 ? 6 : 10;
-  const rows = 60 / columns;
+  const columns = getColumns();
+  const rows = getRows();
   const column = Math.min(
     columns - 1,
     Math.max(0, Math.floor(((pointerX - bandRect.left) / bandRect.width) * columns)),
@@ -207,7 +233,7 @@ onBeforeUnmount(() => {
         class="triangle-band"
       >
         <span
-          v-for="cell in 60"
+          v-for="cell in totalCells"
           :key="cell"
           class="triangle-cell"
           :style="getCellStyle(band, cell)"
@@ -251,8 +277,8 @@ onBeforeUnmount(() => {
 
 .triangle-band {
   display: grid;
-  grid-template-columns: repeat(10, minmax(0, 1fr));
-  grid-template-rows: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(16, minmax(0, 1fr));
+  grid-template-rows: repeat(15, minmax(0, 1fr));
   height: 100vh;
   contain: layout paint style;
   content-visibility: auto;
@@ -433,8 +459,8 @@ onBeforeUnmount(() => {
 
 @media (max-width: 900px) {
   .triangle-band {
-    grid-template-columns: repeat(6, minmax(0, 1fr));
-    grid-template-rows: repeat(10, minmax(0, 1fr));
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    grid-template-rows: repeat(20, minmax(0, 1fr));
   }
 }
 
@@ -444,8 +470,8 @@ onBeforeUnmount(() => {
   }
 
   .triangle-band {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    grid-template-rows: repeat(12, minmax(0, 1fr));
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+    grid-template-rows: repeat(30, minmax(0, 1fr));
   }
 }
 
