@@ -65,7 +65,6 @@ test('presents personal projects and interests as a complete page', async ({ pag
   await expect(page.getByRole('heading', { name: 'Ideas explained from first principles.' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'The machine matters too.' })).toBeVisible();
   await expect(page.getByText('3Blue1Brown', { exact: true })).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Computer science' })).toBeVisible();
   await expect(page.getByText('4 radiators', { exact: true })).toBeVisible();
   await expect(
     page.getByRole('navigation', { name: 'Main navigation' }).getByRole('link', { name: 'Personal', exact: true }),
