@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { hardwareSection, homelabSection, learningSection, openSourceSection, personalList } from '@/data/personal';
+import CoolingLoopPanel from '~/components/personal/cooling/CoolingLoopPanel.vue';
 
 useSeoMeta({
   title: 'Personal Projects & Interests — Matthias Löhden',
@@ -43,7 +44,7 @@ useSeoMeta({
         v-bind="hardwareSection"
         reverse
       >
-        <PersonalCoolingPanel />
+        <CoolingLoopPanel />
       </PersonalFeatureSection>
 
       <PersonalClosing />
