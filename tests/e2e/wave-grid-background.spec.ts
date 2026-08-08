@@ -16,8 +16,10 @@ test('renders the home triangle background and responds to pointer and wheel inp
   await page.goto('/');
   await expect(page.getByRole('heading', { name: 'I build applications.' })).toBeVisible();
 
-  // Root class of the refactored component (was `.wave-grid-background` before the rename).
-  const background = page.locator('.triangle-background');
+  // `.triangle-background` can match more than one instance at a time (e.g. a
+  // previous route's background kept mounted but hidden), so scope to the
+  // one that is actually visible on this page.
+  const background = page.locator('.triangle-background:visible').first();
   const canvas = background.locator('canvas');
   await expect(canvas).toBeVisible();
 
@@ -43,7 +45,7 @@ test('keeps a static grid when reduced motion is requested', async ({ page }, te
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/');
 
-  await expect(page.locator('.triangle-background canvas')).toBeVisible();
+  await expect(page.locator('.triangle-background:visible canvas')).toBeVisible();
   await expect(page.getByRole('heading', { name: 'I build applications.' })).toBeVisible();
   expect(runtimeErrors).toEqual([]);
 });
@@ -54,7 +56,7 @@ test('creates touch ripples without blocking mobile scrolling', async ({ page, c
   const session = await context.newCDPSession(page);
 
   await page.goto('/');
-  await expect(page.locator('.triangle-background canvas')).toBeVisible();
+  await expect(page.locator('.triangle-background:visible canvas')).toBeVisible();
 
   const touch = async (type: 'touchStart' | 'touchMove' | 'touchEnd', x: number, y: number): Promise<void> => {
     await session.send('Input.dispatchTouchEvent', {
@@ -71,6 +73,6 @@ test('creates touch ripples without blocking mobile scrolling', async ({ page, c
   await page.waitForTimeout(500);
 
   expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
-  await expect(page.locator('.triangle-background')).toHaveCSS('position', 'fixed');
+  await expect(page.locator('.triangle-background:visible').first()).toHaveCSS('position', 'fixed');
   expect(runtimeErrors).toEqual([]);
 });

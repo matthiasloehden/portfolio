@@ -1,7 +1,9 @@
 import { expect, test, type Page } from '@playwright/test';
 
 async function waitForHydration(page: Page): Promise<void> {
-  await expect(page.locator('html')).toHaveClass(/motion-ready/);
+  // The hydration marker moved from a `motion-ready` CSS class to a
+  // `data-background-motion` attribute, set once the background component mounts.
+  await expect(page.locator('html')).toHaveAttribute('data-background-motion');
 }
 
 test('shares active navigation and persists the selected theme', async ({ page }, testInfo) => {
@@ -34,7 +36,10 @@ test('uses a full-viewport triangle background on the work page', async ({ page 
   await page.goto('/work');
   await waitForHydration(page);
 
-  const triangleBackground = page.locator('.triangle-background').first();
+  // `.triangle-background` can match more than one instance at a time (e.g. a
+  // previous route's background kept mounted but hidden), so scope to the
+  // one that is actually visible on this page.
+  const triangleBackground = page.locator('.triangle-background:visible').first();
   await expect(triangleBackground).toBeVisible();
   await expect(triangleBackground).toHaveCSS('position', 'fixed');
 });
