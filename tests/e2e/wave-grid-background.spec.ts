@@ -44,7 +44,7 @@ test('keeps a static grid when reduced motion is requested', async ({ page }, te
   await page.goto('/');
 
   await expect(page.locator('.wave-grid-background canvas')).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'I build web products that feel effortless.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'I build applications.' })).toBeVisible();
   expect(runtimeErrors).toEqual([]);
 });
 
