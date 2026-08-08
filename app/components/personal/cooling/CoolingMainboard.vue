@@ -197,16 +197,17 @@ import CoolingPort from './CoolingPort.vue';
   align-items: center;
   gap: 1cqw;
   padding: 0.8cqw 1cqw;
-  border: 0.1cqw solid var(--accent);
+  border: 0.1cqw solid var(--border-strong);
   background:
-    radial-gradient(circle, color-mix(in srgb, var(--accent) 14%, transparent), transparent 72%),
+    linear-gradient(110deg, color-mix(in srgb, var(--accent) 9%, transparent), transparent 55%),
     var(--background-raised);
 }
 
 .ram-label {
-  color: var(--muted);
+  color: var(--accent);
   font-family: var(--mono-font);
-  font-size: 0.9cqw;
+  font-size: 0.8cqw;
+  letter-spacing: 0.08em;
   line-height: 1;
   writing-mode: vertical-rl;
   transform: rotate(180deg);

@@ -3,7 +3,12 @@ import type { CaseStudyListItem, LearningGroup, OpenSourceContribution, Personal
 export const personalList: CaseStudyListItem[] = [
   { href: '#open-source', number: '01', title: 'Open-source contributions', category: 'Features & fixes' },
   { href: '#homelab', number: '02', title: 'Self-hosted systems', category: 'Docker & local AI' },
-  { href: '#learning', number: '03', title: 'Channels I return to', category: 'Learning & inspiration' },
+  {
+    href: '#learning',
+    number: '03',
+    title: 'From transistors to architecture',
+    category: 'Learning from first principles',
+  },
   { href: '#hardware', number: '04', title: 'Custom PC hardware', category: 'Building & cooling' },
 ];
 
@@ -39,14 +44,14 @@ export const learningSection: PersonalSectionContent = {
   id: 'learning',
   number: '03',
   category: 'Learning',
-  type: 'Channels worth returning to',
-  title: 'Ideas explained from first principles.',
-  lead: 'The creators I value most make complex systems tangible through careful explanation, visual thinking, and hands-on exploration.',
+  type: 'From low level to architecture',
+  title: 'From transistors to software architecture.',
+  lead: 'I enjoy understanding technology from the lowest levels up.',
   paragraphs: [
-    'My favourites form three complementary groups: computer science from code down to hardware, engineering in the physical world, and visual mathematics.',
-    'Together they are a steady source of new questions—and a reminder that the clearest explanations usually come from understanding a subject deeply.',
+    'The channels I return to cover digital electronics, computer architecture, operating systems, algorithms, mathematics, and engineering.',
+    'What connects them is the same curiosity: understanding how a system actually works, from individual transistors and logic gates to the architecture of complex software.',
   ],
-  tags: ['Computer science', 'Engineering', 'Mathematics', 'Creative coding'],
+  tags: ['Computer science', 'Engineering', 'Mathematics'],
 };
 
 export const hardwareSection: PersonalSectionContent = {

@@ -30,12 +30,12 @@
     >
       <SharedActionLink
         label="Start a conversation"
-        href="mailto:m.loehden@yahoo.de"
+        href="mailto:m.loehden@proton.me"
       />
       <SharedActionLink
-        label="View university work"
+        label="View home page"
         symbol="→"
-        to="/projects"
+        to="/"
         variant="text"
       />
     </div>

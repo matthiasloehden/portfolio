@@ -21,8 +21,8 @@ withDefaults(
       :port="port"
     />
 
-    <span>{{ code }}</span>
-    <strong>PUMP</strong>
+    <span class="pump-code">{{ code }}</span>
+    <strong class="pump-label">PUMP</strong>
     <i aria-hidden="true" />
   </div>
 </template>
@@ -43,14 +43,21 @@ withDefaults(
     0 0 0 0.7cqw var(--border);
 }
 
-.pump span {
+.pump-code {
+  position: absolute;
+  top: 15%;
+  left: 50%;
+  transform: translateX(-50%);
   color: var(--accent);
   font-family: var(--mono-font);
   font-size: 0.8cqw;
   letter-spacing: 0.08em;
 }
 
-.pump strong {
+.pump-label {
+  display: grid;
+  place-items: center;
+  color: var(--accent);
   font-family: var(--display-font);
   font-size: 1cqw;
   letter-spacing: 0.04em;

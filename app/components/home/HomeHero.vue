@@ -9,22 +9,22 @@
           class="eyebrow flex items-center"
           data-reveal="up"
         >
-          <span aria-hidden="true"></span> Based in Germany · Building for the web
+          <span aria-hidden="true"></span> Based in Germany · Building software
         </p>
         <h1
           id="hero-title"
           data-reveal="up"
           style="--reveal-delay: 80ms"
         >
-          I build <em>web products</em> that feel effortless.
+          I build <em>applications.</em>
         </h1>
         <p
           class="hero-copy"
           data-reveal="up"
           style="--reveal-delay: 160ms"
         >
-          I’m Matthias, a software engineer focused on creating fast, thoughtful, and maintainable web products—from
-          backend architecture to polished frontend experiences.
+          I’m Matthias, a software engineer focused on building reliable applications and the systems behind them—from
+          backend architecture and data to interfaces, integrations, and long-term maintainability.
         </p>
         <div
           class="hero-actions flex flex-wrap items-center"
@@ -33,7 +33,7 @@
         >
           <SharedActionLink
             label="Start a conversation"
-            href="mailto:m.loehden@yahoo.de"
+            href="mailto:m.loehden@proton.me"
           />
           <SharedActionLink
             label="Explore profile"
@@ -74,10 +74,10 @@
       <div
         class="motion-hover"
         data-reveal="up"
-        style="--reveal-delay: 140ms"
+        style="--reveal-delay: 210ms"
       >
-        <dt><span aria-hidden="true">03</span> Frontend + backend</dt>
-        <dd>From interface to deployment</dd>
+        <dt><span aria-hidden="true">04</span> Concept to maintenance</dt>
+        <dd>Design, delivery, evolution</dd>
       </div>
     </dl>
   </section>

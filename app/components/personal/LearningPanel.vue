@@ -10,7 +10,7 @@ const secondarySources = computed(() => learningGroups.slice(1).flatMap((group) 
   <SharedPanelFrame
     class="learning-panel"
     title="watch.list"
-    meta="6 creators / 2 columns"
+    meta="6 creators / 3 subjects"
   >
     <div
       class="learning-groups"

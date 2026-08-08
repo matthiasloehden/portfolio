@@ -3,7 +3,7 @@ import type { NavigationItem } from '@/types/content';
 export const site = {
   name: 'Matthias Löhden',
   role: 'Software Engineer',
-  email: 'm.loehden@yahoo.de',
+  email: 'm.loehden@proton.me',
 } as const;
 
 export const siteNavigation: NavigationItem[] = [

@@ -4,7 +4,7 @@ import { itsmCase, passkeysCase, projectList, streamingCase } from '@/data/proje
 useSeoMeta({
   title: 'University Projects — Matthias Löhden',
   description:
-    'Selected computer science work by Matthias Löhden across JavaScript, Java, Python, Prolog, Kafka, Jakarta Faces, passwordless authentication, and IT service management.',
+    'Selected computer science work by Matthias Löhden across scalable event processing, FIDO2 authentication, service operations, and applied software design.',
 });
 </script>
 

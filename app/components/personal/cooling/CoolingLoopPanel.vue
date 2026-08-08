@@ -15,7 +15,7 @@ const tubeConnections: TubeConnection[] = [
     from: 'radiator-bottom-left',
     to: 'gpu-bottom',
     axis: 'y',
-    at: 565,
+    at: 588,
   },
   {
     from: 'gpu-top',
@@ -36,32 +36,30 @@ const tubeConnections: TubeConnection[] = [
   },
   {
     from: 'radiator-top-right',
-    to: 'radiator-04-top',
+    to: 'radiator-03-top',
     axis: 'y',
-    at: 100,
+    at: 115,
   },
   {
-    from: 'radiator-04-left',
-    to: 'radiator-03-right',
-    axis: 'direct',
-    at: 800,
-  },
-  {
-    from: 'radiator-03-bottom',
-    to: 'pump-01-top',
-    axis: 'direct',
-    at: 415,
-  },
-  {
-    from: 'pump-01-right',
-    to: 'pump-02-left',
+    from: 'radiator-03-right',
+    to: 'radiator-04-left',
     axis: 'direct',
   },
   {
-    from: 'pump-02-bottom',
+    from: 'radiator-04-bottom',
+    to: 'pump-02-top',
+    axis: 'direct',
+  },
+  {
+    from: 'pump-02-left',
+    to: 'pump-01-right',
+    axis: 'direct',
+  },
+  {
+    from: 'pump-01-bottom',
     to: 'radiator-bottom-right',
     axis: 'y',
-    at: 590,
+    at: 588,
   },
 ];
 </script>
@@ -113,16 +111,16 @@ const tubeConnections: TubeConnection[] = [
             orientation="vertical"
             :ports="[
               {
+                id: 'radiator-03-top',
+                side: 'top',
+                offset: 50,
+                className: 'radiator-port-top',
+              },
+              {
                 id: 'radiator-03-right',
                 side: 'right',
                 offset: 50,
                 className: 'radiator-port-right',
-              },
-              {
-                id: 'radiator-03-bottom',
-                side: 'bottom',
-                offset: 50,
-                className: 'radiator-port-bottom',
               },
             ]"
           />
@@ -133,16 +131,16 @@ const tubeConnections: TubeConnection[] = [
             orientation="vertical"
             :ports="[
               {
-                id: 'radiator-04-top',
-                side: 'top',
-                offset: 50,
-                className: 'radiator-port-top',
-              },
-              {
                 id: 'radiator-04-left',
                 side: 'left',
                 offset: 50,
                 className: 'radiator-port-left',
+              },
+              {
+                id: 'radiator-04-bottom',
+                side: 'bottom',
+                offset: 50,
+                className: 'radiator-port-bottom',
               },
             ]"
           />
@@ -152,16 +150,16 @@ const tubeConnections: TubeConnection[] = [
             code="P01"
             :ports="[
               {
-                id: 'pump-01-top',
-                side: 'top',
-                offset: 50,
-                className: 'pump-port-top',
-              },
-              {
                 id: 'pump-01-right',
                 side: 'right',
                 offset: 50,
                 className: 'pump-port-right',
+              },
+              {
+                id: 'pump-01-bottom',
+                side: 'bottom',
+                offset: 50,
+                className: 'pump-port-bottom',
               },
             ]"
           />
@@ -177,15 +175,13 @@ const tubeConnections: TubeConnection[] = [
                 className: 'pump-port-left',
               },
               {
-                id: 'pump-02-bottom',
-                side: 'bottom',
+                id: 'pump-02-top',
+                side: 'top',
                 offset: 50,
-                className: 'pump-port-bottom',
+                className: 'pump-port-top',
               },
             ]"
           />
-
-          <span class="side-label"> DUAL LOOP DRIVE </span>
         </div>
 
         <CoolingRadiator
@@ -291,8 +287,8 @@ const tubeConnections: TubeConnection[] = [
   position: absolute;
   z-index: 3;
   top: 15cqw;
-  left: 69cqw;
-  width: 22cqw;
+  left: 64cqw;
+  width: 27cqw;
   height: 41cqw;
 }
 
@@ -300,8 +296,8 @@ const tubeConnections: TubeConnection[] = [
 .radiator-four {
   position: absolute;
   top: 0;
-  width: 10.2cqw;
-  height: 23cqw;
+  width: 12cqw;
+  height: 28cqw;
 }
 
 .radiator-three {
@@ -315,15 +311,15 @@ const tubeConnections: TubeConnection[] = [
 .pump-one,
 .pump-two {
   position: absolute;
-  top: 30cqw;
+  top: 31cqw;
 }
 
 .pump-one {
-  left: 0.6cqw;
+  left: 1.5cqw;
 }
 
 .pump-two {
-  right: 0.6cqw;
+  left: 16.5cqw;
 }
 
 .side-label {

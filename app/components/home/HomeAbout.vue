@@ -17,16 +17,16 @@
         data-reveal="right"
       >
         I completed my application-development apprenticeship at TopRed Media from 2019 to 2022 and continued there as a
-        full-stack developer until 2025. Since 2022, I have paired that hands-on experience with computer science
-        studies at IU.
+        software developer until 2025. Since 2022, I have paired that hands-on experience with computer science studies
+        at IU.
       </p>
       <p
         class="motion-hover"
         data-reveal="right"
         style="--reveal-delay: 90ms"
       >
-        My focus is straightforward: understand the real problem, choose the simplest durable solution, and deliver an
-        experience that is fast for users and pleasant for teams to maintain.
+        My focus is straightforward: understand the real problem, choose the simplest durable solution, and build
+        applications that remain understandable as requirements and systems evolve.
       </p>
       <div
         class="principles flex flex-wrap"
@@ -34,10 +34,10 @@
         style="--reveal-delay: 160ms"
         aria-label="Development principles"
       >
-        <span>Semantic</span>
-        <span>Responsive</span>
-        <span>Accessible</span>
-        <span>Performant</span>
+        <span>Applications</span>
+        <span>Systems</span>
+        <span>Performance</span>
+        <span>Maintainability</span>
       </div>
     </div>
   </section>

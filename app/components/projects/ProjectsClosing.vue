@@ -23,13 +23,20 @@
       These projects connect technical implementation with the systems, standards, and people around it.
     </p>
     <div
+          class="close-actions flex items-center justify-center"
       data-reveal="up"
       style="--reveal-delay: 180ms"
     >
       <SharedActionLink
         class="mt-9"
         label="Start a conversation"
-        href="mailto:m.loehden@yahoo.de"
+        href="mailto:m.loehden@proton.me"
+      />
+            <SharedActionLink
+        label="View personal projects"
+        symbol="→"
+        to="/personal"
+        variant="text"
       />
     </div>
   </section>
@@ -51,6 +58,11 @@ h2 {
   margin: 1.7rem auto 0;
   color: var(--muted);
   line-height: 1.7;
+}
+
+.close-actions {
+  gap: 1.5rem;
+  margin-top: 2.2rem;
 }
 
 @media (max-width: 620px) {

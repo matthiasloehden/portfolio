@@ -22,8 +22,8 @@
         style="--reveal-delay: 130ms"
       >
         <p class="motion-hover">
-          Three selected projects sit within broader coursework spanning programming paradigms, web applications, event
-          streaming, security, and service management.
+          Three selected projects show different application concerns: scalable data processing, authentication
+          security, and reliable service operations.
         </p>
         <dl class="grid border-t border-line">
           <div class="motion-hover flex justify-between gap-4 border-b border-line">
@@ -31,12 +31,12 @@
             <dd>JavaScript, Java, Python &amp; Prolog</dd>
           </div>
           <div class="motion-hover flex justify-between gap-4 border-b border-line">
-            <dt>Platforms</dt>
-            <dd>Kafka &amp; Jakarta Faces</dd>
+            <dt>Systems</dt>
+            <dd>Kafka, Flink, ClickHouse &amp; WebAuthn</dd>
           </div>
           <div class="motion-hover flex justify-between gap-4 border-b border-line">
             <dt>Focus</dt>
-            <dd>Applied computer science</dd>
+            <dd>Scalability, security &amp; operations</dd>
           </div>
         </dl>
       </div>

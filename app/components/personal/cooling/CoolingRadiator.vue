@@ -58,6 +58,7 @@ const finCount = computed(() => (props.orientation === 'horizontal' ? 14 : 7));
 }
 
 .radiator-label {
+  color: var(--accent);
   position: absolute;
   z-index: 2;
   display: flex;

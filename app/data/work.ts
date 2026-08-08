@@ -7,15 +7,35 @@ export const workList: CaseStudyListItem[] = [
   { href: '#client-platform', number: '04', title: 'Client platform', category: 'CMS & communication' },
 ];
 
+export const coreWorkStack = [
+  'PHP',
+  'Laravel',
+  'Inertia.js',
+  'Vue.js',
+  'Tailwind CSS',
+  'MySQL',
+  'Redis',
+  'Meilisearch',
+];
+
+export const workHighlights = [
+  'Long-term development of production enterprise applications',
+  'Backend architecture, data modelling, and application workflows',
+  'Search and caching with Meilisearch and Redis',
+  'Integrations between applications, services, and external systems',
+  'Refactoring and maintenance of established codebases',
+  'Software connecting digital workflows with real-world operations',
+];
+
 export const learningCase: WorkCaseStudyContent = {
   id: 'learning-platform',
   number: '01',
   category: 'Enterprise client',
   type: 'Learning & content',
   title: 'Enterprise learning platform',
-  summary: 'A learning platform backed by a purpose-built publishing and permissions system.',
+  summary: 'A learning application backed by a purpose-built publishing and permissions system.',
   paragraphs: [
-    'Our team at TopRed Media was responsible for a platform that brought multiple learning formats into one managed experience. Its custom CMS supported events, videos, podcasts, and articles instead of forcing very different content into one generic model.',
+    'Our team at TopRed Media was responsible for an application that brought multiple learning formats into one managed experience. Its custom CMS supported events, videos, podcasts, and articles instead of forcing very different content into one generic model.',
     'Custom access rights controlled who could reach specific parts of the platform, making permissions a core product capability alongside publishing.',
   ],
   facts: [
@@ -31,7 +51,7 @@ export const retailCase: WorkCaseStudyContent = {
   category: 'Enterprise client',
   type: 'Retail operations',
   title: 'Retail operations platform',
-  summary: 'A shared operational workspace for tasks, shop data, changes, and reporting.',
+  summary: 'A data-heavy operational workspace for tasks, shop records, changes, and reporting.',
   paragraphs: [
     'The platform gave employees a central place to receive and complete tasks while maintaining the operational record for each shop. Individual shop pages collected opening times, floor layouts, location data, and location or postal-change workflows.',
     'Its analytics brought shop, task, and related platform data together in Excel reports. The flow also worked in reverse: edited spreadsheets could be uploaded and synchronized back to the database.',
@@ -67,7 +87,7 @@ export const clientCase: WorkCaseStudyContent = {
   category: 'TopRed Media',
   type: 'Internal product',
   title: 'One platform, different communities.',
-  summary: 'A configurable CMS and communication product designed for different client contexts.',
+  summary: 'A configurable application foundation for content, communication, and client-specific workflows.',
   paragraphs: [
     'Alongside the client work, our team developed an internal platform combining a custom CMS with live chat, event management, team management, and related communication tools.',
     'It was adaptable to very different organizations: examples included a personal trainer communicating with customers and a kindergarten coordinating its community. The shared product foundation could serve both without reducing them to the same workflow.',

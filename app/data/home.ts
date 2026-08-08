@@ -5,13 +5,13 @@ export const capabilities: Capability[] = [
     number: '01',
     layer: 'Production experience',
     title: 'Professional',
-    skills: ['PHP', 'Laravel', 'JavaScript', 'Vue.js', 'SQL', 'Tailwind CSS', 'Python', 'Electron', 'Laravel Forge'],
+    skills: ['PHP', 'Laravel', 'JavaScript', 'Inertia.js', 'Vue.js', 'Tailwind CSS', 'MySQL', 'Redis', 'Meilisearch', 'Python'],
   },
   {
     number: '02',
     layer: 'Coursework',
     title: 'Academic',
-    skills: ['Java', 'Python', 'JavaScript', 'Prolog', 'Apache Kafka', 'Jakarta Faces', 'Apache Flink', 'WebAuthn'],
+    skills: ['Java', 'Python', 'JavaScript', 'Prolog', 'Apache Kafka', 'Apache Flink', 'ClickHouse', 'FIDO2'],
   },
   {
     number: '03',
@@ -20,7 +20,6 @@ export const capabilities: Capability[] = [
     skills: [
       'C#',
       'Unity',
-      'Game development',
       'C',
       'Assembly',
       'TypeScript',
