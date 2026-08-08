@@ -168,32 +168,15 @@ let cachedTheme: string | null = null;
 /* -------------------------------------------------------------------------- */
 
 function seededRandom(seed: number): number {
-  const value =
-    Math.sin(seed * 12.9898 + 78.233) *
-    43758.5453;
+  const value = Math.sin(seed * 12.9898 + 78.233) * 43758.5453;
 
   return value - Math.floor(value);
 }
 
-function smoothstep(
-  edgeStart: number,
-  edgeEnd: number,
-  value: number,
-): number {
-  const normalized = Math.min(
-    1,
-    Math.max(
-      0,
-      (value - edgeStart) /
-        (edgeEnd - edgeStart),
-    ),
-  );
+function smoothstep(edgeStart: number, edgeEnd: number, value: number): number {
+  const normalized = Math.min(1, Math.max(0, (value - edgeStart) / (edgeEnd - edgeStart)));
 
-  return (
-    normalized *
-    normalized *
-    (3 - 2 * normalized)
-  );
+  return normalized * normalized * (3 - 2 * normalized);
 }
 
 function getTargetTriangleCount(): number {
@@ -209,14 +192,9 @@ function getTargetTriangleCount(): number {
 }
 
 function getPalette(): TrianglePalette {
-  const theme =
-    document.documentElement.dataset.theme ??
-    'dark';
+  const theme = document.documentElement.dataset.theme ?? 'dark';
 
-  if (
-    cachedPalette &&
-    cachedTheme === theme
-  ) {
+  if (cachedPalette && cachedTheme === theme) {
     return cachedPalette;
   }
 
@@ -245,151 +223,75 @@ function getPalette(): TrianglePalette {
 /* -------------------------------------------------------------------------- */
 
 function calculateGridMetrics(): GridMetrics {
-  const aspectRatio = Math.max(
-    width / Math.max(height, 1),
-    0.35,
-  );
+  const aspectRatio = Math.max(width / Math.max(height, 1), 0.35);
 
-  const targetCells =
-    getTargetTriangleCount() / 2;
+  const targetCells = getTargetTriangleCount() / 2;
 
-  const columns = Math.max(
-    6,
-    Math.round(
-      Math.sqrt(
-        targetCells *
-          aspectRatio,
-      ),
-    ),
-  );
+  const columns = Math.max(6, Math.round(Math.sqrt(targetCells * aspectRatio)));
 
-  const rows = Math.max(
-    5,
-    Math.round(
-      targetCells / columns,
-    ),
-  );
+  const rows = Math.max(5, Math.round(targetCells / columns));
 
   return {
     columns,
     rows,
-    cellWidth:
-      width / columns,
-    cellHeight:
-      height / rows,
+    cellWidth: width / columns,
+    cellHeight: height / rows,
   };
 }
 
 function rebuildTrianglePaths(): void {
-  const cellWidth =
-    metrics.cellWidth;
+  const cellWidth = metrics.cellWidth;
 
-  const cellHeight =
-    metrics.cellHeight;
+  const cellHeight = metrics.cellHeight;
 
   trianglePathA = new Path2D();
 
   trianglePathA.moveTo(0, 0);
 
-  trianglePathA.lineTo(
-    cellWidth,
-    0,
-  );
+  trianglePathA.lineTo(cellWidth, 0);
 
-  trianglePathA.lineTo(
-    0,
-    cellHeight,
-  );
+  trianglePathA.lineTo(0, cellHeight);
 
   trianglePathA.closePath();
 
   trianglePathB = new Path2D();
 
-  trianglePathB.moveTo(
-    cellWidth,
-    0,
-  );
+  trianglePathB.moveTo(cellWidth, 0);
 
-  trianglePathB.lineTo(
-    cellWidth,
-    cellHeight,
-  );
+  trianglePathB.lineTo(cellWidth, cellHeight);
 
-  trianglePathB.lineTo(
-    0,
-    cellHeight,
-  );
+  trianglePathB.lineTo(0, cellHeight);
 
   trianglePathB.closePath();
 }
 
-function buildTileRows(
-  startRowIndex: number,
-  rowCount: number,
-): void {
+function buildTileRows(startRowIndex: number, rowCount: number): void {
   const nextRows: TileRow[] = [];
 
-  for (
-    let offset = 0;
-    offset < rowCount;
-    offset += 1
-  ) {
-    const rowIndex =
-      startRowIndex + offset;
+  for (let offset = 0; offset < rowCount; offset += 1) {
+    const rowIndex = startRowIndex + offset;
 
     const rowTiles: TriangleTile[] = [];
 
-    const rowY =
-      rowIndex *
-      metrics.cellHeight;
+    const rowY = rowIndex * metrics.cellHeight;
 
-    for (
-      let column = 0;
-      column < metrics.columns;
-      column += 1
-    ) {
-      const seed =
-        rowIndex * 149 +
-        column * 43 +
-        1;
+    for (let column = 0; column < metrics.columns; column += 1) {
+      const seed = rowIndex * 149 + column * 43 + 1;
 
       rowTiles.push({
         column,
         row: rowIndex,
         side: 'a',
 
-        tone:
-          0.68 +
-          seededRandom(seed) *
-            0.32,
+        tone: 0.68 + seededRandom(seed) * 0.32,
 
-        phase:
-          seededRandom(
-            seed + 11,
-          ) *
-          Math.PI *
-          2,
+        phase: seededRandom(seed + 11) * Math.PI * 2,
 
-        speed:
-          0.18 +
-          seededRandom(
-            seed + 17,
-          ) *
-            0.22,
+        speed: 0.18 + seededRandom(seed + 17) * 0.22,
 
-        driftX:
-          (seededRandom(
-            seed + 23,
-          ) -
-            0.5) *
-          2.4,
+        driftX: (seededRandom(seed + 23) - 0.5) * 2.4,
 
-        driftY:
-          (seededRandom(
-            seed + 29,
-          ) -
-            0.5) *
-          2.4,
+        driftY: (seededRandom(seed + 29) - 0.5) * 2.4,
       });
 
       rowTiles.push({
@@ -397,40 +299,15 @@ function buildTileRows(
         row: rowIndex,
         side: 'b',
 
-        tone:
-          0.52 +
-          seededRandom(
-            seed + 37,
-          ) *
-            0.34,
+        tone: 0.52 + seededRandom(seed + 37) * 0.34,
 
-        phase:
-          seededRandom(
-            seed + 41,
-          ) *
-          Math.PI *
-          2,
+        phase: seededRandom(seed + 41) * Math.PI * 2,
 
-        speed:
-          0.16 +
-          seededRandom(
-            seed + 47,
-          ) *
-            0.2,
+        speed: 0.16 + seededRandom(seed + 47) * 0.2,
 
-        driftX:
-          (seededRandom(
-            seed + 53,
-          ) -
-            0.5) *
-          2,
+        driftX: (seededRandom(seed + 53) - 0.5) * 2,
 
-        driftY:
-          (seededRandom(
-            seed + 59,
-          ) -
-            0.5) *
-          2,
+        driftY: (seededRandom(seed + 59) - 0.5) * 2,
       });
     }
 
@@ -448,64 +325,22 @@ function buildTileRows(
 function syncRowsForScroll(): void {
   if (!context) return;
 
-  const rowHeight =
-    metrics.cellHeight;
+  const rowHeight = metrics.cellHeight;
 
-  const visibleRowCount =
-    Math.max(
-      4,
-      Math.ceil(
-        (
-          height +
-          window.innerHeight * 1.2
-        ) /
-          Math.max(
-            rowHeight,
-            1,
-          ),
-      ) + 4,
-    );
+  const visibleRowCount = Math.max(4, Math.ceil((height + window.innerHeight * 1.2) / Math.max(rowHeight, 1)) + 4);
 
-  const startRowIndex =
-    Math.max(
-      0,
-      Math.floor(
-        scrollOffset /
-          rowHeight,
-      ) - 2,
-    );
+  const startRowIndex = Math.max(0, Math.floor(scrollOffset / rowHeight) - 2);
 
-  const rowCount =
-    Math.max(
-      visibleRowCount,
-      10,
-    );
+  const rowCount = Math.max(visibleRowCount, 10);
 
-  const currentStart =
-    tileRows[0]?.rowIndex ??
-    -1;
+  const currentStart = tileRows[0]?.rowIndex ?? -1;
 
-  const currentEnd =
-    tileRows[
-      tileRows.length - 1
-    ]?.rowIndex ?? -1;
+  const currentEnd = tileRows[tileRows.length - 1]?.rowIndex ?? -1;
 
-  const expectedEnd =
-    startRowIndex +
-    rowCount -
-    1;
+  const expectedEnd = startRowIndex + rowCount - 1;
 
-  if (
-    tileRows.length === 0 ||
-    currentStart !==
-      startRowIndex ||
-    currentEnd !==
-      expectedEnd
-  ) {
-    buildTileRows(
-      startRowIndex,
-      rowCount,
-    );
+  if (tileRows.length === 0 || currentStart !== startRowIndex || currentEnd !== expectedEnd) {
+    buildTileRows(startRowIndex, rowCount);
   }
 }
 
@@ -532,12 +367,7 @@ function getPointerWorldY(): number {
 /* Highlight Trail                                                            */
 /* -------------------------------------------------------------------------- */
 
-function addHighlightPoint(
-  x: number,
-  worldY: number,
-  strength: number,
-  time = performance.now(),
-): void {
+function addHighlightPoint(x: number, worldY: number, strength: number, time = performance.now()): void {
   highlightTrail.push({
     x,
     worldY,
@@ -545,15 +375,8 @@ function addHighlightPoint(
     strength,
   });
 
-  if (
-    highlightTrail.length >
-    MAX_HIGHLIGHT_POINTS
-  ) {
-    highlightTrail.splice(
-      0,
-      highlightTrail.length -
-        MAX_HIGHLIGHT_POINTS,
-    );
+  if (highlightTrail.length > MAX_HIGHLIGHT_POINTS) {
+    highlightTrail.splice(0, highlightTrail.length - MAX_HIGHLIGHT_POINTS);
   }
 }
 
@@ -565,138 +388,66 @@ function addHighlightSegment(
   strength: number,
   now = performance.now(),
 ): void {
-  const distance = Math.hypot(
-    toX - fromX,
-    toWorldY - fromWorldY,
-  );
+  const distance = Math.hypot(toX - fromX, toWorldY - fromWorldY);
 
   if (distance < 1) {
-    addHighlightPoint(
-      toX,
-      toWorldY,
-      strength,
-      now,
-    );
+    addHighlightPoint(toX, toWorldY, strength, now);
 
     return;
   }
 
-  const steps = Math.max(
-    1,
-    Math.ceil(
-      distance /
-        TRAIL_SPACING,
-    ),
-  );
+  const steps = Math.max(1, Math.ceil(distance / TRAIL_SPACING));
 
-  for (
-    let index = 1;
-    index <= steps;
-    index += 1
-  ) {
-    const progress =
-      index / steps;
+  for (let index = 1; index <= steps; index += 1) {
+    const progress = index / steps;
 
-    const x =
-      fromX +
-      (toX - fromX) *
-        progress;
+    const x = fromX + (toX - fromX) * progress;
 
-    const worldY =
-      fromWorldY +
-      (toWorldY -
-        fromWorldY) *
-        progress;
+    const worldY = fromWorldY + (toWorldY - fromWorldY) * progress;
 
-    const pointTime =
-      now -
-      (steps - index) *
-        7;
+    const pointTime = now - (steps - index) * 7;
 
-    addHighlightPoint(
-      x,
-      worldY,
-      strength,
-      pointTime,
-    );
+    addHighlightPoint(x, worldY, strength, pointTime);
   }
 }
 
-function cleanupHighlightTrail(
-  now: number,
-): void {
+function cleanupHighlightTrail(now: number): void {
   let firstValidIndex = 0;
 
-  while (
-    firstValidIndex <
-      highlightTrail.length &&
-    now -
-      highlightTrail[
-        firstValidIndex
-      ].time >=
-      HIGHLIGHT_LIFETIME
-  ) {
+  while (firstValidIndex < highlightTrail.length && now - highlightTrail[firstValidIndex].time >= HIGHLIGHT_LIFETIME) {
     firstValidIndex += 1;
   }
 
   if (firstValidIndex > 0) {
-    highlightTrail.splice(
-      0,
-      firstValidIndex,
-    );
+    highlightTrail.splice(0, firstValidIndex);
   }
 }
 
-function getTrailInfluence(
-  centerX: number,
-  centerWorldY: number,
-  now: number,
-): number {
-  if (
-    highlightTrail.length === 0
-  ) {
+function getTrailInfluence(centerX: number, centerWorldY: number, now: number): number {
+  if (highlightTrail.length === 0) {
     return 0;
   }
 
-  const radius =
-    width < 640
-      ? POINTER_RADIUS_MOBILE
-      : POINTER_RADIUS_DESKTOP;
+  const radius = width < 640 ? POINTER_RADIUS_MOBILE : POINTER_RADIUS_DESKTOP;
 
-  const radiusSquared =
-    radius * radius;
+  const radiusSquared = radius * radius;
 
   let influence = 0;
 
-  for (
-    let index = 0;
-    index <
-    highlightTrail.length;
-    index += 1
-  ) {
-    const point =
-      highlightTrail[index];
+  for (let index = 0; index < highlightTrail.length; index += 1) {
+    const point = highlightTrail[index];
 
-    const age =
-      now - point.time;
+    const age = now - point.time;
 
-    if (
-      age >=
-      HIGHLIGHT_LIFETIME
-    ) {
+    if (age >= HIGHLIGHT_LIFETIME) {
       continue;
     }
 
-    const dx =
-      centerX - point.x;
+    const dx = centerX - point.x;
 
-    const dy =
-      centerWorldY -
-      point.worldY;
+    const dy = centerWorldY - point.worldY;
 
-    const distanceSquared =
-      dx * dx +
-      dy * dy;
+    const distanceSquared = dx * dx + dy * dy;
 
     /*
      * Schneller Reject:
@@ -704,42 +455,21 @@ function getTrailInfluence(
      * Kein sqrt / hypot, wenn das Tile
      * sowieso außerhalb des Radius liegt.
      */
-    if (
-      distanceSquared >=
-      radiusSquared
-    ) {
+    if (distanceSquared >= radiusSquared) {
       continue;
     }
 
-    const distance =
-      Math.sqrt(
-        distanceSquared,
-      );
+    const distance = Math.sqrt(distanceSquared);
 
-    const normalizedAge =
-      age /
-      HIGHLIGHT_LIFETIME;
+    const normalizedAge = age / HIGHLIGHT_LIFETIME;
 
-    const fade =
-      (1 -
-        normalizedAge) ** 2;
+    const fade = (1 - normalizedAge) ** 2;
 
-    const proximity =
-      smoothstep(
-        radius,
-        0,
-        distance,
-      );
+    const proximity = smoothstep(radius, 0, distance);
 
-    const pointInfluence =
-      proximity *
-      fade *
-      point.strength;
+    const pointInfluence = proximity * fade * point.strength;
 
-    influence = Math.max(
-      influence,
-      pointInfluence,
-    );
+    influence = Math.max(influence, pointInfluence);
 
     /*
      * Wenn bereits maximaler Einfluss erreicht wurde,
@@ -750,68 +480,44 @@ function getTrailInfluence(
     }
   }
 
-  return Math.min(
-    1,
-    influence,
-  );
+  return Math.min(1, influence);
 }
 
-function hasActiveTrail(
-  now: number,
-): boolean {
-  if (
-    highlightTrail.length === 0
-  ) {
+function hasActiveTrail(now: number): boolean {
+  if (highlightTrail.length === 0) {
     return false;
   }
 
-  const newest =
-    highlightTrail[
-      highlightTrail.length - 1
-    ];
+  const newest = highlightTrail[highlightTrail.length - 1];
 
-  return (
-    now - newest.time <
-    HIGHLIGHT_LIFETIME
-  );
+  return now - newest.time < HIGHLIGHT_LIFETIME;
 }
 
 /* -------------------------------------------------------------------------- */
 /* Ambient Gradient                                                           */
 /* -------------------------------------------------------------------------- */
 
-function rebuildAmbientGradient(
-  palette: TrianglePalette,
-): void {
+function rebuildAmbientGradient(palette: TrianglePalette): void {
   if (!context) {
     ambientGradient = null;
     return;
   }
 
-  ambientGradient =
-    context.createRadialGradient(
-      width * 0.5,
-      height * 0.36,
-      0,
-      width * 0.5,
-      height * 0.36,
-      width * 0.72,
-    );
-
-  ambientGradient.addColorStop(
+  ambientGradient = context.createRadialGradient(
+    width * 0.5,
+    height * 0.36,
     0,
-    `rgba(${palette.ambient}, 0.055)`,
+    width * 0.5,
+    height * 0.36,
+    width * 0.72,
   );
 
-  ambientGradient.addColorStop(
-    1,
-    `rgba(${palette.ambient}, 0)`,
-  );
+  ambientGradient.addColorStop(0, `rgba(${palette.ambient}, 0.055)`);
+
+  ambientGradient.addColorStop(1, `rgba(${palette.ambient}, 0)`);
 }
 
-function drawAmbientGradient(
-  palette: TrianglePalette,
-): void {
+function drawAmbientGradient(palette: TrianglePalette): void {
   if (!context) return;
 
   /*
@@ -821,22 +527,14 @@ function drawAmbientGradient(
    * Fallback, falls noch keiner existiert.
    */
   if (!ambientGradient) {
-    rebuildAmbientGradient(
-      palette,
-    );
+    rebuildAmbientGradient(palette);
   }
 
   if (!ambientGradient) return;
 
-  context.fillStyle =
-    ambientGradient;
+  context.fillStyle = ambientGradient;
 
-  context.fillRect(
-    0,
-    0,
-    width,
-    height,
-  );
+  context.fillRect(0, 0, width, height);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -852,24 +550,16 @@ function drawTriangle(
 ): void {
   if (!context) return;
 
-  const x =
-    tile.column *
-    metrics.cellWidth;
+  const x = tile.column * metrics.cellWidth;
 
-  const centerWorldX =
-    x +
-    metrics.cellWidth * 0.5;
+  const centerWorldX = x + metrics.cellWidth * 0.5;
 
-  const centerWorldY =
-    baseWorldY +
-    metrics.cellHeight * 0.5;
+  const centerWorldY = baseWorldY + metrics.cellHeight * 0.5;
 
   /*
    * World Y -> Screen Y
    */
-  const screenY =
-    baseWorldY -
-    scrollOffset;
+  const screenY = baseWorldY - scrollOffset;
 
   /*
    * Normale Idle-Bewegung bleibt erhalten.
@@ -881,76 +571,43 @@ function drawTriangle(
    * Die Maus beeinflusst ausschließlich
    * den Highlight-Trail.
    */
-  const idle =
-    motion *
-    Math.sin(
-      elapsedTime *
-        tile.speed +
-        tile.phase,
-    );
+  const idle = motion * Math.sin(elapsedTime * tile.speed + tile.phase);
 
-  const trailInfluence =
-    getTrailInfluence(
-      centerWorldX,
-      centerWorldY,
-      now,
-    );
+  const trailInfluence = getTrailInfluence(centerWorldX, centerWorldY, now);
 
-  const offsetX =
-    tile.driftX * idle;
+  const offsetX = tile.driftX * idle;
 
-  const offsetY =
-    tile.driftY * idle;
+  const offsetY = tile.driftY * idle;
 
-  const baseAlpha =
-    0.045 +
-    tile.tone * 0.055 +
-    Math.abs(idle) * 0.018;
+  const baseAlpha = 0.045 + tile.tone * 0.055 + Math.abs(idle) * 0.018;
 
-  const alpha =
-    (
-      baseAlpha +
-      trailInfluence * 0.22
-    ) * motion;
+  const alpha = (baseAlpha + trailInfluence * 0.22) * motion;
 
-  const path =
-    tile.side === 'a'
-      ? trianglePathA
-      : trianglePathB;
+  const path = tile.side === 'a' ? trianglePathA : trianglePathB;
 
   if (!path) return;
 
   context.save();
 
-  context.translate(
-    x + offsetX,
-    screenY + offsetY,
-  );
+  context.translate(x + offsetX, screenY + offsetY);
 
-  if (
-    trailInfluence > 0.015
-  ) {
-    context.fillStyle =
-      `rgba(${palette.accent}, ${alpha})`;
+  if (trailInfluence > 0.015) {
+    context.fillStyle = `rgba(${palette.accent}, ${alpha})`;
 
     context.fill(path);
 
     /*
      * Feine Kante bei stärkerem Highlight.
      */
-    if (
-      trailInfluence > 0.14
-    ) {
-      context.strokeStyle =
-        `rgba(${palette.accent}, ${trailInfluence * 0.16})`;
+    if (trailInfluence > 0.14) {
+      context.strokeStyle = `rgba(${palette.accent}, ${trailInfluence * 0.16})`;
 
       context.lineWidth = 1;
 
       context.stroke(path);
     }
   } else {
-    context.fillStyle =
-      `rgba(${palette.fill}, ${alpha})`;
+    context.fillStyle = `rgba(${palette.fill}, ${alpha})`;
 
     context.fill(path);
   }
@@ -962,47 +619,26 @@ function drawTriangle(
 /* Animation                                                                  */
 /* -------------------------------------------------------------------------- */
 
-function drawFrame(
-  timestamp = performance.now(),
-): void {
+function drawFrame(timestamp = performance.now()): void {
   animationFrame = null;
 
   if (!context) return;
 
-  const element =
-    canvas.value;
+  const element = canvas.value;
 
   if (!element) return;
 
-  const delta =
-    lastFrameTime === 0
-      ? 16.67
-      : Math.min(
-          timestamp -
-            lastFrameTime,
-          48,
-        );
+  const delta = lastFrameTime === 0 ? 16.67 : Math.min(timestamp - lastFrameTime, 48);
 
-  const parent =
-    element.parentElement;
+  const parent = element.parentElement;
 
-  const motionEnabled =
-    !reducedMotion?.matches &&
-    !parent?.classList.contains(
-      'background-motion-paused',
-    );
+  const motionEnabled = !reducedMotion?.matches && !parent?.classList.contains('background-motion-paused');
 
-  const sceneActive =
-    parent?.classList.contains(
-      'background-scene-active',
-    ) === true;
+  const sceneActive = parent?.classList.contains('background-scene-active') === true;
 
-  cleanupHighlightTrail(
-    timestamp,
-  );
+  cleanupHighlightTrail(timestamp);
 
-  const trailActive =
-    hasActiveTrail(timestamp);
+  const trailActive = hasActiveTrail(timestamp);
 
   /*
    * WICHTIG:
@@ -1014,25 +650,11 @@ function drawFrame(
    * 1. wenn die Scene aktiv ist
    * 2. oder wenn der Trail noch ausfadet.
    */
-  const shouldContinue =
-    (
-      sceneActive &&
-      motionEnabled &&
-      isDocumentVisible
-    ) ||
-    trailActive;
+  const shouldContinue = (sceneActive && motionEnabled && isDocumentVisible) || trailActive;
 
-  const frameBudget =
-    shouldContinue
-      ? ACTIVE_FRAME_BUDGET_MS
-      : IDLE_FRAME_BUDGET_MS;
+  const frameBudget = shouldContinue ? ACTIVE_FRAME_BUDGET_MS : IDLE_FRAME_BUDGET_MS;
 
-  if (
-    lastFrameTime !== 0 &&
-    timestamp -
-      lastFrameTime <
-      frameBudget
-  ) {
+  if (lastFrameTime !== 0 && timestamp - lastFrameTime < frameBudget) {
     if (shouldContinue) {
       scheduleFrame();
     }
@@ -1040,79 +662,40 @@ function drawFrame(
     return;
   }
 
-  lastFrameTime =
-    timestamp;
+  lastFrameTime = timestamp;
 
   if (motionEnabled) {
-    elapsedTime +=
-      delta / 1000;
+    elapsedTime += delta / 1000;
   }
 
-  const palette =
-    getPalette();
+  const palette = getPalette();
 
-  context.clearRect(
-    0,
-    0,
-    width,
-    height,
-  );
+  context.clearRect(0, 0, width, height);
 
-  context.fillStyle =
-    palette.background;
+  context.fillStyle = palette.background;
 
-  context.fillRect(
-    0,
-    0,
-    width,
-    height,
-  );
+  context.fillRect(0, 0, width, height);
 
   syncRowsForScroll();
 
-  const motion =
-    motionEnabled
-      ? 1
-      : 0.82;
+  const motion = motionEnabled ? 1 : 0.82;
 
-  for (
-    const row of tileRows
-  ) {
-    const rowScreenY =
-      row.y -
-      scrollOffset;
+  for (const row of tileRows) {
+    const rowScreenY = row.y - scrollOffset;
 
     /*
      * Nur sichtbare Rows rendern.
      */
-    if (
-      rowScreenY >
-        height +
-          metrics.cellHeight *
-            1.2 ||
-      rowScreenY <
-        -metrics.cellHeight *
-          1.2
-    ) {
+    if (rowScreenY > height + metrics.cellHeight * 1.2 || rowScreenY < -metrics.cellHeight * 1.2) {
       continue;
     }
 
-    for (
-      const tile of row.tiles
-    ) {
-      drawTriangle(
-        tile,
-        palette,
-        motion,
-        row.y,
-        timestamp,
-      );
+    for (const tile of row.tiles) {
+      drawTriangle(tile, palette, motion, row.y, timestamp);
     }
   }
 
-  drawAmbientGradient(
-    palette,
-  );
+  drawAmbientGradient(palette);
 
   if (shouldContinue) {
     scheduleFrame();
@@ -1120,16 +703,11 @@ function drawFrame(
 }
 
 function scheduleFrame(): void {
-  if (
-    animationFrame !== null
-  ) {
+  if (animationFrame !== null) {
     return;
   }
 
-  animationFrame =
-    window.requestAnimationFrame(
-      drawFrame,
-    );
+  animationFrame = window.requestAnimationFrame(drawFrame);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1137,90 +715,42 @@ function scheduleFrame(): void {
 /* -------------------------------------------------------------------------- */
 
 function resize(): void {
-  const element =
-    canvas.value;
+  const element = canvas.value;
 
   if (!element) return;
 
-  const rect =
-    element.getBoundingClientRect();
+  const rect = element.getBoundingClientRect();
 
-  const viewportWidth =
-    window.innerWidth ||
-    Math.max(
-      rect.width,
-      1,
-    );
+  const viewportWidth = window.innerWidth || Math.max(rect.width, 1);
 
-  const viewportHeight =
-    window.innerHeight ||
-    Math.max(
-      rect.height,
-      1,
-    );
+  const viewportHeight = window.innerHeight || Math.max(rect.height, 1);
 
-  width = Math.max(
-    1,
-    Math.round(
-      rect.width ||
-        viewportWidth,
-    ),
-  );
+  width = Math.max(1, Math.round(rect.width || viewportWidth));
 
-  height = Math.max(
-    1,
-    Math.round(
-      rect.height ||
-        viewportHeight,
-    ),
-  );
+  height = Math.max(1, Math.round(rect.height || viewportHeight));
 
-  scrollOffset =
-    window.scrollY;
+  scrollOffset = window.scrollY;
 
-  previousScrollOffset =
-    scrollOffset;
+  previousScrollOffset = scrollOffset;
 
-  dpr = Math.min(
-    window.devicePixelRatio ||
-      1,
-    MAX_DPR,
-  );
+  dpr = Math.min(window.devicePixelRatio || 1, MAX_DPR);
 
-  element.width =
-    Math.round(
-      width * dpr,
-    );
+  element.width = Math.round(width * dpr);
 
-  element.height =
-    Math.round(
-      height * dpr,
-    );
+  element.height = Math.round(height * dpr);
 
-  context =
-    element.getContext(
-      '2d',
-      {
-        alpha: true,
-        desynchronized: true,
-      },
-    );
+  context = element.getContext('2d', {
+    alpha: true,
+    desynchronized: true,
+  });
 
   if (!context) {
     return;
   }
 
-  context.setTransform(
-    dpr,
-    0,
-    0,
-    dpr,
-    0,
-    0,
-  );
+  context.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-  metrics =
-    calculateGridMetrics();
+  metrics = calculateGridMetrics();
 
   rebuildTrianglePaths();
 
@@ -1228,30 +758,11 @@ function resize(): void {
    * Ambient Gradient hängt von
    * Canvas-Größe + Theme ab.
    */
-  rebuildAmbientGradient(
-    getPalette(),
-  );
+  rebuildAmbientGradient(getPalette());
 
-  const rowsNeeded =
-    Math.max(
-      6,
-      Math.ceil(
-        (
-          height +
-          window.innerHeight *
-            1.2
-        ) /
-          Math.max(
-            metrics.cellHeight,
-            1,
-          ),
-      ) + 4,
-    );
+  const rowsNeeded = Math.max(6, Math.ceil((height + window.innerHeight * 1.2) / Math.max(metrics.cellHeight, 1)) + 4);
 
-  buildTileRows(
-    0,
-    rowsNeeded,
-  );
+  buildTileRows(0, rowsNeeded);
 
   lastFrameTime = 0;
 
@@ -1262,19 +773,14 @@ function resize(): void {
 /* Pointer Movement                                                           */
 /* -------------------------------------------------------------------------- */
 
-function handlePointerMove(
-  event: PointerEvent,
-): void {
-  const now =
-    performance.now();
+function handlePointerMove(event: PointerEvent): void {
+  const now = performance.now();
 
   pointerPresent = true;
 
-  const newX =
-    event.clientX;
+  const newX = event.clientX;
 
-  const newY =
-    event.clientY;
+  const newY = event.clientY;
 
   pointerX = newX;
   pointerY = newY;
@@ -1286,81 +792,44 @@ function handlePointerMove(
    *
    * Es gibt KEINEN Offset der Tiles zur Maus.
    */
-  const newWorldX =
-    newX;
+  const newWorldX = newX;
 
-  const newWorldY =
-    newY +
-    scrollOffset;
+  const newWorldY = newY + scrollOffset;
 
   /*
    * Erstes Pointer Event.
    */
-  if (
-    !hasPointerWorldPosition
-  ) {
-    lastPointerWorldX =
-      newWorldX;
+  if (!hasPointerWorldPosition) {
+    lastPointerWorldX = newWorldX;
 
-    lastPointerWorldY =
-      newWorldY;
+    lastPointerWorldY = newWorldY;
 
-    hasPointerWorldPosition =
-      true;
+    hasPointerWorldPosition = true;
 
-    addHighlightPoint(
-      newWorldX,
-      newWorldY,
-      1,
-      now,
-    );
+    addHighlightPoint(newWorldX, newWorldY, 1, now);
 
-    lastPointerPointTime =
-      now;
+    lastPointerPointTime = now;
 
     scheduleFrame();
 
     return;
   }
 
-  const distance =
-    Math.hypot(
-      newWorldX -
-        lastPointerWorldX,
-      newWorldY -
-        lastPointerWorldY,
-    );
+  const distance = Math.hypot(newWorldX - lastPointerWorldX, newWorldY - lastPointerWorldY);
 
-  const timeSinceLastPoint =
-    now -
-    lastPointerPointTime;
+  const timeSinceLastPoint = now - lastPointerPointTime;
 
   /*
    * Nur bei echter Bewegung neue Trailpunkte erzeugen.
    */
-  if (
-    distance >=
-      MIN_POINTER_DISTANCE ||
-    timeSinceLastPoint >=
-      MIN_POINTER_INTERVAL
-  ) {
-    addHighlightSegment(
-      lastPointerWorldX,
-      lastPointerWorldY,
-      newWorldX,
-      newWorldY,
-      1,
-      now,
-    );
+  if (distance >= MIN_POINTER_DISTANCE || timeSinceLastPoint >= MIN_POINTER_INTERVAL) {
+    addHighlightSegment(lastPointerWorldX, lastPointerWorldY, newWorldX, newWorldY, 1, now);
 
-    lastPointerWorldX =
-      newWorldX;
+    lastPointerWorldX = newWorldX;
 
-    lastPointerWorldY =
-      newWorldY;
+    lastPointerWorldY = newWorldY;
 
-    lastPointerPointTime =
-      now;
+    lastPointerPointTime = now;
   }
 
   scheduleFrame();
@@ -1371,25 +840,17 @@ function handlePointerMove(
 /* -------------------------------------------------------------------------- */
 
 function handleScroll(): void {
-  const newScrollOffset =
-    window.scrollY;
+  const newScrollOffset = window.scrollY;
 
-  const scrollDelta =
-    newScrollOffset -
-    previousScrollOffset;
+  const scrollDelta = newScrollOffset - previousScrollOffset;
 
-  if (
-    Math.abs(scrollDelta) <
-    0.01
-  ) {
+  if (Math.abs(scrollDelta) < 0.01) {
     return;
   }
 
-  scrollOffset =
-    newScrollOffset;
+  scrollOffset = newScrollOffset;
 
-  previousScrollOffset =
-    newScrollOffset;
+  previousScrollOffset = newScrollOffset;
 
   /*
    * Wenn der Cursor vorhanden ist,
@@ -1398,33 +859,18 @@ function handleScroll(): void {
    *
    * Das bleibt erhalten.
    */
-  if (
-    pointerPresent &&
-    hasPointerWorldPosition
-  ) {
-    const newWorldX =
-      pointerX;
+  if (pointerPresent && hasPointerWorldPosition) {
+    const newWorldX = pointerX;
 
-    const newWorldY =
-      pointerY +
-      scrollOffset;
+    const newWorldY = pointerY + scrollOffset;
 
-    addHighlightSegment(
-      lastPointerWorldX,
-      lastPointerWorldY,
-      newWorldX,
-      newWorldY,
-      0.95,
-    );
+    addHighlightSegment(lastPointerWorldX, lastPointerWorldY, newWorldX, newWorldY, 0.95);
 
-    lastPointerWorldX =
-      newWorldX;
+    lastPointerWorldX = newWorldX;
 
-    lastPointerWorldY =
-      newWorldY;
+    lastPointerWorldY = newWorldY;
 
-    lastPointerPointTime =
-      performance.now();
+    lastPointerPointTime = performance.now();
   }
 
   scheduleFrame();
@@ -1450,9 +896,7 @@ function clearPointer(): void {
 /* -------------------------------------------------------------------------- */
 
 function handleVisibilityChange(): void {
-  isDocumentVisible =
-    document.visibilityState ===
-    'visible';
+  isDocumentVisible = document.visibilityState === 'visible';
 
   lastFrameTime = 0;
 
@@ -1483,94 +927,47 @@ function handleMotionPreferenceChange(): void {
 /* -------------------------------------------------------------------------- */
 
 onMounted(() => {
-  const element =
-    canvas.value;
+  const element = canvas.value;
 
   if (!element) return;
 
-  reducedMotion =
-    window.matchMedia(
-      '(prefers-reduced-motion: reduce)',
-    );
+  reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
-  colorScheme =
-    window.matchMedia(
-      '(prefers-color-scheme: dark)',
-    );
+  colorScheme = window.matchMedia('(prefers-color-scheme: dark)');
 
-  resizeObserver =
-    new ResizeObserver(
-      resize,
-    );
+  resizeObserver = new ResizeObserver(resize);
 
-  resizeObserver.observe(
-    element,
-  );
+  resizeObserver.observe(element);
 
-  window.addEventListener(
-    'resize',
-    resize,
-    {
-      passive: true,
-    },
-  );
+  window.addEventListener('resize', resize, {
+    passive: true,
+  });
 
-  window.addEventListener(
-    'orientationchange',
-    resize,
-    {
-      passive: true,
-    },
-  );
+  window.addEventListener('orientationchange', resize, {
+    passive: true,
+  });
 
-  window.addEventListener(
-    'scroll',
-    handleScroll,
-    {
-      passive: true,
-    },
-  );
+  window.addEventListener('scroll', handleScroll, {
+    passive: true,
+  });
 
-  window.addEventListener(
-    'pointermove',
-    handlePointerMove,
-    {
-      passive: true,
-    },
-  );
+  window.addEventListener('pointermove', handlePointerMove, {
+    passive: true,
+  });
 
-  window.addEventListener(
-    'pointerleave',
-    clearPointer,
-    {
-      passive: true,
-    },
-  );
+  window.addEventListener('pointerleave', clearPointer, {
+    passive: true,
+  });
 
-  window.addEventListener(
-    'blur',
-    clearPointer,
-  );
+  window.addEventListener('blur', clearPointer);
 
-  window.addEventListener(
-    'portfolio-theme-change',
-    handleThemeChange,
-  );
+  window.addEventListener('portfolio-theme-change', handleThemeChange);
 
-  document.addEventListener(
-    'visibilitychange',
-    handleVisibilityChange,
-  );
+  document.addEventListener('visibilitychange', handleVisibilityChange);
 
-  reducedMotion.addEventListener(
-    'change',
-    handleMotionPreferenceChange,
-  );
+  reducedMotion.addEventListener('change', handleMotionPreferenceChange);
 
-  colorScheme.addEventListener(
-    'change',
-    handleMotionPreferenceChange,
-  );
+  colorScheme.addEventListener('change', handleMotionPreferenceChange);
 
   resize();
 });
@@ -1578,63 +975,29 @@ onMounted(() => {
 onBeforeUnmount(() => {
   resizeObserver?.disconnect();
 
-  if (
-    animationFrame !== null
-  ) {
-    window.cancelAnimationFrame(
-      animationFrame,
-    );
+  if (animationFrame !== null) {
+    window.cancelAnimationFrame(animationFrame);
   }
 
-  window.removeEventListener(
-    'resize',
-    resize,
-  );
+  window.removeEventListener('resize', resize);
 
-  window.removeEventListener(
-    'orientationchange',
-    resize,
-  );
+  window.removeEventListener('orientationchange', resize);
 
-  window.removeEventListener(
-    'scroll',
-    handleScroll,
-  );
+  window.removeEventListener('scroll', handleScroll);
 
-  window.removeEventListener(
-    'pointermove',
-    handlePointerMove,
-  );
+  window.removeEventListener('pointermove', handlePointerMove);
 
-  window.removeEventListener(
-    'pointerleave',
-    clearPointer,
-  );
+  window.removeEventListener('pointerleave', clearPointer);
 
-  window.removeEventListener(
-    'blur',
-    clearPointer,
-  );
+  window.removeEventListener('blur', clearPointer);
 
-  window.removeEventListener(
-    'portfolio-theme-change',
-    handleThemeChange,
-  );
+  window.removeEventListener('portfolio-theme-change', handleThemeChange);
 
-  document.removeEventListener(
-    'visibilitychange',
-    handleVisibilityChange,
-  );
+  document.removeEventListener('visibilitychange', handleVisibilityChange);
 
-  reducedMotion?.removeEventListener(
-    'change',
-    handleMotionPreferenceChange,
-  );
+  reducedMotion?.removeEventListener('change', handleMotionPreferenceChange);
 
-  colorScheme?.removeEventListener(
-    'change',
-    handleMotionPreferenceChange,
-  );
+  colorScheme?.removeEventListener('change', handleMotionPreferenceChange);
 
   tileRows.length = 0;
   highlightTrail.length = 0;
