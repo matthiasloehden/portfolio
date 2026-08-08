@@ -28,6 +28,17 @@ test('shares active navigation and persists the selected theme', async ({ page }
   await expect(page.getByLabel('Theme')).toHaveValue('light');
 });
 
+test('uses a full-viewport triangle background on the work page', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'desktop-chromium', 'Desktop layout test');
+
+  await page.goto('/work');
+  await waitForHydration(page);
+
+  const triangleBackground = page.locator('.triangle-background').first();
+  await expect(triangleBackground).toBeVisible();
+  await expect(triangleBackground).toHaveCSS('position', 'fixed');
+});
+
 test('offers the complete navigation in the mobile menu', async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== 'mobile-chromium', 'Mobile navigation test');
 
