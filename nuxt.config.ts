@@ -19,11 +19,11 @@ export default defineNuxtConfig({
       htmlAttrs: {
         lang: 'en',
       },
-      title: 'Matthias Löhden — Full-Stack Developer',
+      title: 'Matthias Löhden — Software Engineer',
       meta: [
         {
           name: 'description',
-          content: 'Portfolio of Matthias Löhden, a full-stack developer building fast, thoughtful web experiences.',
+          content: 'Portfolio of Matthias Löhden, a software engineer building fast, reliable, and maintainable applications and systems.',
         },
         { name: 'color-scheme', content: 'dark light' },
         { name: 'theme-color', content: '#030509', media: '(prefers-color-scheme: dark)' },
