@@ -64,4 +64,4 @@ The static production site is written to `.output/public`.
 ## Deployment
 
 Every push to `main` runs type checking, linting, formatting checks, static generation, and the Playwright browser suite.
-GitHub Pages is deployed only after all checks pass.
+GitHub Pages is automatically deployed only after all checks pass.

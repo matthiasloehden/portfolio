@@ -23,7 +23,8 @@ export default defineNuxtConfig({
       meta: [
         {
           name: 'description',
-          content: 'Portfolio of Matthias Löhden, a software engineer building fast, reliable, and maintainable applications and systems.',
+          content:
+            'Portfolio of Matthias Löhden, a software engineer building fast, reliable, and maintainable applications and systems.',
         },
         { name: 'color-scheme', content: 'dark light' },
         { name: 'theme-color', content: '#030509', media: '(prefers-color-scheme: dark)' },
