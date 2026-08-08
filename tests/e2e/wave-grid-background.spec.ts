@@ -14,7 +14,7 @@ test('renders the home wave grid and responds to pointer and wheel input', async
   const runtimeErrors = captureRuntimeErrors(page);
 
   await page.goto('/');
-  await expect(page.getByRole('heading', { name: 'I build web products that feel effortless.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'I build applications.' })).toBeVisible();
 
   const background = page.locator('.wave-grid-background');
   const canvas = background.locator('canvas');

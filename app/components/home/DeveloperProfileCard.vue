@@ -28,7 +28,7 @@
 
       <p><span class="code-line">05</span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">'applications'</span>,</p>
 
-      <p><span class="code-line">06</span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">'systems'</span>,</p>
+      <p><span class="code-line">06</span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">'performance'</span>,</p>
 
       <p><span class="code-line">07</span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">'maintainability'</span></p>
 

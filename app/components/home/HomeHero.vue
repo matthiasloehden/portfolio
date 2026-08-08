@@ -76,7 +76,7 @@
         data-reveal="up"
         style="--reveal-delay: 210ms"
       >
-        <dt><span aria-hidden="true">04</span> Concept to maintenance</dt>
+        <dt><span aria-hidden="true">04</span> From concept to maintenance</dt>
         <dd>Design, delivery, evolution</dd>
       </div>
     </dl>
