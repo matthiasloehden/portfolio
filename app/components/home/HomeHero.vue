@@ -23,7 +23,8 @@
           data-reveal="up"
           style="--reveal-delay: 160ms"
         >
-          I’m Matthias, a software engineer focused on creating fast, thoughtful, and maintainable web products—from backend architecture to polished frontend experiences.
+          I’m Matthias, a software engineer focused on creating fast, thoughtful, and maintainable web products—from
+          backend architecture to polished frontend experiences.
         </p>
         <div
           class="hero-actions flex flex-wrap items-center"

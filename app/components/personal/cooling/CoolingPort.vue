@@ -1,25 +1,20 @@
 <script setup lang="ts">
-import { computed } from "vue"
-import type {
-  CoolingPortDefinition,
-} from "./cooling.types"
+import { computed } from 'vue';
+import type { CoolingPortDefinition } from './cooling.types';
 
 const props = defineProps<{
-  port: CoolingPortDefinition
-}>()
+  port: CoolingPortDefinition;
+}>();
 
 const portStyle = computed(() => ({
-  "--port-offset": `${props.port.offset ?? 50}%`,
-}))
+  '--port-offset': `${props.port.offset ?? 50}%`,
+}));
 </script>
 
 <template>
   <span
     class="component-port"
-    :class="[
-      `component-port--${port.side}`,
-      port.className,
-    ]"
+    :class="[`component-port--${port.side}`, port.className]"
     :style="portStyle"
     :data-port="port.id"
     aria-hidden="true"
@@ -37,8 +32,7 @@ const portStyle = computed(() => ({
   background: var(--background-raised);
   box-shadow:
     0 0 0 0.2cqw var(--background-raised),
-    0 0 0.8cqw
-      color-mix(in srgb, var(--accent) 65%, transparent);
+    0 0 0.8cqw color-mix(in srgb, var(--accent) 65%, transparent);
 }
 
 .component-port--top {

@@ -1,71 +1,69 @@
 <script setup lang="ts">
-import { ref } from "vue"
+import { ref } from 'vue';
 
-import CoolingMainboard from "./CoolingMainboard.vue"
-import CoolingPump from "./CoolingPump.vue"
-import CoolingRadiator from "./CoolingRadiator.vue"
-import CoolingTubing from "./CoolingTubing.vue"
+import CoolingMainboard from './CoolingMainboard.vue';
+import CoolingPump from './CoolingPump.vue';
+import CoolingRadiator from './CoolingRadiator.vue';
+import CoolingTubing from './CoolingTubing.vue';
 
-import type {
-  TubeConnection,
-} from "./cooling.types"
+import type { TubeConnection } from './cooling.types';
 
-const diagram = ref<HTMLElement | null>(null)
+const diagram = ref<HTMLElement | null>(null);
 
 const tubeConnections: TubeConnection[] = [
   {
-    from: "radiator-bottom-left",
-    to: "gpu-bottom",
-    axis: "y",
+    from: 'radiator-bottom-left',
+    to: 'gpu-bottom',
+    axis: 'y',
     at: 565,
   },
   {
-    from: "gpu-top",
-    to: "ram-bottom",
-    axis: "y",
+    from: 'gpu-top',
+    to: 'ram-bottom',
+    axis: 'y',
     at: 345,
   },
   {
-    from: "ram-left",
-    to: "cpu-right",
-    axis: "direct",
+    from: 'ram-left',
+    to: 'cpu-right',
+    axis: 'direct',
   },
   {
-    from: "cpu-top",
-    to: "radiator-top-left",
-    axis: "y",
+    from: 'cpu-top',
+    to: 'radiator-top-left',
+    axis: 'y',
     at: 115,
   },
   {
-    from: "radiator-top-right",
-    to: "radiator-04-top",
-    axis: "y",
+    from: 'radiator-top-right',
+    to: 'radiator-04-top',
+    axis: 'y',
     at: 100,
   },
   {
-    from: "radiator-04-left",
-    to: "radiator-03-right",
-    axis: "direct",
+    from: 'radiator-04-left',
+    to: 'radiator-03-right',
+    axis: 'direct',
     at: 800,
   },
   {
-    from: "radiator-03-bottom",
-    to: "pump-01-top",
-    axis: "direct",
+    from: 'radiator-03-bottom',
+    to: 'pump-01-top',
+    axis: 'direct',
     at: 415,
   },
   {
-    from: "pump-01-right",
-    to: "pump-02-left",
-    axis: "direct",
+    from: 'pump-01-right',
+    to: 'pump-02-left',
+    axis: 'direct',
   },
   {
-    from: "pump-02-bottom",
-    to: "radiator-bottom-right",
-    axis: "y",
+    from: 'pump-02-bottom',
+    to: 'radiator-bottom-right',
+    axis: 'y',
     at: 590,
   },
-]
+];
 </script>
 
 <template>
@@ -187,9 +185,7 @@ const tubeConnections: TubeConnection[] = [
             ]"
           />
 
-          <span class="side-label">
-            DUAL LOOP DRIVE
-          </span>
+          <span class="side-label"> DUAL LOOP DRIVE </span>
         </div>
 
         <CoolingRadiator
@@ -266,15 +262,8 @@ const tubeConnections: TubeConnection[] = [
 
   overflow: hidden;
   background:
-    linear-gradient(
-      var(--border) 0.1cqw,
-      transparent 0.1cqw
-    ),
-    linear-gradient(
-      90deg,
-      var(--border) 0.1cqw,
-      transparent 0.1cqw
-    );
+    linear-gradient(var(--border) 0.1cqw, transparent 0.1cqw),
+    linear-gradient(90deg, var(--border) 0.1cqw, transparent 0.1cqw);
   background-size: 3.2cqw 3.2cqw;
 }
 

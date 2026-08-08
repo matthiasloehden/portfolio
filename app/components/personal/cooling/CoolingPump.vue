@@ -1,18 +1,16 @@
 <script setup lang="ts">
-import CoolingPort from "./CoolingPort.vue"
-import type {
-  CoolingPortDefinition,
-} from "./cooling.types"
+import CoolingPort from './CoolingPort.vue';
+import type { CoolingPortDefinition } from './cooling.types';
 
 withDefaults(
   defineProps<{
-    code: string
-    ports?: CoolingPortDefinition[]
+    code: string;
+    ports?: CoolingPortDefinition[];
   }>(),
   {
     ports: () => [],
   },
-)
+);
 </script>
 
 <template>
@@ -39,12 +37,7 @@ withDefaults(
   place-items: center;
   border: 0.1cqw solid var(--border-strong);
   border-radius: 50%;
-  background:
-    color-mix(
-      in srgb,
-      var(--background-raised) 95%,
-      transparent
-    );
+  background: color-mix(in srgb, var(--background-raised) 95%, transparent);
   box-shadow:
     0 0 0 0.6cqw var(--background-raised),
     0 0 0 0.7cqw var(--border);

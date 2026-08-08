@@ -120,7 +120,7 @@ export const learningGroups: LearningGroup[] = [
     description:
       'Understanding how physical infrastructure, electronics, and engineered systems work from the inside out.',
     sources: [
-            {
+      {
         name: 'Branch Education',
         focus: 'Hardware, electronics & engineering systems',
       },
@@ -128,7 +128,6 @@ export const learningGroups: LearningGroup[] = [
         name: 'Practical Engineering',
         focus: 'Civil infrastructure & public works',
       },
-
     ],
   },
 ];

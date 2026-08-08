@@ -1,241 +1,184 @@
 <script setup lang="ts">
-import {
-  nextTick,
-  onBeforeUnmount,
-  onMounted,
-  ref,
-  watch,
-} from "vue"
+import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 
-import type {
-  TubeConnection,
-} from "./cooling.types"
+import type { TubeConnection } from './cooling.types';
 
 interface Point {
-  x: number
-  y: number
+  x: number;
+  y: number;
 }
 
 const props = defineProps<{
-  root: HTMLElement | null
-  connections: TubeConnection[]
-}>()
+  root: HTMLElement | null;
+  connections: TubeConnection[];
+}>();
 
-const paths = ref<string[]>([])
+const paths = ref<string[]>([]);
 
-let observer: ResizeObserver | undefined
+let observer: ResizeObserver | undefined;
 
-function getPortPoint(
-  root: HTMLElement,
-  id: string,
-): Point | null {
-  const element = root.querySelector<HTMLElement>(
-    `[data-port="${id}"]`,
-  )
+function getPortPoint(root: HTMLElement, id: string): Point | null {
+  const element = root.querySelector<HTMLElement>(`[data-port="${id}"]`);
 
   if (!element) {
-    return null
+    return null;
   }
 
-  const rootRect = root.getBoundingClientRect()
-  const portRect = element.getBoundingClientRect()
+  const rootRect = root.getBoundingClientRect();
+  const portRect = element.getBoundingClientRect();
 
   if (!rootRect.width || !rootRect.height) {
-    return null
+    return null;
   }
 
-  const centerX =
-    portRect.left - rootRect.left + portRect.width / 2
+  const centerX = portRect.left - rootRect.left + portRect.width / 2;
 
-  const centerY =
-    portRect.top - rootRect.top + portRect.height / 2
+  const centerY = portRect.top - rootRect.top + portRect.height / 2;
 
   // Convert browser pixels into the 1000 × 700 design space.
   return {
     x: centerX * (1000 / rootRect.width),
     y: centerY * (700 / rootRect.height),
-  }
+  };
 }
 
 function removeDuplicatePoints(points: Point[]) {
   return points.filter((point, index) => {
-    const previous = points[index - 1]
+    const previous = points[index - 1];
 
     if (!previous) {
-      return true
+      return true;
     }
 
-    return (
-      Math.abs(point.x - previous.x) > 0.01 ||
-      Math.abs(point.y - previous.y) > 0.01
-    )
-  })
+    return Math.abs(point.x - previous.x) > 0.01 || Math.abs(point.y - previous.y) > 0.01;
+  });
 }
 
-function createConnectionPoints(
-  start: Point,
-  end: Point,
-  connection: TubeConnection,
-): Point[] {
-  if (
-    connection.axis === "direct" ||
-    !connection.axis
-  ) {
-    return [start, end]
+function createConnectionPoints(start: Point, end: Point, connection: TubeConnection): Point[] {
+  if (connection.axis === 'direct' || !connection.axis) {
+    return [start, end];
   }
 
-  if (connection.axis === "x") {
-    const x =
-      connection.at ?? (start.x + end.x) / 2
+  if (connection.axis === 'x') {
+    const x = connection.at ?? (start.x + end.x) / 2;
 
-    return removeDuplicatePoints([
-      start,
-      { x, y: start.y },
-      { x, y: end.y },
-      end,
-    ])
+    return removeDuplicatePoints([start, { x, y: start.y }, { x, y: end.y }, end]);
   }
 
-  const y =
-    connection.at ?? (start.y + end.y) / 2
+  const y = connection.at ?? (start.y + end.y) / 2;
 
-  return removeDuplicatePoints([
-    start,
-    { x: start.x, y },
-    { x: end.x, y },
-    end,
-  ])
+  return removeDuplicatePoints([start, { x: start.x, y }, { x: end.x, y }, end]);
 }
 
 function distance(a: Point, b: Point) {
-  return Math.hypot(b.x - a.x, b.y - a.y)
+  return Math.hypot(b.x - a.x, b.y - a.y);
 }
 
-function moveToward(
-  from: Point,
-  to: Point,
-  amount: number,
-): Point {
-  const total = distance(from, to)
+function moveToward(from: Point, to: Point, amount: number): Point {
+  const total = distance(from, to);
 
   if (!total) {
-    return from
+    return from;
   }
 
-  const ratio = amount / total
+  const ratio = amount / total;
 
   return {
     x: from.x + (to.x - from.x) * ratio,
     y: from.y + (to.y - from.y) * ratio,
-  }
+  };
 }
 
-function createRoundedPath(
-  points: Point[],
-  radius = 12,
-) {
+function createRoundedPath(points: Point[], radius = 12) {
   if (points.length < 2) {
-    return ""
+    return '';
   }
 
-  const first = points[0]!
-  let path = `M ${first.x} ${first.y}`
+  const first = points[0];
+
+  if (!first) {
+    return '';
+  }
+
+  let path = `M ${first.x} ${first.y}`;
 
   for (let index = 1; index < points.length - 1; index++) {
-    const previous = points[index - 1]!
-    const current = points[index]!
-    const next = points[index + 1]!
+    const previous = points[index - 1];
+    const current = points[index];
+    const next = points[index + 1];
 
-    const cornerRadius = Math.min(
-      radius,
-      distance(previous, current) / 2,
-      distance(current, next) / 2,
-    )
+    if (!previous || !current || !next) {
+      continue;
+    }
 
-    const beforeCorner = moveToward(
-      current,
-      previous,
-      cornerRadius,
-    )
+    const cornerRadius = Math.min(radius, distance(previous, current) / 2, distance(current, next) / 2);
 
-    const afterCorner = moveToward(
-      current,
-      next,
-      cornerRadius,
-    )
+    const beforeCorner = moveToward(current, previous, cornerRadius);
 
-    path += ` L ${beforeCorner.x} ${beforeCorner.y}`
-    path += ` Q ${current.x} ${current.y}`
-    path += ` ${afterCorner.x} ${afterCorner.y}`
+    const afterCorner = moveToward(current, next, cornerRadius);
+
+    path += ` L ${beforeCorner.x} ${beforeCorner.y}`;
+    path += ` Q ${current.x} ${current.y}`;
+    path += ` ${afterCorner.x} ${afterCorner.y}`;
   }
 
-  const last = points[points.length - 1]!
+  const last = points[points.length - 1];
 
-  path += ` L ${last.x} ${last.y}`
+  if (!last) {
+    return path;
+  }
 
-  return path
+  path += ` L ${last.x} ${last.y}`;
+
+  return path;
 }
 
 function updatePaths() {
-  const root = props.root
+  const root = props.root;
 
   if (!root) {
-    paths.value = []
-    return
+    paths.value = [];
+    return;
   }
 
-  paths.value = props.connections.flatMap(
-    (connection) => {
-      const start = getPortPoint(root, connection.from)
-      const end = getPortPoint(root, connection.to)
+  paths.value = props.connections.flatMap((connection) => {
+    const start = getPortPoint(root, connection.from);
+    const end = getPortPoint(root, connection.to);
 
-      if (!start || !end) {
-        return []
-      }
+    if (!start || !end) {
+      return [];
+    }
 
-      const points = createConnectionPoints(
-        start,
-        end,
-        connection,
-      )
+    const points = createConnectionPoints(start, end, connection);
 
-      return [createRoundedPath(points)]
-    },
-  )
+    return [createRoundedPath(points)];
+  });
 }
 
 async function connectObserver() {
-  observer?.disconnect()
+  observer?.disconnect();
 
-  await nextTick()
+  await nextTick();
 
   if (!props.root) {
-    return
+    return;
   }
 
-  observer = new ResizeObserver(updatePaths)
-  observer.observe(props.root)
+  observer = new ResizeObserver(updatePaths);
+  observer.observe(props.root);
 
-  updatePaths()
+  updatePaths();
 }
 
-watch(
-  () => props.root,
-  connectObserver,
-  { immediate: true },
-)
+watch(() => props.root, connectObserver, { immediate: true });
 
-watch(
-  () => props.connections,
-  updatePaths,
-  { deep: true },
-)
+watch(() => props.connections, updatePaths, { deep: true });
 
-onMounted(connectObserver)
+onMounted(connectObserver);
 
 onBeforeUnmount(() => {
-  observer?.disconnect()
-})
+  observer?.disconnect();
+});
 </script>
 
 <template>

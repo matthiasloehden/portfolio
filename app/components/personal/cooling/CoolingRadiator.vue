@@ -1,27 +1,23 @@
 <script setup lang="ts">
-import { computed } from "vue"
-import CoolingPort from "./CoolingPort.vue"
-import type {
-  CoolingPortDefinition,
-} from "./cooling.types"
+import { computed } from 'vue';
+import CoolingPort from './CoolingPort.vue';
+import type { CoolingPortDefinition } from './cooling.types';
 
 const props = withDefaults(
   defineProps<{
-    code: string
-    title?: string
-    orientation?: "horizontal" | "vertical"
-    ports?: CoolingPortDefinition[]
+    code: string;
+    title?: string;
+    orientation?: 'horizontal' | 'vertical';
+    ports?: CoolingPortDefinition[];
   }>(),
   {
-    title: "",
-    orientation: "horizontal",
+    title: '',
+    orientation: 'horizontal',
     ports: () => [],
   },
-)
+);
 
-const finCount = computed(() =>
-  props.orientation === "horizontal" ? 14 : 7,
-)
+const finCount = computed(() => (props.orientation === 'horizontal' ? 14 : 7));
 </script>
 
 <template>
@@ -58,12 +54,7 @@ const finCount = computed(() =>
   z-index: 4;
   overflow: visible;
   border: 0.1cqw solid var(--border-strong);
-  background:
-    color-mix(
-      in srgb,
-      var(--background-raised) 95%,
-      transparent
-    );
+  background: color-mix(in srgb, var(--background-raised) 95%, transparent);
 }
 
 .radiator-label {
@@ -108,14 +99,13 @@ const finCount = computed(() =>
 .radiator--horizontal .radiator-fins i {
   border-right: 0.1cqw solid var(--border-strong);
   border-left: 0.1cqw solid var(--border-strong);
-  background:
-    repeating-linear-gradient(
-      180deg,
-      transparent 0,
-      transparent 0.4cqw,
-      var(--border) 0.4cqw,
-      var(--border) 0.5cqw
-    );
+  background: repeating-linear-gradient(
+    180deg,
+    transparent 0,
+    transparent 0.4cqw,
+    var(--border) 0.4cqw,
+    var(--border) 0.5cqw
+  );
 }
 
 /* Vertical */

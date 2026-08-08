@@ -3,9 +3,7 @@ import { computed } from 'vue';
 import { learningGroups } from '@/data/personal';
 
 const primarySources = computed(() => learningGroups[0]?.sources ?? []);
-const secondarySources = computed(() =>
-  learningGroups.slice(1).flatMap((group) => group.sources),
-);
+const secondarySources = computed(() => learningGroups.slice(1).flatMap((group) => group.sources));
 </script>
 
 <template>

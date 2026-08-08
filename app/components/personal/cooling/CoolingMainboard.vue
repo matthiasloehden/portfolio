@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import CoolingPort from "./CoolingPort.vue"
+import CoolingPort from './CoolingPort.vue';
 </script>
 
 <template>
@@ -62,7 +62,10 @@ import CoolingPort from "./CoolingPort.vue"
         class="ram-bank"
         aria-hidden="true"
       >
-        <i v-for="slot in 4" :key="slot" />
+        <i
+          v-for="slot in 4"
+          :key="slot"
+        />
       </div>
     </div>
 
@@ -93,7 +96,7 @@ import CoolingPort from "./CoolingPort.vue"
       <div class="gpu-core">
         <span>FULL COVER</span>
         <strong>
-          WATER<br>
+          WATER<br />
           BLOCK
         </strong>
       </div>
@@ -102,7 +105,10 @@ import CoolingPort from "./CoolingPort.vue"
         class="gpu-lines"
         aria-hidden="true"
       >
-        <i v-for="line in 3" :key="line" />
+        <i
+          v-for="line in 3"
+          :key="line"
+        />
       </div>
     </div>
   </div>
@@ -118,12 +124,7 @@ import CoolingPort from "./CoolingPort.vue"
   height: 41cqw;
   overflow: hidden;
   border: 0.1cqw solid var(--border-strong);
-  background:
-    color-mix(
-      in srgb,
-      var(--background-raised) 95%,
-      transparent
-    );
+  background: color-mix(in srgb, var(--background-raised) 95%, transparent);
 }
 
 .board-header {
@@ -145,17 +146,8 @@ import CoolingPort from "./CoolingPort.vue"
   inset: 0;
   opacity: 0.34;
   background:
-    linear-gradient(
-      90deg,
-      transparent 49%,
-      var(--border) 50%,
-      transparent 51%
-    ),
-    linear-gradient(
-      transparent 49%,
-      var(--border) 50%,
-      transparent 51%
-    );
+    linear-gradient(90deg, transparent 49%, var(--border) 50%, transparent 51%),
+    linear-gradient(transparent 49%, var(--border) 50%, transparent 51%);
   background-size: 4cqw 4cqw;
 }
 
@@ -175,11 +167,7 @@ import CoolingPort from "./CoolingPort.vue"
   place-items: center;
   border: 0.1cqw solid var(--accent);
   background:
-    radial-gradient(
-      circle,
-      color-mix(in srgb, var(--accent) 18%, transparent),
-      transparent 68%
-    ),
+    radial-gradient(circle, color-mix(in srgb, var(--accent) 18%, transparent), transparent 68%),
     var(--background-raised);
 }
 
@@ -211,11 +199,7 @@ import CoolingPort from "./CoolingPort.vue"
   padding: 0.8cqw 1cqw;
   border: 0.1cqw solid var(--accent);
   background:
-    radial-gradient(
-      circle,
-      color-mix(in srgb, var(--accent) 14%, transparent),
-      transparent 72%
-    ),
+    radial-gradient(circle, color-mix(in srgb, var(--accent) 14%, transparent), transparent 72%),
     var(--background-raised);
 }
 
@@ -238,13 +222,7 @@ import CoolingPort from "./CoolingPort.vue"
 
 .ram-bank i {
   border: 0.1cqw solid var(--border-strong);
-  background:
-    linear-gradient(
-      to bottom,
-      var(--accent) 0 0.5cqw,
-      transparent 0.5cqw
-    ),
-    var(--background-raised);
+  background: linear-gradient(to bottom, var(--accent) 0 0.5cqw, transparent 0.5cqw), var(--background-raised);
 }
 
 /* GPU */
@@ -258,11 +236,7 @@ import CoolingPort from "./CoolingPort.vue"
   grid-template-columns: 5cqw 1fr;
   border: 0.1cqw solid var(--border-strong);
   background:
-    linear-gradient(
-      110deg,
-      color-mix(in srgb, var(--accent) 9%, transparent),
-      transparent 55%
-    ),
+    linear-gradient(110deg, color-mix(in srgb, var(--accent) 9%, transparent), transparent 55%),
     var(--background-raised);
 }
 
