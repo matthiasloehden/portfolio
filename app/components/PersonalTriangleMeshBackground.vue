@@ -43,8 +43,7 @@ const props = withDefaults(
   },
 );
 
-const canvas =
-  ref<HTMLCanvasElement | null>(null);
+const canvas = ref<HTMLCanvasElement | null>(null);
 
 /* -------------------------------------------------------------------------- */
 /* Mesh                                                                       */
@@ -142,29 +141,24 @@ let pointerY = 0;
 let pointerClientY = 0;
 
 let pointerStrength = 0;
-let pointerRadius =
-  POINTER_WAKE_MIN_RADIUS;
+let pointerRadius = POINTER_WAKE_MIN_RADIUS;
 
 let pointerPresent = false;
 
-let lastPointerActivity =
-  Number.NEGATIVE_INFINITY;
+let lastPointerActivity = Number.NEGATIVE_INFINITY;
 
 let activityWasFresh = false;
 
-let releaseStartedAt =
-  Number.NEGATIVE_INFINITY;
+let releaseStartedAt = Number.NEGATIVE_INFINITY;
 
 let releaseStartStrength = 0;
-let releaseStartRadius =
-  POINTER_WAKE_MIN_RADIUS;
+let releaseStartRadius = POINTER_WAKE_MIN_RADIUS;
 
 /* -------------------------------------------------------------------------- */
 /* Cached Palette                                                             */
 /* -------------------------------------------------------------------------- */
 
-let cachedPalette: MeshPalette | null =
-  null;
+let cachedPalette: MeshPalette | null = null;
 
 let cachedTheme: string | null = null;
 
@@ -172,41 +166,16 @@ let cachedTheme: string | null = null;
 /* Utilities                                                                  */
 /* -------------------------------------------------------------------------- */
 
-function seededRandom(
-  seed: number,
-): number {
-  const value =
-    Math.sin(
-      seed * 12.9898 +
-        78.233,
-    ) *
-    43758.5453;
+function seededRandom(seed: number): number {
+  const value = Math.sin(seed * 12.9898 + 78.233) * 43758.5453;
 
-  return (
-    value -
-    Math.floor(value)
-  );
+  return value - Math.floor(value);
 }
 
-function smoothstep(
-  edgeStart: number,
-  edgeEnd: number,
-  value: number,
-): number {
-  const normalized = Math.min(
-    1,
-    Math.max(
-      0,
-      (value - edgeStart) /
-        (edgeEnd - edgeStart),
-    ),
-  );
+function smoothstep(edgeStart: number, edgeEnd: number, value: number): number {
+  const normalized = Math.min(1, Math.max(0, (value - edgeStart) / (edgeEnd - edgeStart)));
 
-  return (
-    normalized *
-    normalized *
-    (3 - 2 * normalized)
-  );
+  return normalized * normalized * (3 - 2 * normalized);
 }
 
 /*
@@ -215,22 +184,14 @@ function smoothstep(
  * Für Pointer-Influence brauchen wir nur die
  * Distanz im Vergleich mit einem Radius.
  */
-function getDistanceSquared(
-  dx: number,
-  dy: number,
-): number {
+function getDistanceSquared(dx: number, dy: number): number {
   return dx * dx + dy * dy;
 }
 
 function getPalette(): MeshPalette {
-  const theme =
-    document.documentElement.dataset
-      .theme ?? 'dark';
+  const theme = document.documentElement.dataset.theme ?? 'dark';
 
-  if (
-    cachedPalette &&
-    cachedTheme === theme
-  ) {
+  if (cachedPalette && cachedTheme === theme) {
     return cachedPalette;
   }
 
@@ -262,17 +223,11 @@ function getPalette(): MeshPalette {
 /* Mesh Construction                                                          */
 /* -------------------------------------------------------------------------- */
 
-function addEdge(
-  a: number,
-  b: number,
-  tone: number,
-  edgeKeys: Set<string>,
-): void {
+function addEdge(a: number, b: number, tone: number, edgeKeys: Set<string>): void {
   const start = Math.min(a, b);
   const end = Math.max(a, b);
 
-  const key =
-    `${start}:${end}`;
+  const key = `${start}:${end}`;
 
   if (edgeKeys.has(key)) {
     return;
@@ -287,13 +242,7 @@ function addEdge(
   });
 }
 
-function addTriangle(
-  a: number,
-  b: number,
-  c: number,
-  tone: number,
-  edgeKeys: Set<string>,
-): void {
+function addTriangle(a: number, b: number, c: number, tone: number, edgeKeys: Set<string>): void {
   triangles.push({
     a,
     b,
@@ -301,26 +250,11 @@ function addTriangle(
     tone,
   });
 
-  addEdge(
-    a,
-    b,
-    tone,
-    edgeKeys,
-  );
+  addEdge(a, b, tone, edgeKeys);
 
-  addEdge(
-    b,
-    c,
-    tone,
-    edgeKeys,
-  );
+  addEdge(b, c, tone, edgeKeys);
 
-  addEdge(
-    c,
-    a,
-    tone,
-    edgeKeys,
-  );
+  addEdge(c, a, tone, edgeKeys);
 }
 
 function buildMesh(): void {
@@ -331,81 +265,31 @@ function buildMesh(): void {
   pointWakeInfluence.length = 0;
   pointCoreInfluence.length = 0;
 
-  const spacing =
-    width < 640
-      ? 112
-      : width < 1_000
-        ? 128
-        : 148;
+  const spacing = width < 640 ? 112 : width < 1_000 ? 128 : 148;
 
-  const rowSpacing =
-    spacing * 0.79;
+  const rowSpacing = spacing * 0.79;
 
-  const columns =
-    Math.ceil(
-      width / spacing,
-    ) + 3;
+  const columns = Math.ceil(width / spacing) + 3;
 
-  const rows =
-    Math.ceil(
-      worldHeight /
-        rowSpacing,
-    ) + 3;
+  const rows = Math.ceil(worldHeight / rowSpacing) + 3;
 
-  const startX =
-    -spacing * 1.25;
+  const startX = -spacing * 1.25;
 
-  const startY =
-    -rowSpacing;
+  const startY = -rowSpacing;
 
-  for (
-    let row = 0;
-    row < rows;
-    row += 1
-  ) {
-    for (
-      let column = 0;
-      column < columns;
-      column += 1
-    ) {
-      const seed =
-        row * 101 +
-        column * 37 +
-        1;
+  for (let row = 0; row < rows; row += 1) {
+    for (let column = 0; column < columns; column += 1) {
+      const seed = row * 101 + column * 37 + 1;
 
-      const offsetX =
-        row % 2 === 0
-          ? 0
-          : spacing * 0.5;
+      const offsetX = row % 2 === 0 ? 0 : spacing * 0.5;
 
-      const jitterX =
-        (
-          seededRandom(seed) -
-          0.5
-        ) *
-        spacing *
-        0.26;
+      const jitterX = (seededRandom(seed) - 0.5) * spacing * 0.26;
 
-      const jitterY =
-        (
-          seededRandom(
-            seed + 7,
-          ) -
-          0.5
-        ) *
-        rowSpacing *
-        0.24;
+      const jitterY = (seededRandom(seed + 7) - 0.5) * rowSpacing * 0.24;
 
-      const baseX =
-        startX +
-        column * spacing +
-        offsetX +
-        jitterX;
+      const baseX = startX + column * spacing + offsetX + jitterX;
 
-      const baseY =
-        startY +
-        row * rowSpacing +
-        jitterY;
+      const baseY = startY + row * rowSpacing + jitterY;
 
       points.push({
         baseX,
@@ -414,47 +298,17 @@ function buildMesh(): void {
         x: baseX,
         y: baseY,
 
-        amplitudeX:
-          8 +
-          seededRandom(
-            seed + 13,
-          ) *
-            18,
+        amplitudeX: 8 + seededRandom(seed + 13) * 18,
 
-        amplitudeY:
-          7 +
-          seededRandom(
-            seed + 19,
-          ) *
-            16,
+        amplitudeY: 7 + seededRandom(seed + 19) * 16,
 
-        phaseX:
-          seededRandom(
-            seed + 23,
-          ) *
-          Math.PI *
-          2,
+        phaseX: seededRandom(seed + 23) * Math.PI * 2,
 
-        phaseY:
-          seededRandom(
-            seed + 29,
-          ) *
-          Math.PI *
-          2,
+        phaseY: seededRandom(seed + 29) * Math.PI * 2,
 
-        speedX:
-          0.22 +
-          seededRandom(
-            seed + 31,
-          ) *
-            0.25,
+        speedX: 0.22 + seededRandom(seed + 31) * 0.25,
 
-        speedY:
-          0.18 +
-          seededRandom(
-            seed + 43,
-          ) *
-            0.28,
+        speedY: 0.18 + seededRandom(seed + 43) * 0.28,
       });
 
       pointWakeInfluence.push(0);
@@ -462,76 +316,28 @@ function buildMesh(): void {
     }
   }
 
-  const edgeKeys =
-    new Set<string>();
+  const edgeKeys = new Set<string>();
 
-  for (
-    let row = 0;
-    row < rows - 1;
-    row += 1
-  ) {
-    for (
-      let column = 0;
-      column < columns - 1;
-      column += 1
-    ) {
-      const topLeft =
-        row * columns +
-        column;
+  for (let row = 0; row < rows - 1; row += 1) {
+    for (let column = 0; column < columns - 1; column += 1) {
+      const topLeft = row * columns + column;
 
-      const topRight =
-        topLeft + 1;
+      const topRight = topLeft + 1;
 
-      const bottomLeft =
-        topLeft + columns;
+      const bottomLeft = topLeft + columns;
 
-      const bottomRight =
-        bottomLeft + 1;
+      const bottomRight = bottomLeft + 1;
 
-      const tone =
-        0.72 +
-        seededRandom(
-          row * 89 +
-            column * 17,
-        ) *
-          0.28;
+      const tone = 0.72 + seededRandom(row * 89 + column * 17) * 0.28;
 
-      if (
-        (row + column) %
-          2 ===
-        0
-      ) {
-        addTriangle(
-          topLeft,
-          topRight,
-          bottomRight,
-          tone,
-          edgeKeys,
-        );
+      if ((row + column) % 2 === 0) {
+        addTriangle(topLeft, topRight, bottomRight, tone, edgeKeys);
 
-        addTriangle(
-          topLeft,
-          bottomRight,
-          bottomLeft,
-          tone * 0.82,
-          edgeKeys,
-        );
+        addTriangle(topLeft, bottomRight, bottomLeft, tone * 0.82, edgeKeys);
       } else {
-        addTriangle(
-          topLeft,
-          topRight,
-          bottomLeft,
-          tone * 0.82,
-          edgeKeys,
-        );
+        addTriangle(topLeft, topRight, bottomLeft, tone * 0.82, edgeKeys);
 
-        addTriangle(
-          topRight,
-          bottomRight,
-          bottomLeft,
-          tone,
-          edgeKeys,
-        );
+        addTriangle(topRight, bottomRight, bottomLeft, tone, edgeKeys);
       }
     }
   }
@@ -541,27 +347,20 @@ function buildMesh(): void {
 /* Point Animation                                                            */
 /* -------------------------------------------------------------------------- */
 
-function updatePointPositions(
-  time: number,
-): void {
-  const motion =
-    props.active &&
-    !reducedMotion?.matches
-      ? 1
-      : 0;
+function updatePointPositions(time: number): void {
+  const motion = props.active && !reducedMotion?.matches ? 1 : 0;
 
   /*
    * Wenn keine Animation aktiv ist, müssen wir die
    * trigonometrischen Berechnungen überhaupt nicht machen.
    */
   if (motion === 0) {
-    for (
-      let index = 0;
-      index < points.length;
-      index += 1
-    ) {
-      const point =
-        points[index]!;
+    for (let index = 0; index < points.length; index += 1) {
+      const point = points[index];
+
+      if (!point) {
+        continue;
+      }
 
       point.x = point.baseX;
       point.y = point.baseY;
@@ -570,99 +369,47 @@ function updatePointPositions(
     return;
   }
 
-    for (
-      let index = 0;
-      index < points.length;
-      index += 1
-    ) {
-      const point =
-        points[index]!;
+  for (let index = 0; index < points.length; index += 1) {
+    const point = points[index];
 
-      const secondaryPhase =
-        index * 0.31;
-
-      point.x =
-        point.baseX +
-        (
-          Math.sin(
-            time *
-              point.speedX +
-              point.phaseX,
-          ) *
-            point.amplitudeX +
-          Math.sin(
-            time * 0.07 +
-              secondaryPhase,
-          ) *
-            point.amplitudeX *
-            0.35
-        );
-
-      point.y =
-        point.baseY +
-        (
-          Math.cos(
-            time *
-              point.speedY +
-              point.phaseY,
-          ) *
-            point.amplitudeY +
-          Math.sin(
-            time * 0.085 -
-              secondaryPhase,
-          ) *
-            point.amplitudeY *
-            0.28
-        );
+    if (!point) {
+      continue;
     }
+
+    const secondaryPhase = index * 0.31;
+
+    point.x =
+      point.baseX +
+      (Math.sin(time * point.speedX + point.phaseX) * point.amplitudeX +
+        Math.sin(time * 0.07 + secondaryPhase) * point.amplitudeX * 0.35);
+
+    point.y =
+      point.baseY +
+      (Math.cos(time * point.speedY + point.phaseY) * point.amplitudeY +
+        Math.sin(time * 0.085 - secondaryPhase) * point.amplitudeY * 0.28);
+  }
 }
 
 /* -------------------------------------------------------------------------- */
 /* Pointer Influence Cache                                                    */
 /* -------------------------------------------------------------------------- */
 
-function getWakeInfluenceAt(
-  x: number,
-  y: number,
-  radius: number,
-): number {
-  if (
-    pointerStrength <=
-    0.001
-  ) {
+function getWakeInfluenceAt(x: number, y: number, radius: number): number {
+  if (pointerStrength <= 0.001) {
     return 0;
   }
 
-  const dynamicRadius =
-    Math.max(
-      POINTER_WAKE_MIN_RADIUS,
-      radius *
-        (
-          pointerRadius /
-          POINTER_WAKE_RADIUS
-        ),
-    );
+  const dynamicRadius = Math.max(POINTER_WAKE_MIN_RADIUS, radius * (pointerRadius / POINTER_WAKE_RADIUS));
 
-  const dx =
-    x - pointerX;
+  const dx = x - pointerX;
 
-  const dy =
-    y - pointerY;
+  const dy = y - pointerY;
 
-  const distanceSquared =
-    getDistanceSquared(
-      dx,
-      dy,
-    );
+  const distanceSquared = getDistanceSquared(dx, dy);
 
-  const outerRadiusSquared =
-    dynamicRadius *
-    dynamicRadius;
+  const outerRadiusSquared = dynamicRadius * dynamicRadius;
 
-  if (
-    distanceSquared >=
-    outerRadiusSquared
-  ) {
+  if (distanceSquared >= outerRadiusSquared) {
     return 0;
   }
 
@@ -673,67 +420,31 @@ function getWakeInfluenceAt(
    * Durch den Radius-Culling-Check wird sqrt nur
    * für Punkte innerhalb des Wake-Bereichs ausgeführt.
    */
-  const distance =
-    Math.sqrt(
-      distanceSquared,
-    );
+  const distance = Math.sqrt(distanceSquared);
 
-  return (
-    1 -
-    smoothstep(
-      dynamicRadius * 0.18,
-      dynamicRadius,
-      distance,
-    )
-  ) * pointerStrength;
+  return (1 - smoothstep(dynamicRadius * 0.18, dynamicRadius, distance)) * pointerStrength;
 }
 
-function getCoreInfluenceAt(
-  x: number,
-  y: number,
-): number {
-  if (
-    !props.active ||
-    !pointerPresent
-  ) {
+function getCoreInfluenceAt(x: number, y: number): number {
+  if (!props.active || !pointerPresent) {
     return 0;
   }
 
-  const dx =
-    x - pointerX;
+  const dx = x - pointerX;
 
-  const dy =
-    y - pointerY;
+  const dy = y - pointerY;
 
-  const distanceSquared =
-    getDistanceSquared(
-      dx,
-      dy,
-    );
+  const distanceSquared = getDistanceSquared(dx, dy);
 
-  const radius =
-    POINTER_CORE_RADIUS;
+  const radius = POINTER_CORE_RADIUS;
 
-  if (
-    distanceSquared >=
-    radius * radius
-  ) {
+  if (distanceSquared >= radius * radius) {
     return 0;
   }
 
-  const distance =
-    Math.sqrt(
-      distanceSquared,
-    );
+  const distance = Math.sqrt(distanceSquared);
 
-  return (
-    1 -
-    smoothstep(
-      radius * 0.18,
-      radius,
-      distance,
-    )
-  );
+  return 1 - smoothstep(radius * 0.18, radius, distance);
 }
 
 function updatePointerInfluenceCache(): void {
@@ -741,21 +452,11 @@ function updatePointerInfluenceCache(): void {
    * Wenn Pointer komplett inaktiv ist, können wir alle
    * Influence-Werte einfach auf 0 setzen.
    */
-  if (
-    pointerStrength <=
-      0.001 &&
-    !pointerPresent
-  ) {
-    for (
-      let index = 0;
-      index < points.length;
-      index += 1
-    ) {
-      pointWakeInfluence[index] =
-        0;
+  if (pointerStrength <= 0.001 && !pointerPresent) {
+    for (let index = 0; index < points.length; index += 1) {
+      pointWakeInfluence[index] = 0;
 
-      pointCoreInfluence[index] =
-        0;
+      pointCoreInfluence[index] = 0;
     }
 
     return;
@@ -770,59 +471,39 @@ function updatePointerInfluenceCache(): void {
    * Danach greifen Nodes und Edges nur noch auf
    * diese Arrays zu.
    */
-for (let index = 0; index < points.length; index += 1) {
-  const point = points[index]!;
+  for (let index = 0; index < points.length; index += 1) {
+    const point = points[index];
 
-  pointWakeInfluence[index] = getWakeInfluenceAt(
-    point.x,
-    point.y,
-    275,
-  );
+    if (!point) {
+      continue;
+    }
 
-  pointCoreInfluence[index] = getCoreInfluenceAt(
-    point.x,
-    point.y,
-  );
-}
+    pointWakeInfluence[index] = getWakeInfluenceAt(point.x, point.y, 275);
+
+    pointCoreInfluence[index] = getCoreInfluenceAt(point.x, point.y);
+  }
 }
 
 /* -------------------------------------------------------------------------- */
 /* Visibility Helpers                                                         */
 /* -------------------------------------------------------------------------- */
 
-function isPointVisible(
-  point: MeshPoint,
-): boolean {
-  const screenY =
-    point.y -
-    scrollOffset;
+function isPointVisible(point: MeshPoint): boolean {
+  const screenY = point.y - scrollOffset;
 
-  return (
-    screenY >=
-      -RENDER_MARGIN &&
-    screenY <=
-      height +
-        RENDER_MARGIN
-  );
+  return screenY >= -RENDER_MARGIN && screenY <= height + RENDER_MARGIN;
 }
 
 /* -------------------------------------------------------------------------- */
 /* Drawing                                                                    */
 /* -------------------------------------------------------------------------- */
 
-function drawTriangle(
-  meshContext: CanvasRenderingContext2D,
-  triangle: MeshTriangle,
-  palette: MeshPalette,
-): void {
-  const a =
-    points[triangle.a];
+function drawTriangle(meshContext: CanvasRenderingContext2D, triangle: MeshTriangle, palette: MeshPalette): void {
+  const a = points[triangle.a];
 
-  const b =
-    points[triangle.b];
+  const b = points[triangle.b];
 
-  const c =
-    points[triangle.c];
+  const c = points[triangle.c];
 
   if (!a || !b || !c) {
     return;
@@ -832,170 +513,73 @@ function drawTriangle(
    * Schneller Bounding-Check bevor wir irgendwelche
    * Pointer-Berechnungen durchführen.
    */
-  const minY = Math.min(
-    a.y,
-    b.y,
-    c.y,
-  );
+  const minY = Math.min(a.y, b.y, c.y);
 
-  const maxY = Math.max(
-    a.y,
-    b.y,
-    c.y,
-  );
+  const maxY = Math.max(a.y, b.y, c.y);
 
-  if (
-    maxY -
-      scrollOffset <
-      -RENDER_MARGIN ||
-    minY -
-      scrollOffset >
-      height +
-        RENDER_MARGIN
-  ) {
+  if (maxY - scrollOffset < -RENDER_MARGIN || minY - scrollOffset > height + RENDER_MARGIN) {
     return;
   }
 
-  const centerX =
-    (
-      a.x +
-      b.x +
-      c.x
-    ) / 3;
+  const centerX = (a.x + b.x + c.x) / 3;
 
-  const centerY =
-    (
-      a.y +
-      b.y +
-      c.y
-    ) / 3;
+  const centerY = (a.y + b.y + c.y) / 3;
 
   /*
    * Triangle influence wird nur einmal für den
    * Mittelpunkt berechnet.
    */
-  const influence =
-    getWakeInfluenceAt(
-      centerX,
-      centerY,
-      275,
-    );
+  const influence = getWakeInfluenceAt(centerX, centerY, 275);
 
-  const idlePulse =
-    0.5 +
-    Math.sin(
-      elapsedTime *
-        0.18 +
-        triangle.tone *
-          9,
-    ) *
-      0.5;
+  const idlePulse = 0.5 + Math.sin(elapsedTime * 0.18 + triangle.tone * 9) * 0.5;
 
-  const alpha =
-    palette.baseFillAlpha *
-      triangle.tone +
-    influence *
-      (
-        0.045 +
-        idlePulse *
-          0.028
-      );
+  const alpha = palette.baseFillAlpha * triangle.tone + influence * (0.045 + idlePulse * 0.028);
 
-  if (
-    alpha <
-    0.002
-  ) {
+  if (alpha < 0.002) {
     return;
   }
 
   meshContext.beginPath();
 
-  meshContext.moveTo(
-    a.x,
-    a.y -
-      scrollOffset,
-  );
+  meshContext.moveTo(a.x, a.y - scrollOffset);
 
-  meshContext.lineTo(
-    b.x,
-    b.y -
-      scrollOffset,
-  );
+  meshContext.lineTo(b.x, b.y - scrollOffset);
 
-  meshContext.lineTo(
-    c.x,
-    c.y -
-      scrollOffset,
-  );
+  meshContext.lineTo(c.x, c.y - scrollOffset);
 
   meshContext.closePath();
 
-  meshContext.fillStyle =
-    influence > 0.01
-      ? palette.glow
-      : palette.line;
+  meshContext.fillStyle = influence > 0.01 ? palette.glow : palette.line;
 
-  meshContext.globalAlpha =
-    alpha;
+  meshContext.globalAlpha = alpha;
 
   meshContext.fill();
 }
 
-function drawEdge(
-  meshContext: CanvasRenderingContext2D,
-  edge: MeshEdge,
-  palette: MeshPalette,
-): void {
-  const a =
-    points[edge.a];
+function drawEdge(meshContext: CanvasRenderingContext2D, edge: MeshEdge, palette: MeshPalette): void {
+  const a = points[edge.a];
 
-  const b =
-    points[edge.b];
+  const b = points[edge.b];
 
   if (!a || !b) {
     return;
   }
 
-  const screenAY =
-    a.y -
-    scrollOffset;
+  const screenAY = a.y - scrollOffset;
 
-  const screenBY =
-    b.y -
-    scrollOffset;
+  const screenBY = b.y - scrollOffset;
 
   /*
    * Edge komplett außerhalb des Viewports?
    */
-  if (
-    (
-      screenAY <
-        -40 &&
-      screenBY <
-        -40
-    ) ||
-    (
-      screenAY >
-        height + 40 &&
-      screenBY >
-        height + 40
-    )
-  ) {
+  if ((screenAY < -40 && screenBY < -40) || (screenAY > height + 40 && screenBY > height + 40)) {
     return;
   }
 
   /*
    * Die teuren Point-Influences sind bereits gecached.
    */
-  const wakeInfluence =
-    Math.max(
-      pointWakeInfluence[
-        edge.a
-      ] ?? 0,
-      pointWakeInfluence[
-        edge.b
-      ] ?? 0,
-    );
+  const wakeInfluence = Math.max(pointWakeInfluence[edge.a] ?? 0, pointWakeInfluence[edge.b] ?? 0);
 
   /*
    * Für den Mittelpunkt brauchen wir weiterhin
@@ -1004,89 +588,31 @@ function drawEdge(
    *
    * Dafür verwenden wir aber nur einen Wake-Test.
    */
-  const midpointX =
-    (
-      a.x +
-      b.x
-    ) * 0.5;
+  const midpointX = (a.x + b.x) * 0.5;
 
-  const midpointY =
-    (
-      a.y +
-      b.y
-    ) * 0.5;
+  const midpointY = (a.y + b.y) * 0.5;
 
-  const midpointWake =
-    getWakeInfluenceAt(
-      midpointX,
-      midpointY,
-      250,
-    );
+  const midpointWake = getWakeInfluenceAt(midpointX, midpointY, 250);
 
-  const finalWake =
-    Math.max(
-      wakeInfluence,
-      midpointWake,
-    );
+  const finalWake = Math.max(wakeInfluence, midpointWake);
 
-  const coreInfluence =
-    Math.max(
-      (
-        pointCoreInfluence[
-          edge.a
-        ] ?? 0
-      ) * 0.34,
-      (
-        pointCoreInfluence[
-          edge.b
-        ] ?? 0
-      ) * 0.34,
-    );
+  const coreInfluence = Math.max((pointCoreInfluence[edge.a] ?? 0) * 0.34, (pointCoreInfluence[edge.b] ?? 0) * 0.34);
 
-  const influence =
-    Math.max(
-      finalWake,
-      coreInfluence,
-    );
+  const influence = Math.max(finalWake, coreInfluence);
 
-  const idleShimmer =
-    0.78 +
-    Math.sin(
-      elapsedTime *
-        0.3 +
-        edge.tone *
-          17,
-    ) *
-      0.22;
+  const idleShimmer = 0.78 + Math.sin(elapsedTime * 0.3 + edge.tone * 17) * 0.22;
 
   meshContext.beginPath();
 
-  meshContext.moveTo(
-    a.x,
-    screenAY,
-  );
+  meshContext.moveTo(a.x, screenAY);
 
-  meshContext.lineTo(
-    b.x,
-    screenBY,
-  );
+  meshContext.lineTo(b.x, screenBY);
 
-  meshContext.strokeStyle =
-    influence > 0.015
-      ? palette.glow
-      : palette.line;
+  meshContext.strokeStyle = influence > 0.015 ? palette.glow : palette.line;
 
-  meshContext.globalAlpha =
-    palette.baseLineAlpha *
-      edge.tone *
-      idleShimmer +
-    influence *
-      0.62;
+  meshContext.globalAlpha = palette.baseLineAlpha * edge.tone * idleShimmer + influence * 0.62;
 
-  meshContext.lineWidth =
-    0.78 +
-    influence *
-      1.55;
+  meshContext.lineWidth = 0.78 + influence * 1.55;
 
   meshContext.stroke();
 }
@@ -1097,80 +623,41 @@ function drawNode(
   pointIndex: number,
   palette: MeshPalette,
 ): void {
-  const screenY =
-    point.y -
-    scrollOffset;
+  const screenY = point.y - scrollOffset;
 
-  if (
-    screenY <
-      -10 ||
-    screenY >
-      height + 10
-  ) {
+  if (screenY < -10 || screenY > height + 10) {
     return;
   }
 
   /*
    * Beide Werte kommen aus dem Cache.
    */
-  const wakeInfluence =
-    pointWakeInfluence[
-      pointIndex
-    ] ?? 0;
+  const wakeInfluence = pointWakeInfluence[pointIndex] ?? 0;
 
-  const coreInfluence =
-    pointCoreInfluence[
-      pointIndex
-    ] ?? 0;
+  const coreInfluence = pointCoreInfluence[pointIndex] ?? 0;
 
-  const influence =
-    Math.max(
-      wakeInfluence,
-      coreInfluence,
-    );
+  const influence = Math.max(wakeInfluence, coreInfluence);
 
-  if (
-    influence <
-    0.025
-  ) {
+  if (influence < 0.025) {
     return;
   }
 
   meshContext.beginPath();
 
-  meshContext.arc(
-    point.x,
-    screenY,
-    1.1 +
-      influence *
-        2.1,
-    0,
-    Math.PI * 2,
-  );
+  meshContext.arc(point.x, screenY, 1.1 + influence * 2.1, 0, Math.PI * 2);
 
-  meshContext.fillStyle =
-    palette.node;
+  meshContext.fillStyle = palette.node;
 
-  meshContext.globalAlpha =
-    0.24 +
-    influence *
-      0.76;
+  meshContext.globalAlpha = 0.24 + influence * 0.76;
 
   /*
    * Shadow wird nur im kleinen Core-Bereich
    * aktiviert.
    */
-  if (
-    coreInfluence >
-    0.01
-  ) {
-    meshContext.shadowColor =
-      palette.glow;
+  if (coreInfluence > 0.01) {
+    meshContext.shadowColor = palette.glow;
 
-    meshContext.shadowBlur =
-      5 +
-      coreInfluence *
-        10;
+    meshContext.shadowBlur = 5 + coreInfluence * 10;
   } else {
     meshContext.shadowBlur = 0;
   }
@@ -1195,72 +682,33 @@ function drawScene(): void {
     return;
   }
 
-  const meshContext =
-    context;
+  const meshContext = context;
 
-  const palette =
-    getPalette();
+  const palette = getPalette();
 
-  meshContext.clearRect(
-    0,
-    0,
-    width,
-    height,
-  );
+  meshContext.clearRect(0, 0, width, height);
 
   /*
    * Pointer-Wake-Glow.
    */
-  const pointerScreenY =
-    pointerY -
-    scrollOffset;
+  const pointerScreenY = pointerY - scrollOffset;
 
-  if (
-    pointerStrength >
-    0.002
-  ) {
-    const glow =
-      meshContext.createRadialGradient(
-        pointerX,
-        pointerScreenY,
-        0,
-        pointerX,
-        pointerScreenY,
-        pointerRadius,
-      );
+  if (pointerStrength > 0.002) {
+    const glow = meshContext.createRadialGradient(pointerX, pointerScreenY, 0, pointerX, pointerScreenY, pointerRadius);
 
-    glow.addColorStop(
-      0,
-      `rgba(${palette.ambient}, ${
-        0.075 *
-        pointerStrength
-      })`,
-    );
+    glow.addColorStop(0, `rgba(${palette.ambient}, ${0.075 * pointerStrength})`);
 
-    glow.addColorStop(
-      0.42,
-      `rgba(${palette.ambient}, ${
-        0.025 *
-        pointerStrength
-      })`,
-    );
+    glow.addColorStop(0.42, `rgba(${palette.ambient}, ${0.025 * pointerStrength})`);
 
-    glow.addColorStop(
-      1,
-      `rgba(${palette.ambient}, 0)`,
-    );
+    glow.addColorStop(1, `rgba(${palette.ambient}, 0)`);
 
-    meshContext.fillStyle =
-      glow;
+    meshContext.fillStyle = glow;
 
-    meshContext.globalAlpha =
-      1;
+    meshContext.globalAlpha = 1;
 
     meshContext.fillRect(
-      pointerX -
-        pointerRadius,
-      pointerScreenY -
-        pointerRadius,
+      pointerX - pointerRadius,
+      pointerScreenY - pointerRadius,
       pointerRadius * 2,
       pointerRadius * 2,
     );
@@ -1269,46 +717,29 @@ function drawScene(): void {
   /*
    * Kleiner Core-Glow.
    */
-  if (
-    props.active &&
-    pointerPresent
-  ) {
-    const coreGlow =
-      meshContext.createRadialGradient(
-        pointerX,
-        pointerScreenY,
-        0,
-        pointerX,
-        pointerScreenY,
-        POINTER_CORE_RADIUS,
-      );
-
-    coreGlow.addColorStop(
+  if (props.active && pointerPresent) {
+    const coreGlow = meshContext.createRadialGradient(
+      pointerX,
+      pointerScreenY,
       0,
-      `rgba(${palette.ambient}, 0.075)`,
+      pointerX,
+      pointerScreenY,
+      POINTER_CORE_RADIUS,
     );
 
-    coreGlow.addColorStop(
-      0.35,
-      `rgba(${palette.ambient}, 0.028)`,
-    );
+    coreGlow.addColorStop(0, `rgba(${palette.ambient}, 0.075)`);
 
-    coreGlow.addColorStop(
-      1,
-      `rgba(${palette.ambient}, 0)`,
-    );
+    coreGlow.addColorStop(0.35, `rgba(${palette.ambient}, 0.028)`);
 
-    meshContext.fillStyle =
-      coreGlow;
+    coreGlow.addColorStop(1, `rgba(${palette.ambient}, 0)`);
 
-    meshContext.globalAlpha =
-      1;
+    meshContext.fillStyle = coreGlow;
+
+    meshContext.globalAlpha = 1;
 
     meshContext.fillRect(
-      pointerX -
-        POINTER_CORE_RADIUS,
-      pointerScreenY -
-        POINTER_CORE_RADIUS,
+      pointerX - POINTER_CORE_RADIUS,
+      pointerScreenY - POINTER_CORE_RADIUS,
       POINTER_CORE_RADIUS * 2,
       POINTER_CORE_RADIUS * 2,
     );
@@ -1322,199 +753,108 @@ function drawScene(): void {
   /*
    * Triangles.
    */
-  for (
-    let index = 0;
-    index <
-    triangles.length;
-    index += 1
-  ) {
-    const triangle = triangles[index]!;
-    drawTriangle(
-      meshContext,
-      triangle,
-      palette,
-    );
+  for (let index = 0; index < triangles.length; index += 1) {
+    const triangle = triangles[index];
+
+    if (!triangle) {
+      continue;
+    }
+    drawTriangle(meshContext, triangle, palette);
   }
 
   /*
    * Edges.
    */
-  for (
-    let index = 0;
-    index <
-    edges.length;
-    index += 1
-  ) {
-    const edge = edges[index]!;
-    drawEdge(
-      meshContext,
-      edge,
-      palette,
-    );
+  for (let index = 0; index < edges.length; index += 1) {
+    const edge = edges[index];
+
+    if (!edge) {
+      continue;
+    }
+    drawEdge(meshContext, edge, palette);
   }
 
   /*
    * Nodes.
    */
-  for (
-    let index = 0;
-    index < points.length;
-    index += 1
-  ) {
-    drawNode(
-      meshContext,
-      points[index]!,
-      index,
-      palette,
-    );
+  for (let index = 0; index < points.length; index += 1) {
+    const point = points[index];
+
+    if (!point) {
+      continue;
+    }
+
+    drawNode(meshContext, point, index, palette);
   }
 
-  meshContext.globalAlpha =
-    1;
+  meshContext.globalAlpha = 1;
 
-  meshContext.shadowBlur =
-    0;
+  meshContext.shadowBlur = 0;
 }
 
 /* -------------------------------------------------------------------------- */
 /* Animation                                                                  */
 /* -------------------------------------------------------------------------- */
 
-function render(
-  now: number,
-): void {
+function render(now: number): void {
   animationFrame = null;
 
   /*
    * Große Zeit-Sprünge werden begrenzt.
    */
-  const delta =
-    lastFrameTime === 0
-      ? 0
-      : Math.min(
-          (
-            now -
-            lastFrameTime
-          ) /
-            1_000,
-          0.05,
-        );
+  const delta = lastFrameTime === 0 ? 0 : Math.min((now - lastFrameTime) / 1_000, 0.05);
 
   lastFrameTime = now;
 
-  const motionEnabled =
-    props.active &&
-    !reducedMotion?.matches;
+  const motionEnabled = props.active && !reducedMotion?.matches;
 
-  if (
-    motionEnabled
-  ) {
-    elapsedTime +=
-      delta;
+  if (motionEnabled) {
+    elapsedTime += delta;
   }
 
-  const activityIsFresh =
-    props.active &&
-    now -
-      lastPointerActivity <
-      POINTER_ACTIVITY_HOLD;
+  const activityIsFresh = props.active && now - lastPointerActivity < POINTER_ACTIVITY_HOLD;
 
   /*
    * Pointer Wake Attack.
    */
-  if (
-    activityIsFresh
-  ) {
-    const fadeIn =
-      1 -
-      Math.exp(
-        -delta *
-          POINTER_WAKE_ATTACK_RATE,
-      );
+  if (activityIsFresh) {
+    const fadeIn = 1 - Math.exp(-delta * POINTER_WAKE_ATTACK_RATE);
 
-    pointerStrength +=
-      (
-        1 -
-        pointerStrength
-      ) *
-      fadeIn;
+    pointerStrength += (1 - pointerStrength) * fadeIn;
 
-    pointerRadius +=
-      (
-        POINTER_WAKE_RADIUS -
-        pointerRadius
-      ) *
-      fadeIn;
+    pointerRadius += (POINTER_WAKE_RADIUS - pointerRadius) * fadeIn;
   } else {
     /*
      * Beginn des Release-Fades.
      */
-    if (
-      activityWasFresh
-    ) {
-      releaseStartedAt =
-        now;
+    if (activityWasFresh) {
+      releaseStartedAt = now;
 
-      releaseStartStrength =
-        pointerStrength;
+      releaseStartStrength = pointerStrength;
 
-      releaseStartRadius =
-        pointerRadius;
+      releaseStartRadius = pointerRadius;
     }
 
-    const releaseProgress =
-      Math.min(
-        1,
-        Math.max(
-          0,
-          (
-            now -
-            releaseStartedAt
-          ) /
-            POINTER_WAKE_DURATION,
-        ),
-      );
+    const releaseProgress = Math.min(1, Math.max(0, (now - releaseStartedAt) / POINTER_WAKE_DURATION));
 
-    const easedReleaseProgress =
-      smoothstep(
-        0,
-        1,
-        releaseProgress,
-      );
+    const easedReleaseProgress = smoothstep(0, 1, releaseProgress);
 
-    pointerStrength =
-      releaseStartStrength *
-      (
-        1 -
-        easedReleaseProgress
-      );
+    pointerStrength = releaseStartStrength * (1 - easedReleaseProgress);
 
-    pointerRadius =
-      releaseStartRadius +
-      (
-        POINTER_WAKE_MIN_RADIUS -
-        releaseStartRadius
-      ) *
-        easedReleaseProgress;
+    pointerRadius = releaseStartRadius + (POINTER_WAKE_MIN_RADIUS - releaseStartRadius) * easedReleaseProgress;
   }
 
-  if (
-    !props.active
-  ) {
+  if (!props.active) {
     pointerStrength = 0;
-    pointerRadius =
-      POINTER_WAKE_MIN_RADIUS;
+    pointerRadius = POINTER_WAKE_MIN_RADIUS;
   }
 
-  activityWasFresh =
-    activityIsFresh;
+  activityWasFresh = activityIsFresh;
 
   /*
    * Mesh-Bewegung.
    */
-  updatePointPositions(
-    elapsedTime,
-  );
+  updatePointPositions(elapsedTime);
 
   /*
    * Rendern.
@@ -1525,43 +865,23 @@ function render(
    * Nur weiter animieren, wenn tatsächlich etwas
    * animiert werden muss.
    */
-  const needsPointerTransition =
-    activityIsFresh ||
-    pointerStrength >
-      0.002;
+  const needsPointerTransition = activityIsFresh || pointerStrength > 0.002;
 
-  const shouldAnimate =
-    isDocumentVisible &&
-    (
-      motionEnabled ||
-      needsPointerTransition
-    );
+  const shouldAnimate = isDocumentVisible && (motionEnabled || needsPointerTransition);
 
-  if (
-    shouldAnimate
-  ) {
-    animationFrame =
-      window.requestAnimationFrame(
-        render,
-      );
+  if (shouldAnimate) {
+    animationFrame = window.requestAnimationFrame(render);
   }
 }
 
 function requestRender(): void {
-  if (
-    animationFrame !==
-      null ||
-    !isDocumentVisible
-  ) {
+  if (animationFrame !== null || !isDocumentVisible) {
     return;
   }
 
   lastFrameTime = 0;
 
-  animationFrame =
-    window.requestAnimationFrame(
-      render,
-    );
+  animationFrame = window.requestAnimationFrame(render);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1569,76 +889,33 @@ function requestRender(): void {
 /* -------------------------------------------------------------------------- */
 
 function resize(): void {
-  const element =
-    canvas.value;
+  const element = canvas.value;
 
-  if (
-    !element ||
-    !context
-  ) {
+  if (!element || !context) {
     return;
   }
 
-  const bounds =
-    element.getBoundingClientRect();
+  const bounds = element.getBoundingClientRect();
 
-  width = Math.max(
-    1,
-    Math.round(
-      bounds.width,
-    ),
-  );
+  width = Math.max(1, Math.round(bounds.width));
 
-  height = Math.max(
-    1,
-    Math.round(
-      bounds.height,
-    ),
-  );
+  height = Math.max(1, Math.round(bounds.height));
 
   /*
    * Das Mesh bleibt weiterhin so groß wie der komplette
    * Dokument-Content.
    */
-  worldHeight =
-    Math.max(
-      height,
-      element.parentElement
-        ?.parentElement
-        ?.scrollHeight ??
-        height,
-    );
+  worldHeight = Math.max(height, element.parentElement?.parentElement?.scrollHeight ?? height);
 
-  scrollOffset =
-    window.scrollY;
+  scrollOffset = window.scrollY;
 
-  const pixelRatio =
-    Math.min(
-      window.devicePixelRatio ||
-        1,
-      MAX_DPR,
-    );
+  const pixelRatio = Math.min(window.devicePixelRatio || 1, MAX_DPR);
 
-  element.width =
-    Math.round(
-      width *
-        pixelRatio,
-    );
+  element.width = Math.round(width * pixelRatio);
 
-  element.height =
-    Math.round(
-      height *
-        pixelRatio,
-    );
+  element.height = Math.round(height * pixelRatio);
 
-  context.setTransform(
-    pixelRatio,
-    0,
-    0,
-    pixelRatio,
-    0,
-    0,
-  );
+  context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
 
   buildMesh();
 
@@ -1651,91 +928,58 @@ function resize(): void {
 /* Pointer                                                                     */
 /* -------------------------------------------------------------------------- */
 
-function handlePointerMove(
-  event: PointerEvent,
-): void {
-  if (
-    !props.active ||
-    event.pointerType ===
-      'touch'
-  ) {
+function handlePointerMove(event: PointerEvent): void {
+  if (!props.active || event.pointerType === 'touch') {
     return;
   }
 
-  pointerX =
-    event.clientX;
+  pointerX = event.clientX;
 
-  pointerClientY =
-    event.clientY;
+  pointerClientY = event.clientY;
 
-  pointerY =
-    pointerClientY +
-    scrollOffset;
+  pointerY = pointerClientY + scrollOffset;
 
-  pointerPresent =
-    true;
+  pointerPresent = true;
 
-  lastPointerActivity =
-    performance.now();
+  lastPointerActivity = performance.now();
 
   requestRender();
 }
 
-function handlePointerOut(
-  event: PointerEvent,
-): void {
-  if (
-    event.relatedTarget !==
-      null
-  ) {
+function handlePointerOut(event: PointerEvent): void {
+  if (event.relatedTarget !== null) {
     return;
   }
 
-  pointerPresent =
-    false;
+  pointerPresent = false;
 
-  lastPointerActivity =
-    Number.NEGATIVE_INFINITY;
+  lastPointerActivity = Number.NEGATIVE_INFINITY;
 
   requestRender();
 }
 
-function handlePointerDown(
-  event: PointerEvent,
-): void {
-  if (
-    !props.active ||
-    event.pointerType !==
-      'touch'
-  ) {
+function handlePointerDown(event: PointerEvent): void {
+  if (!props.active || event.pointerType !== 'touch') {
     return;
   }
 
-  pointerX =
-    event.clientX;
+  pointerX = event.clientX;
 
-  pointerClientY =
-    event.clientY;
+  pointerClientY = event.clientY;
 
-  pointerY =
-    pointerClientY +
-    scrollOffset;
+  pointerY = pointerClientY + scrollOffset;
 
-  pointerPresent =
-    true;
+  pointerPresent = true;
 
-  lastPointerActivity =
-    performance.now();
+  lastPointerActivity = performance.now();
 
   requestRender();
 }
 
 function handlePointerUp(): void {
-  pointerPresent =
-    false;
+  pointerPresent = false;
 
-  lastPointerActivity =
-    Number.NEGATIVE_INFINITY;
+  lastPointerActivity = Number.NEGATIVE_INFINITY;
 
   requestRender();
 }
@@ -1745,8 +989,7 @@ function handlePointerUp(): void {
 /* -------------------------------------------------------------------------- */
 
 function handleScroll(): void {
-  scrollOffset =
-    window.scrollY;
+  scrollOffset = window.scrollY;
 
   /*
    * Cursor bleibt physisch an derselben Screen-Position,
@@ -1756,20 +999,14 @@ function handleScroll(): void {
    *
    * Das Mesh selbst bleibt an die Scroll-Position gekoppelt.
    */
-  pointerY =
-    pointerClientY +
-    scrollOffset;
+  pointerY = pointerClientY + scrollOffset;
 
   /*
    * Scrollen hält den Wake-Effekt aktiv,
    * wenn der Pointer vorhanden ist.
    */
-  if (
-    props.active &&
-    pointerPresent
-  ) {
-    lastPointerActivity =
-      performance.now();
+  if (props.active && pointerPresent) {
+    lastPointerActivity = performance.now();
   }
 
   requestRender();
@@ -1780,23 +1017,15 @@ function handleScroll(): void {
 /* -------------------------------------------------------------------------- */
 
 function handleVisibilityChange(): void {
-  isDocumentVisible =
-    !document.hidden;
+  isDocumentVisible = !document.hidden;
 
-  if (
-    !isDocumentVisible &&
-    animationFrame !== null
-  ) {
-    window.cancelAnimationFrame(
-      animationFrame,
-    );
+  if (!isDocumentVisible && animationFrame !== null) {
+    window.cancelAnimationFrame(animationFrame);
 
     animationFrame = null;
   }
 
-  if (
-    isDocumentVisible
-  ) {
+  if (isDocumentVisible) {
     requestRender();
   }
 }
@@ -1835,116 +1064,64 @@ watch(
 /* -------------------------------------------------------------------------- */
 
 onMounted(() => {
-  const element =
-    canvas.value;
+  const element = canvas.value;
 
   if (!element) {
     return;
   }
 
-  context =
-    element.getContext(
-      '2d',
-      {
-        alpha: true,
-        desynchronized: true,
-      },
-    );
+  context = element.getContext('2d', {
+    alpha: true,
+    desynchronized: true,
+  });
 
   if (!context) {
     return;
   }
 
-  reducedMotion =
-    window.matchMedia(
-      '(prefers-reduced-motion: reduce)',
-    );
+  reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
-  reducedMotion.addEventListener(
-    'change',
-    handleMotionPreferenceChange,
-  );
+  reducedMotion.addEventListener('change', handleMotionPreferenceChange);
 
-  resizeObserver =
-    new ResizeObserver(
-      resize,
-    );
+  resizeObserver = new ResizeObserver(resize);
 
-  resizeObserver.observe(
-    element,
-  );
+  resizeObserver.observe(element);
 
   /*
    * Parent ebenfalls beobachten, weil sich die
    * Dokumenthöhe ändern kann.
    */
-  if (
-    element.parentElement
-      ?.parentElement
-  ) {
-    resizeObserver.observe(
-      element.parentElement
-        .parentElement,
-    );
+  if (element.parentElement?.parentElement) {
+    resizeObserver.observe(element.parentElement.parentElement);
   }
 
-  window.addEventListener(
-    'pointermove',
-    handlePointerMove,
-    {
-      passive: true,
-    },
-  );
+  window.addEventListener('pointermove', handlePointerMove, {
+    passive: true,
+  });
 
-  window.addEventListener(
-    'pointerout',
-    handlePointerOut,
-    {
-      passive: true,
-    },
-  );
+  window.addEventListener('pointerout', handlePointerOut, {
+    passive: true,
+  });
 
-  window.addEventListener(
-    'pointerdown',
-    handlePointerDown,
-    {
-      passive: true,
-    },
-  );
+  window.addEventListener('pointerdown', handlePointerDown, {
+    passive: true,
+  });
 
-  window.addEventListener(
-    'pointerup',
-    handlePointerUp,
-    {
-      passive: true,
-    },
-  );
+  window.addEventListener('pointerup', handlePointerUp, {
+    passive: true,
+  });
 
-  window.addEventListener(
-    'pointercancel',
-    handlePointerUp,
-    {
-      passive: true,
-    },
-  );
+  window.addEventListener('pointercancel', handlePointerUp, {
+    passive: true,
+  });
 
-  window.addEventListener(
-    'scroll',
-    handleScroll,
-    {
-      passive: true,
-    },
-  );
+  window.addEventListener('scroll', handleScroll, {
+    passive: true,
+  });
 
-  window.addEventListener(
-    'portfolio-theme-change',
-    handleThemeChange,
-  );
+  window.addEventListener('portfolio-theme-change', handleThemeChange);
 
-  document.addEventListener(
-    'visibilitychange',
-    handleVisibilityChange,
-  );
+  document.addEventListener('visibilitychange', handleVisibilityChange);
 
   resize();
 });
@@ -1952,58 +1129,27 @@ onMounted(() => {
 onBeforeUnmount(() => {
   resizeObserver?.disconnect();
 
-  reducedMotion?.removeEventListener(
-    'change',
-    handleMotionPreferenceChange,
-  );
+  reducedMotion?.removeEventListener('change', handleMotionPreferenceChange);
 
-  if (
-    animationFrame !== null
-  ) {
-    window.cancelAnimationFrame(
-      animationFrame,
-    );
+  if (animationFrame !== null) {
+    window.cancelAnimationFrame(animationFrame);
   }
 
-  window.removeEventListener(
-    'pointermove',
-    handlePointerMove,
-  );
+  window.removeEventListener('pointermove', handlePointerMove);
 
-  window.removeEventListener(
-    'pointerout',
-    handlePointerOut,
-  );
+  window.removeEventListener('pointerout', handlePointerOut);
 
-  window.removeEventListener(
-    'pointerdown',
-    handlePointerDown,
-  );
+  window.removeEventListener('pointerdown', handlePointerDown);
 
-  window.removeEventListener(
-    'pointerup',
-    handlePointerUp,
-  );
+  window.removeEventListener('pointerup', handlePointerUp);
 
-  window.removeEventListener(
-    'pointercancel',
-    handlePointerUp,
-  );
+  window.removeEventListener('pointercancel', handlePointerUp);
 
-  window.removeEventListener(
-    'scroll',
-    handleScroll,
-  );
+  window.removeEventListener('scroll', handleScroll);
 
-  window.removeEventListener(
-    'portfolio-theme-change',
-    handleThemeChange,
-  );
+  window.removeEventListener('portfolio-theme-change', handleThemeChange);
 
-  document.removeEventListener(
-    'visibilitychange',
-    handleVisibilityChange,
-  );
+  document.removeEventListener('visibilitychange', handleVisibilityChange);
 
   points.length = 0;
   triangles.length = 0;
@@ -2051,24 +1197,8 @@ onBeforeUnmount(() => {
   inset: 0;
 
   background:
-    radial-gradient(
-      circle at 76% 14%,
-      color-mix(
-        in srgb,
-        var(--accent) 8%,
-        transparent
-      ),
-      transparent 30rem
-    ),
-    radial-gradient(
-      circle at 14% 72%,
-      color-mix(
-        in srgb,
-        var(--accent) 5%,
-        transparent
-      ),
-      transparent 34rem
-    );
+    radial-gradient(circle at 76% 14%, color-mix(in srgb, var(--accent) 8%, transparent), transparent 30rem),
+    radial-gradient(circle at 14% 72%, color-mix(in srgb, var(--accent) 5%, transparent), transparent 34rem);
 
   content: '';
 
@@ -2093,21 +1223,12 @@ onBeforeUnmount(() => {
   position: absolute;
   inset: 0;
 
-  background:
-    linear-gradient(
-      90deg,
-      color-mix(
-        in srgb,
-        var(--background) 24%,
-        transparent
-      ),
-      transparent 22% 78%,
-      color-mix(
-        in srgb,
-        var(--background) 18%,
-        transparent
-      )
-    );
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--background) 24%, transparent),
+    transparent 22% 78%,
+    color-mix(in srgb, var(--background) 18%, transparent)
+  );
 
   pointer-events: none;
 }

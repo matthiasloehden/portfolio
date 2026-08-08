@@ -1,9 +1,5 @@
 <script setup lang="ts">
-import {
-  onBeforeUnmount,
-  onMounted,
-  ref,
-} from 'vue';
+import { onBeforeUnmount, onMounted, ref } from 'vue';
 
 /**
  * Custom browser events used by the application.
@@ -186,37 +182,21 @@ let cachedTheme: string | null = null;
 /* -------------------------------------------------------------------------- */
 
 function seededRandom(seed: number): number {
-  const value =
-    Math.sin(seed * 12.9898 + 78.233) *
-    43758.5453;
+  const value = Math.sin(seed * 12.9898 + 78.233) * 43758.5453;
 
   return value - Math.floor(value);
 }
 
-function smoothstep(
-  edgeStart: number,
-  edgeEnd: number,
-  value: number,
-): number {
+function smoothstep(edgeStart: number, edgeEnd: number, value: number): number {
   const range = edgeEnd - edgeStart;
 
   if (range === 0) {
     return value < edgeStart ? 0 : 1;
   }
 
-  const normalized = Math.min(
-    1,
-    Math.max(
-      0,
-      (value - edgeStart) / range,
-    ),
-  );
+  const normalized = Math.min(1, Math.max(0, (value - edgeStart) / range));
 
-  return (
-    normalized *
-    normalized *
-    (3 - 2 * normalized)
-  );
+  return normalized * normalized * (3 - 2 * normalized);
 }
 
 function getTargetTriangleCount(): number {
@@ -232,14 +212,9 @@ function getTargetTriangleCount(): number {
 }
 
 function getPalette(): TrianglePalette {
-  const theme =
-    document.documentElement.dataset.theme ??
-    'dark';
+  const theme = document.documentElement.dataset.theme ?? 'dark';
 
-  if (
-    cachedPalette !== null &&
-    cachedTheme === theme
-  ) {
+  if (cachedPalette !== null && cachedTheme === theme) {
     return cachedPalette;
   }
 
@@ -268,29 +243,13 @@ function getPalette(): TrianglePalette {
 /* -------------------------------------------------------------------------- */
 
 function calculateGridMetrics(): GridMetrics {
-  const aspectRatio = Math.max(
-    width / Math.max(height, 1),
-    0.35,
-  );
+  const aspectRatio = Math.max(width / Math.max(height, 1), 0.35);
 
-  const targetCells =
-    getTargetTriangleCount() / 2;
+  const targetCells = getTargetTriangleCount() / 2;
 
-  const columns = Math.max(
-    6,
-    Math.round(
-      Math.sqrt(
-        targetCells * aspectRatio,
-      ),
-    ),
-  );
+  const columns = Math.max(6, Math.round(Math.sqrt(targetCells * aspectRatio)));
 
-  const rows = Math.max(
-    5,
-    Math.round(
-      targetCells / columns,
-    ),
-  );
+  const rows = Math.max(5, Math.round(targetCells / columns));
 
   return {
     columns,
@@ -301,10 +260,7 @@ function calculateGridMetrics(): GridMetrics {
 }
 
 function rebuildTrianglePaths(): void {
-  const {
-    cellWidth,
-    cellHeight,
-  } = metrics;
+  const { cellWidth, cellHeight } = metrics;
 
   const pathA = new Path2D();
 
@@ -318,94 +274,46 @@ function rebuildTrianglePaths(): void {
   const pathB = new Path2D();
 
   pathB.moveTo(cellWidth, 0);
-  pathB.lineTo(
-    cellWidth,
-    cellHeight,
-  );
+  pathB.lineTo(cellWidth, cellHeight);
   pathB.lineTo(0, cellHeight);
   pathB.closePath();
 
   trianglePathB = pathB;
 }
 
-function buildTileRows(
-  startRowIndex: number,
-  rowCount: number,
-): void {
+function buildTileRows(startRowIndex: number, rowCount: number): void {
   const nextRows: TileRow[] = [];
 
-  for (
-    let offset = 0;
-    offset < rowCount;
-    offset += 1
-  ) {
-    const rowIndex =
-      startRowIndex + offset;
+  for (let offset = 0; offset < rowCount; offset += 1) {
+    const rowIndex = startRowIndex + offset;
 
     const rowTiles: TriangleTile[] = [];
 
-    const rowY =
-      rowIndex * metrics.cellHeight;
+    const rowY = rowIndex * metrics.cellHeight;
 
-    for (
-      let column = 0;
-      column < metrics.columns;
-      column += 1
-    ) {
-      const seed =
-        rowIndex * 149 +
-        column * 43 +
-        1;
+    for (let column = 0; column < metrics.columns; column += 1) {
+      const seed = rowIndex * 149 + column * 43 + 1;
 
       rowTiles.push({
         column,
         row: rowIndex,
         side: 'a',
-        tone:
-          0.68 +
-          seededRandom(seed) * 0.32,
-        phase:
-          seededRandom(seed + 11) *
-          Math.PI *
-          2,
-        speed:
-          0.18 +
-          seededRandom(seed + 17) *
-            0.22,
-        driftX:
-          (seededRandom(seed + 23) -
-            0.5) *
-          2.4,
-        driftY:
-          (seededRandom(seed + 29) -
-            0.5) *
-          2.4,
+        tone: 0.68 + seededRandom(seed) * 0.32,
+        phase: seededRandom(seed + 11) * Math.PI * 2,
+        speed: 0.18 + seededRandom(seed + 17) * 0.22,
+        driftX: (seededRandom(seed + 23) - 0.5) * 2.4,
+        driftY: (seededRandom(seed + 29) - 0.5) * 2.4,
       });
 
       rowTiles.push({
         column,
         row: rowIndex,
         side: 'b',
-        tone:
-          0.52 +
-          seededRandom(seed + 37) *
-            0.34,
-        phase:
-          seededRandom(seed + 41) *
-          Math.PI *
-          2,
-        speed:
-          0.16 +
-          seededRandom(seed + 47) *
-            0.2,
-        driftX:
-          (seededRandom(seed + 53) -
-            0.5) *
-          2,
-        driftY:
-          (seededRandom(seed + 59) -
-            0.5) *
-          2,
+        tone: 0.52 + seededRandom(seed + 37) * 0.34,
+        phase: seededRandom(seed + 41) * Math.PI * 2,
+        speed: 0.16 + seededRandom(seed + 47) * 0.2,
+        driftX: (seededRandom(seed + 53) - 0.5) * 2,
+        driftY: (seededRandom(seed + 59) - 0.5) * 2,
       });
     }
 
@@ -425,50 +333,22 @@ function syncRowsForScroll(): void {
     return;
   }
 
-  const rowHeight =
-    metrics.cellHeight;
+  const rowHeight = metrics.cellHeight;
 
-  const visibleRowCount = Math.max(
-    4,
-    Math.ceil(
-      (height +
-        window.innerHeight * 1.2) /
-        Math.max(rowHeight, 1),
-    ) + 4,
-  );
+  const visibleRowCount = Math.max(4, Math.ceil((height + window.innerHeight * 1.2) / Math.max(rowHeight, 1)) + 4);
 
-  const startRowIndex = Math.max(
-    0,
-    Math.floor(
-      scrollOffset / rowHeight,
-    ) - 2,
-  );
+  const startRowIndex = Math.max(0, Math.floor(scrollOffset / rowHeight) - 2);
 
-  const rowCount = Math.max(
-    visibleRowCount,
-    10,
-  );
+  const rowCount = Math.max(visibleRowCount, 10);
 
-  const currentStart =
-    tileRows[0]?.rowIndex ?? -1;
+  const currentStart = tileRows[0]?.rowIndex ?? -1;
 
-  const currentEnd =
-    tileRows[
-      tileRows.length - 1
-    ]?.rowIndex ?? -1;
+  const currentEnd = tileRows[tileRows.length - 1]?.rowIndex ?? -1;
 
-  const expectedEnd =
-    startRowIndex + rowCount - 1;
+  const expectedEnd = startRowIndex + rowCount - 1;
 
-  if (
-    tileRows.length === 0 ||
-    currentStart !== startRowIndex ||
-    currentEnd !== expectedEnd
-  ) {
-    buildTileRows(
-      startRowIndex,
-      rowCount,
-    );
+  if (tileRows.length === 0 || currentStart !== startRowIndex || currentEnd !== expectedEnd) {
+    buildTileRows(startRowIndex, rowCount);
   }
 }
 
@@ -476,12 +356,7 @@ function syncRowsForScroll(): void {
 /* Highlight Trail                                                            */
 /* -------------------------------------------------------------------------- */
 
-function addHighlightPoint(
-  x: number,
-  worldY: number,
-  strength: number,
-  time = performance.now(),
-): void {
+function addHighlightPoint(x: number, worldY: number, strength: number, time = performance.now()): void {
   highlightTrail.push({
     x,
     worldY,
@@ -489,15 +364,8 @@ function addHighlightPoint(
     strength,
   });
 
-  if (
-    highlightTrail.length >
-    MAX_HIGHLIGHT_POINTS
-  ) {
-    highlightTrail.splice(
-      0,
-      highlightTrail.length -
-        MAX_HIGHLIGHT_POINTS,
-    );
+  if (highlightTrail.length > MAX_HIGHLIGHT_POINTS) {
+    highlightTrail.splice(0, highlightTrail.length - MAX_HIGHLIGHT_POINTS);
   }
 }
 
@@ -509,80 +377,40 @@ function addHighlightSegment(
   strength: number,
   now = performance.now(),
 ): void {
-  const distance = Math.hypot(
-    toX - fromX,
-    toWorldY - fromWorldY,
-  );
+  const distance = Math.hypot(toX - fromX, toWorldY - fromWorldY);
 
   if (distance < 1) {
-    addHighlightPoint(
-      toX,
-      toWorldY,
-      strength,
-      now,
-    );
+    addHighlightPoint(toX, toWorldY, strength, now);
 
     return;
   }
 
-  const steps = Math.max(
-    1,
-    Math.ceil(
-      distance / TRAIL_SPACING,
-    ),
-  );
+  const steps = Math.max(1, Math.ceil(distance / TRAIL_SPACING));
 
-  for (
-    let index = 1;
-    index <= steps;
-    index += 1
-  ) {
-    const progress =
-      index / steps;
+  for (let index = 1; index <= steps; index += 1) {
+    const progress = index / steps;
 
-    const x =
-      fromX +
-      (toX - fromX) *
-        progress;
+    const x = fromX + (toX - fromX) * progress;
 
-    const worldY =
-      fromWorldY +
-      (toWorldY - fromWorldY) *
-        progress;
+    const worldY = fromWorldY + (toWorldY - fromWorldY) * progress;
 
-    const pointTime =
-      now -
-      (steps - index) * 7;
+    const pointTime = now - (steps - index) * 7;
 
-    addHighlightPoint(
-      x,
-      worldY,
-      strength,
-      pointTime,
-    );
+    addHighlightPoint(x, worldY, strength, pointTime);
   }
 }
 
-function cleanupHighlightTrail(
-  now: number,
-): void {
+function cleanupHighlightTrail(now: number): void {
   let firstValidIndex = 0;
 
-  while (
-    firstValidIndex <
-      highlightTrail.length
-  ) {
-    const point =
-      highlightTrail[firstValidIndex];
+  while (firstValidIndex < highlightTrail.length) {
+    const point = highlightTrail[firstValidIndex];
 
     if (point === undefined) {
       break;
     }
 
-    if (
-      now - point.time <
-      HIGHLIGHT_LIFETIME
-    ) {
+    if (now - point.time < HIGHLIGHT_LIFETIME) {
       break;
     }
 
@@ -590,94 +418,55 @@ function cleanupHighlightTrail(
   }
 
   if (firstValidIndex > 0) {
-    highlightTrail.splice(
-      0,
-      firstValidIndex,
-    );
+    highlightTrail.splice(0, firstValidIndex);
   }
 }
 
-function getTrailInfluence(
-  centerX: number,
-  centerWorldY: number,
-  now: number,
-): number {
+function getTrailInfluence(centerX: number, centerWorldY: number, now: number): number {
   if (highlightTrail.length === 0) {
     return 0;
   }
 
-  const radius =
-    width < 640
-      ? POINTER_RADIUS_MOBILE
-      : POINTER_RADIUS_DESKTOP;
+  const radius = width < 640 ? POINTER_RADIUS_MOBILE : POINTER_RADIUS_DESKTOP;
 
-  const radiusSquared =
-    radius * radius;
+  const radiusSquared = radius * radius;
 
   let influence = 0;
 
-  for (
-    let index = 0;
-    index < highlightTrail.length;
-    index += 1
-  ) {
-    const point =
-      highlightTrail[index];
+  for (let index = 0; index < highlightTrail.length; index += 1) {
+    const point = highlightTrail[index];
 
     if (point === undefined) {
       continue;
     }
 
-    const age =
-      now - point.time;
+    const age = now - point.time;
 
-    if (
-      age >= HIGHLIGHT_LIFETIME
-    ) {
+    if (age >= HIGHLIGHT_LIFETIME) {
       continue;
     }
 
-    const dx =
-      centerX - point.x;
+    const dx = centerX - point.x;
 
-    const dy =
-      centerWorldY - point.worldY;
+    const dy = centerWorldY - point.worldY;
 
-    const distanceSquared =
-      dx * dx + dy * dy;
+    const distanceSquared = dx * dx + dy * dy;
 
-    if (
-      distanceSquared >=
-      radiusSquared
-    ) {
+    if (distanceSquared >= radiusSquared) {
       continue;
     }
 
-    const distance =
-      Math.sqrt(distanceSquared);
+    const distance = Math.sqrt(distanceSquared);
 
-    const normalizedAge =
-      age / HIGHLIGHT_LIFETIME;
+    const normalizedAge = age / HIGHLIGHT_LIFETIME;
 
-    const fade =
-      (1 - normalizedAge) ** 2;
+    const fade = (1 - normalizedAge) ** 2;
 
-    const proximity =
-      smoothstep(
-        radius,
-        0,
-        distance,
-      );
+    const proximity = smoothstep(radius, 0, distance);
 
-    const pointInfluence =
-      proximity *
-      fade *
-      point.strength;
+    const pointInfluence = proximity * fade * point.strength;
 
-    influence = Math.max(
-      influence,
-      pointInfluence,
-    );
+    influence = Math.max(influence, pointInfluence);
 
     if (influence >= 1) {
       return 1;
@@ -687,66 +476,47 @@ function getTrailInfluence(
   return Math.min(1, influence);
 }
 
-function hasActiveTrail(
-  now: number,
-): boolean {
+function hasActiveTrail(now: number): boolean {
   if (highlightTrail.length === 0) {
     return false;
   }
 
-  const newest =
-    highlightTrail[
-      highlightTrail.length - 1
-    ];
+  const newest = highlightTrail[highlightTrail.length - 1];
 
   if (newest === undefined) {
     return false;
   }
 
-  return (
-    now - newest.time <
-    HIGHLIGHT_LIFETIME
-  );
+  return now - newest.time < HIGHLIGHT_LIFETIME;
 }
 
 /* -------------------------------------------------------------------------- */
 /* Ambient Gradient                                                           */
 /* -------------------------------------------------------------------------- */
 
-function rebuildAmbientGradient(
-  palette: TrianglePalette,
-): void {
+function rebuildAmbientGradient(palette: TrianglePalette): void {
   if (context === null) {
     ambientGradient = null;
     return;
   }
 
-  const gradient =
-    context.createRadialGradient(
-      width * 0.5,
-      height * 0.36,
-      0,
-      width * 0.5,
-      height * 0.36,
-      width * 0.72,
-    );
-
-  gradient.addColorStop(
+  const gradient = context.createRadialGradient(
+    width * 0.5,
+    height * 0.36,
     0,
-    `rgba(${palette.ambient}, 0.055)`,
+    width * 0.5,
+    height * 0.36,
+    width * 0.72,
   );
 
-  gradient.addColorStop(
-    1,
-    `rgba(${palette.ambient}, 0)`,
-  );
+  gradient.addColorStop(0, `rgba(${palette.ambient}, 0.055)`);
+
+  gradient.addColorStop(1, `rgba(${palette.ambient}, 0)`);
 
   ambientGradient = gradient;
 }
 
-function drawAmbientGradient(
-  palette: TrianglePalette,
-): void {
+function drawAmbientGradient(palette: TrianglePalette): void {
   if (context === null) {
     return;
   }
@@ -759,15 +529,9 @@ function drawAmbientGradient(
     return;
   }
 
-  context.fillStyle =
-    ambientGradient;
+  context.fillStyle = ambientGradient;
 
-  context.fillRect(
-    0,
-    0,
-    width,
-    height,
-  );
+  context.fillRect(0, 0, width, height);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -785,53 +549,27 @@ function drawTriangle(
     return;
   }
 
-  const x =
-    tile.column * metrics.cellWidth;
+  const x = tile.column * metrics.cellWidth;
 
-  const centerWorldX =
-    x + metrics.cellWidth * 0.5;
+  const centerWorldX = x + metrics.cellWidth * 0.5;
 
-  const centerWorldY =
-    baseWorldY +
-    metrics.cellHeight * 0.5;
+  const centerWorldY = baseWorldY + metrics.cellHeight * 0.5;
 
-  const screenY =
-    baseWorldY - scrollOffset;
+  const screenY = baseWorldY - scrollOffset;
 
-  const idle =
-    motion *
-    Math.sin(
-      elapsedTime * tile.speed +
-        tile.phase,
-    );
+  const idle = motion * Math.sin(elapsedTime * tile.speed + tile.phase);
 
-  const trailInfluence =
-    getTrailInfluence(
-      centerWorldX,
-      centerWorldY,
-      now,
-    );
+  const trailInfluence = getTrailInfluence(centerWorldX, centerWorldY, now);
 
-  const offsetX =
-    tile.driftX * idle;
+  const offsetX = tile.driftX * idle;
 
-  const offsetY =
-    tile.driftY * idle;
+  const offsetY = tile.driftY * idle;
 
-  const baseAlpha =
-    0.045 +
-    tile.tone * 0.055 +
-    Math.abs(idle) * 0.018;
+  const baseAlpha = 0.045 + tile.tone * 0.055 + Math.abs(idle) * 0.018;
 
-  const alpha =
-    (baseAlpha +
-      trailInfluence * 0.22) *
-    motion;
+  const alpha = (baseAlpha + trailInfluence * 0.22) * motion;
 
-  const path =
-    tile.side === 'a'
-      ? trianglePathA
-      : trianglePathB;
+  const path = tile.side === 'a' ? trianglePathA : trianglePathB;
 
   if (path === null) {
     return;
@@ -839,30 +577,22 @@ function drawTriangle(
 
   context.save();
 
-  context.translate(
-    x + offsetX,
-    screenY + offsetY,
-  );
+  context.translate(x + offsetX, screenY + offsetY);
 
   if (trailInfluence > 0.015) {
-    context.fillStyle =
-      `rgba(${palette.accent}, ${alpha})`;
+    context.fillStyle = `rgba(${palette.accent}, ${alpha})`;
 
     context.fill(path);
 
     if (trailInfluence > 0.14) {
-      context.strokeStyle =
-        `rgba(${palette.accent}, ${
-          trailInfluence * 0.16
-        })`;
+      context.strokeStyle = `rgba(${palette.accent}, ${trailInfluence * 0.16})`;
 
       context.lineWidth = 1;
 
       context.stroke(path);
     }
   } else {
-    context.fillStyle =
-      `rgba(${palette.fill}, ${alpha})`;
+    context.fillStyle = `rgba(${palette.fill}, ${alpha})`;
 
     context.fill(path);
   }
@@ -874,9 +604,7 @@ function drawTriangle(
 /* Animation                                                                  */
 /* -------------------------------------------------------------------------- */
 
-function drawFrame(
-  timestamp = performance.now(),
-): void {
+function drawFrame(timestamp = performance.now()): void {
   animationFrame = null;
 
   if (context === null) {
@@ -889,49 +617,24 @@ function drawFrame(
     return;
   }
 
-  const delta =
-    lastFrameTime === 0
-      ? 16.67
-      : Math.min(
-          timestamp - lastFrameTime,
-          48,
-        );
+  const delta = lastFrameTime === 0 ? 16.67 : Math.min(timestamp - lastFrameTime, 48);
 
-  const parent =
-    element.parentElement;
+  const parent = element.parentElement;
 
   const motionEnabled =
-    reducedMotion?.matches !== true &&
-    parent?.classList.contains(
-      'background-motion-paused',
-    ) !== true;
+    reducedMotion?.matches !== true && parent?.classList.contains('background-motion-paused') !== true;
 
-  const sceneActive =
-    parent?.classList.contains(
-      'background-scene-active',
-    ) === true;
+  const sceneActive = parent?.classList.contains('background-scene-active') === true;
 
   cleanupHighlightTrail(timestamp);
 
-  const trailActive =
-    hasActiveTrail(timestamp);
+  const trailActive = hasActiveTrail(timestamp);
 
-  const shouldContinue =
-    (sceneActive &&
-      motionEnabled &&
-      isDocumentVisible) ||
-    trailActive;
+  const shouldContinue = (sceneActive && motionEnabled && isDocumentVisible) || trailActive;
 
-  const frameBudget =
-    shouldContinue
-      ? ACTIVE_FRAME_BUDGET_MS
-      : IDLE_FRAME_BUDGET_MS;
+  const frameBudget = shouldContinue ? ACTIVE_FRAME_BUDGET_MS : IDLE_FRAME_BUDGET_MS;
 
-  if (
-    lastFrameTime !== 0 &&
-    timestamp - lastFrameTime <
-      frameBudget
-  ) {
+  if (lastFrameTime !== 0 && timestamp - lastFrameTime < frameBudget) {
     if (shouldContinue) {
       scheduleFrame();
     }
@@ -947,50 +650,25 @@ function drawFrame(
 
   const palette = getPalette();
 
-  context.clearRect(
-    0,
-    0,
-    width,
-    height,
-  );
+  context.clearRect(0, 0, width, height);
 
-  context.fillStyle =
-    palette.background;
+  context.fillStyle = palette.background;
 
-  context.fillRect(
-    0,
-    0,
-    width,
-    height,
-  );
+  context.fillRect(0, 0, width, height);
 
   syncRowsForScroll();
 
-  const motion =
-    motionEnabled ? 1 : 0.82;
+  const motion = motionEnabled ? 1 : 0.82;
 
   for (const row of tileRows) {
-    const rowScreenY =
-      row.y - scrollOffset;
+    const rowScreenY = row.y - scrollOffset;
 
-    if (
-      rowScreenY >
-        height +
-          metrics.cellHeight * 1.2 ||
-      rowScreenY <
-        -metrics.cellHeight * 1.2
-    ) {
+    if (rowScreenY > height + metrics.cellHeight * 1.2 || rowScreenY < -metrics.cellHeight * 1.2) {
       continue;
     }
 
     for (const tile of row.tiles) {
-      drawTriangle(
-        tile,
-        palette,
-        motion,
-        row.y,
-        timestamp,
-      );
+      drawTriangle(tile, palette, motion, row.y, timestamp);
     }
   }
 
@@ -1006,10 +684,7 @@ function scheduleFrame(): void {
     return;
   }
 
-  animationFrame =
-    window.requestAnimationFrame(
-      drawFrame,
-    );
+  animationFrame = window.requestAnimationFrame(drawFrame);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1023,96 +698,46 @@ function resize(): void {
     return;
   }
 
-  const rect =
-    element.getBoundingClientRect();
+  const rect = element.getBoundingClientRect();
 
-  const viewportWidth =
-    window.innerWidth ||
-    Math.max(rect.width, 1);
+  const viewportWidth = window.innerWidth || Math.max(rect.width, 1);
 
-  const viewportHeight =
-    window.innerHeight ||
-    Math.max(rect.height, 1);
+  const viewportHeight = window.innerHeight || Math.max(rect.height, 1);
 
-  width = Math.max(
-    1,
-    Math.round(
-      rect.width || viewportWidth,
-    ),
-  );
+  width = Math.max(1, Math.round(rect.width || viewportWidth));
 
-  height = Math.max(
-    1,
-    Math.round(
-      rect.height || viewportHeight,
-    ),
-  );
+  height = Math.max(1, Math.round(rect.height || viewportHeight));
 
-  scrollOffset =
-    window.scrollY;
+  scrollOffset = window.scrollY;
 
-  previousScrollOffset =
-    scrollOffset;
+  previousScrollOffset = scrollOffset;
 
-  dpr = Math.min(
-    window.devicePixelRatio || 1,
-    MAX_DPR,
-  );
+  dpr = Math.min(window.devicePixelRatio || 1, MAX_DPR);
 
-  element.width = Math.round(
-    width * dpr,
-  );
+  element.width = Math.round(width * dpr);
 
-  element.height = Math.round(
-    height * dpr,
-  );
+  element.height = Math.round(height * dpr);
 
-  context = element.getContext(
-    '2d',
-    {
-      alpha: true,
-      desynchronized: true,
-    },
-  );
+  context = element.getContext('2d', {
+    alpha: true,
+    desynchronized: true,
+  });
 
   if (context === null) {
     return;
   }
 
-  context.setTransform(
-    dpr,
-    0,
-    0,
-    dpr,
-    0,
-    0,
-  );
+  context.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-  metrics =
-    calculateGridMetrics();
+  metrics = calculateGridMetrics();
 
   rebuildTrianglePaths();
 
-  rebuildAmbientGradient(
-    getPalette(),
-  );
+  rebuildAmbientGradient(getPalette());
 
-  const rowsNeeded = Math.max(
-    6,
-    Math.ceil(
-      (height +
-        window.innerHeight * 1.2) /
-        Math.max(
-          metrics.cellHeight,
-          1,
-        ),
-    ) + 4,
-  );
+  const rowsNeeded = Math.max(6, Math.ceil((height + window.innerHeight * 1.2) / Math.max(metrics.cellHeight, 1)) + 4);
 
-  buildTileRows(
-    0,
-    rowsNeeded,
-  );
+  buildTileRows(0, rowsNeeded);
 
   lastFrameTime = 0;
 
@@ -1123,11 +748,8 @@ function resize(): void {
 /* Pointer Movement                                                           */
 /* -------------------------------------------------------------------------- */
 
-function handlePointerMove(
-  event: PointerEvent,
-): void {
-  const now =
-    performance.now();
+function handlePointerMove(event: PointerEvent): void {
+  const now = performance.now();
 
   pointerPresent = true;
 
@@ -1139,24 +761,16 @@ function handlePointerMove(
 
   const newWorldX = newX;
 
-  const newWorldY =
-    newY + scrollOffset;
+  const newWorldY = newY + scrollOffset;
 
   if (!hasPointerWorldPosition) {
-    lastPointerWorldX =
-      newWorldX;
+    lastPointerWorldX = newWorldX;
 
-    lastPointerWorldY =
-      newWorldY;
+    lastPointerWorldY = newWorldY;
 
     hasPointerWorldPosition = true;
 
-    addHighlightPoint(
-      newWorldX,
-      newWorldY,
-      1,
-      now,
-    );
+    addHighlightPoint(newWorldX, newWorldY, 1, now);
 
     lastPointerPointTime = now;
 
@@ -1165,40 +779,18 @@ function handlePointerMove(
     return;
   }
 
-  const distance =
-    Math.hypot(
-      newWorldX -
-        lastPointerWorldX,
-      newWorldY -
-        lastPointerWorldY,
-    );
+  const distance = Math.hypot(newWorldX - lastPointerWorldX, newWorldY - lastPointerWorldY);
 
-  const timeSinceLastPoint =
-    now - lastPointerPointTime;
+  const timeSinceLastPoint = now - lastPointerPointTime;
 
-  if (
-    distance >=
-      MIN_POINTER_DISTANCE ||
-    timeSinceLastPoint >=
-      MIN_POINTER_INTERVAL
-  ) {
-    addHighlightSegment(
-      lastPointerWorldX,
-      lastPointerWorldY,
-      newWorldX,
-      newWorldY,
-      1,
-      now,
-    );
+  if (distance >= MIN_POINTER_DISTANCE || timeSinceLastPoint >= MIN_POINTER_INTERVAL) {
+    addHighlightSegment(lastPointerWorldX, lastPointerWorldY, newWorldX, newWorldY, 1, now);
 
-    lastPointerWorldX =
-      newWorldX;
+    lastPointerWorldX = newWorldX;
 
-    lastPointerWorldY =
-      newWorldY;
+    lastPointerWorldY = newWorldY;
 
-    lastPointerPointTime =
-      now;
+    lastPointerPointTime = now;
   }
 
   scheduleFrame();
@@ -1209,48 +801,30 @@ function handlePointerMove(
 /* -------------------------------------------------------------------------- */
 
 function handleScroll(): void {
-  const newScrollOffset =
-    window.scrollY;
+  const newScrollOffset = window.scrollY;
 
-  const scrollDelta =
-    newScrollOffset -
-    previousScrollOffset;
+  const scrollDelta = newScrollOffset - previousScrollOffset;
 
   if (Math.abs(scrollDelta) < 0.01) {
     return;
   }
 
-  scrollOffset =
-    newScrollOffset;
+  scrollOffset = newScrollOffset;
 
-  previousScrollOffset =
-    newScrollOffset;
+  previousScrollOffset = newScrollOffset;
 
-  if (
-    pointerPresent &&
-    hasPointerWorldPosition
-  ) {
+  if (pointerPresent && hasPointerWorldPosition) {
     const newWorldX = pointerX;
 
-    const newWorldY =
-      pointerY + scrollOffset;
+    const newWorldY = pointerY + scrollOffset;
 
-    addHighlightSegment(
-      lastPointerWorldX,
-      lastPointerWorldY,
-      newWorldX,
-      newWorldY,
-      0.95,
-    );
+    addHighlightSegment(lastPointerWorldX, lastPointerWorldY, newWorldX, newWorldY, 0.95);
 
-    lastPointerWorldX =
-      newWorldX;
+    lastPointerWorldX = newWorldX;
 
-    lastPointerWorldY =
-      newWorldY;
+    lastPointerWorldY = newWorldY;
 
-    lastPointerPointTime =
-      performance.now();
+    lastPointerPointTime = performance.now();
   }
 
   scheduleFrame();
@@ -1274,9 +848,7 @@ function clearPointer(): void {
 /* -------------------------------------------------------------------------- */
 
 function handleVisibilityChange(): void {
-  isDocumentVisible =
-    document.visibilityState ===
-    'visible';
+  isDocumentVisible = document.visibilityState === 'visible';
 
   lastFrameTime = 0;
 
@@ -1313,65 +885,29 @@ onMounted(() => {
     return;
   }
 
-  reducedMotion =
-    window.matchMedia(
-      '(prefers-reduced-motion: reduce)',
-    );
+  reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
-  resizeObserver =
-    new ResizeObserver(resize);
+  resizeObserver = new ResizeObserver(resize);
 
   resizeObserver.observe(element);
 
-  window.addEventListener(
-    'resize',
-    resize,
-    { passive: true },
-  );
+  window.addEventListener('resize', resize, { passive: true });
 
-  window.addEventListener(
-    'orientationchange',
-    resize,
-    { passive: true },
-  );
+  window.addEventListener('orientationchange', resize, { passive: true });
 
-  window.addEventListener(
-    'scroll',
-    handleScroll,
-    { passive: true },
-  );
+  window.addEventListener('scroll', handleScroll, { passive: true });
 
-  window.addEventListener(
-    'pointermove',
-    handlePointerMove,
-    { passive: true },
-  );
+  window.addEventListener('pointermove', handlePointerMove, { passive: true });
 
-  window.addEventListener(
-    'pointerleave',
-    clearPointer,
-    { passive: true },
-  );
+  window.addEventListener('pointerleave', clearPointer, { passive: true });
 
-  window.addEventListener(
-    'blur',
-    clearPointer,
-  );
+  window.addEventListener('blur', clearPointer);
 
-  window.addEventListener(
-    'portfolio-theme-change',
-    handleThemeChange,
-  );
+  window.addEventListener('portfolio-theme-change', handleThemeChange);
 
-  document.addEventListener(
-    'visibilitychange',
-    handleVisibilityChange,
-  );
+  document.addEventListener('visibilitychange', handleVisibilityChange);
 
-  reducedMotion.addEventListener(
-    'change',
-    handleMotionPreferenceChange,
-  );
+  reducedMotion.addEventListener('change', handleMotionPreferenceChange);
 
   resize();
 });
@@ -1381,57 +917,28 @@ onBeforeUnmount(() => {
   resizeObserver = null;
 
   if (animationFrame !== null) {
-    window.cancelAnimationFrame(
-      animationFrame,
-    );
+    window.cancelAnimationFrame(animationFrame);
 
     animationFrame = null;
   }
 
-  window.removeEventListener(
-    'resize',
-    resize,
-  );
+  window.removeEventListener('resize', resize);
 
-  window.removeEventListener(
-    'orientationchange',
-    resize,
-  );
+  window.removeEventListener('orientationchange', resize);
 
-  window.removeEventListener(
-    'scroll',
-    handleScroll,
-  );
+  window.removeEventListener('scroll', handleScroll);
 
-  window.removeEventListener(
-    'pointermove',
-    handlePointerMove,
-  );
+  window.removeEventListener('pointermove', handlePointerMove);
 
-  window.removeEventListener(
-    'pointerleave',
-    clearPointer,
-  );
+  window.removeEventListener('pointerleave', clearPointer);
 
-  window.removeEventListener(
-    'blur',
-    clearPointer,
-  );
+  window.removeEventListener('blur', clearPointer);
 
-  window.removeEventListener(
-    'portfolio-theme-change',
-    handleThemeChange,
-  );
+  window.removeEventListener('portfolio-theme-change', handleThemeChange);
 
-  document.removeEventListener(
-    'visibilitychange',
-    handleVisibilityChange,
-  );
+  document.removeEventListener('visibilitychange', handleVisibilityChange);
 
-  reducedMotion?.removeEventListener(
-    'change',
-    handleMotionPreferenceChange,
-  );
+  reducedMotion?.removeEventListener('change', handleMotionPreferenceChange);
 
   tileRows.length = 0;
   highlightTrail.length = 0;
