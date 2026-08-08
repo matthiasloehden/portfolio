@@ -14,4 +14,4 @@ or low-core devices. Sustained slow frame averages step down both simulation res
 a static initial state, hidden tabs pause rendering, and missing WebGL2 falls back to a CSS background.
 
 Important values are centralized in `app/components/particles/config.ts`. In development, append
-`?particlesDebug=1` to `/projects` to show renderer, frame timing, quality, input, and simulation telemetry.
+`?particlesDebug=1` to `/academic` to show renderer, frame timing, quality, input, and simulation telemetry.

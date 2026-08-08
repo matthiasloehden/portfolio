@@ -11,7 +11,7 @@ function captureRuntimeErrors(page: Page): string[] {
 
 async function openParticlePage(page: Page): Promise<string[]> {
   const runtimeErrors = captureRuntimeErrors(page);
-  await page.goto('/projects?particlesDebug=1');
+  await page.goto('/academic?particlesDebug=1');
   await expect(page.getByRole('heading', { name: 'Systems, security & service.' })).toBeVisible();
   await expect(page.locator('.particle-debug')).toBeVisible({ timeout: 20000 });
   await expect(page.locator('.particle-debug')).toContainText('WebGL2 / GPGPU', { timeout: 20000 });
@@ -40,7 +40,8 @@ test('renders and responds to desktop pointer and scroll input', async ({ page }
 
   await expect(page.locator('.particle-debug')).toContainText(/pointerSpeed/);
   await expect(page.locator('.particle-debug')).toContainText(/scrollVelocity/);
-  await expect(page.locator('#project-list')).toBeInViewport();
+  // Renamed from #project-list to #academic-list.
+  await expect(page.locator('#academic-list')).toBeInViewport();
   expect(runtimeErrors).toEqual([]);
 });
 
@@ -77,8 +78,9 @@ test('keeps touch scrolling and links native on mobile', async ({ page, context 
   expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
   await expect(page.locator('.particle-debug')).toContainText('touchActive');
 
-  await page.locator('#project-list').scrollIntoViewIfNeeded();
-  await page.locator('#project-list a').first().click();
+  // Renamed from #project-list to #academic-list.
+  await page.locator('#academic-list').scrollIntoViewIfNeeded();
+  await page.locator('#academic-list a').first().click();
   await page.waitForURL(/#streaming$/, { timeout: 10000 });
   expect(runtimeErrors).toEqual([]);
 });
@@ -88,7 +90,7 @@ test('uses a static state when reduced motion is requested', async ({ page }, te
   const runtimeErrors = captureRuntimeErrors(page);
 
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  await page.goto('/projects?particlesDebug=1');
+  await page.goto('/academic?particlesDebug=1');
   await expect(page.locator('.particle-background canvas')).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Systems, security & service.' })).toBeVisible();
   expect(runtimeErrors).toEqual([]);
