@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import type { ProjectCaseStudyContent } from '@/types/content';
+import type { AcademicCaseStudyContent } from '@/types/content';
 
 defineProps<
-  ProjectCaseStudyContent & {
+  AcademicCaseStudyContent & {
     reverse?: boolean;
   }
 >();

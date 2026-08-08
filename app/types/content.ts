@@ -25,7 +25,7 @@ export interface CaseNote {
   text: string;
 }
 
-export interface ProjectCaseStudyContent {
+export interface AcademicCaseStudyContent {
   id: string;
   number: string;
   category: string;

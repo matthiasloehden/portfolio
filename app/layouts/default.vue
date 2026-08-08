@@ -11,7 +11,7 @@ const normalizedPath = computed(() => route.path.replace(/\/+$/, '') || '/');
 const automaticBackgrounds: Record<string, BackgroundPreference> = {
   '/': 'wave',
   '/work': 'triangles',
-  '/projects': 'particles',
+  '/academic': 'particles',
   '/personal': 'mesh',
 };
 

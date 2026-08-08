@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { itsmCase, passkeysCase, projectList, streamingCase } from '@/data/projects';
+import { itsmCase, passkeysCase, academicList, streamingCase } from '@/data/academic';
 
 useSeoMeta({
   title: 'University Projects — Matthias Löhden',
@@ -14,31 +14,31 @@ useSeoMeta({
       id="content"
       class="relative z-1 site-container"
     >
-      <ProjectsHero />
+      <AcademicHero />
       <SharedCaseStudyList
-        id="project-list"
-        title-id="project-list-title"
+        id="academic-list"
+        title-id="academic-list-title"
         label="Selected university projects"
         title="Three perspectives on dependable digital systems."
-        :items="projectList"
+        :items="academicList"
       />
 
-      <ProjectsProjectCaseStudy v-bind="streamingCase">
-        <ProjectsStreamingPanel />
-      </ProjectsProjectCaseStudy>
+      <AcademicCaseStudy v-bind="streamingCase">
+        <AcademicStreamingPanel />
+      </AcademicCaseStudy>
 
-      <ProjectsProjectCaseStudy
+      <AcademicCaseStudy
         v-bind="passkeysCase"
         reverse
       >
-        <ProjectsAuthenticationPanel />
-      </ProjectsProjectCaseStudy>
+        <AcademicAuthenticationPanel />
+      </AcademicCaseStudy>
 
-      <ProjectsProjectCaseStudy v-bind="itsmCase">
-        <ProjectsServicePanel />
-      </ProjectsProjectCaseStudy>
+      <AcademicCaseStudy v-bind="itsmCase">
+        <AcademicServicePanel />
+      </AcademicCaseStudy>
 
-      <ProjectsClosing />
+      <AcademicClosing />
     </main>
   </div>
 </template>

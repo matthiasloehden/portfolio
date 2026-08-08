@@ -16,11 +16,11 @@ test('renders the home triangle background and responds to pointer and wheel inp
   await page.goto('/');
   await expect(page.getByRole('heading', { name: 'I build applications.' })).toBeVisible();
 
-  // `.triangle-background` can match more than one instance at a time (e.g. a
-  // previous route's background kept mounted but hidden), so scope to the
-  // one that is actually visible on this page.
-  const background = page.locator('.triangle-background:visible').first();
+  // The home page renders its own WebGL wave-grid component (`.wave-grid-background`),
+  // not the shared Canvas2D `.triangle-background` used on other routes.
+  const background = page.locator('.wave-grid-background');
   const canvas = background.locator('canvas');
+  await expect(background).not.toHaveClass(/is-fallback/);
   await expect(canvas).toBeVisible();
 
   await expect.poll(() => canvas.evaluate((element) => element.width)).toBeGreaterThan(1_000);
@@ -45,7 +45,7 @@ test('keeps a static grid when reduced motion is requested', async ({ page }, te
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/');
 
-  await expect(page.locator('.triangle-background:visible canvas')).toBeVisible();
+  await expect(page.locator('.wave-grid-background canvas')).toBeVisible();
   await expect(page.getByRole('heading', { name: 'I build applications.' })).toBeVisible();
   expect(runtimeErrors).toEqual([]);
 });
@@ -56,7 +56,7 @@ test('creates touch ripples without blocking mobile scrolling', async ({ page, c
   const session = await context.newCDPSession(page);
 
   await page.goto('/');
-  await expect(page.locator('.triangle-background:visible canvas')).toBeVisible();
+  await expect(page.locator('.wave-grid-background canvas')).toBeVisible();
 
   const touch = async (type: 'touchStart' | 'touchMove' | 'touchEnd', x: number, y: number): Promise<void> => {
     await session.send('Input.dispatchTouchEvent', {
@@ -73,6 +73,6 @@ test('creates touch ripples without blocking mobile scrolling', async ({ page, c
   await page.waitForTimeout(500);
 
   expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
-  await expect(page.locator('.triangle-background:visible').first()).toHaveCSS('position', 'fixed');
+  await expect(page.locator('.wave-grid-background')).toHaveCSS('position', 'fixed');
   expect(runtimeErrors).toEqual([]);
 });

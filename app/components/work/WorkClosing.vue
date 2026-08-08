@@ -35,7 +35,7 @@
       <SharedActionLink
         label="View university work"
         symbol="→"
-        to="/projects"
+        to="/academic"
         variant="text"
       />
     </div>

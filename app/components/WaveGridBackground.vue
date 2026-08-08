@@ -1,805 +1,487 @@
-```vue
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref } from 'vue';
+import * as THREE from 'three';
 
-/**
- * Canvas-based triangular background with:
- * - deterministic procedural tile generation
- * - scroll-aware world coordinates
- * - pointer and touch-independent highlight trails
- * - theme-aware rendering
- * - reduced-motion and document-visibility handling
- * - adaptive rendering density and device pixel ratio
- *
- * The component stays mounted even when the background is inactive.
- * Its animation loop only runs while the scene needs to update.
- */
-
-declare global {
-  interface WindowEventMap {
-    'portfolio-theme-change': Event;
-  }
-}
-
-interface TriangleTile {
-  column: number;
-  row: number;
-  side: 'a' | 'b';
-  tone: number;
-  phase: number;
-  speed: number;
-  driftX: number;
-  driftY: number;
-}
-
-interface TrianglePalette {
-  fill: string;
-  accent: string;
-  ambient: string;
-  background: string;
-}
-
-interface GridMetrics {
-  columns: number;
-  rows: number;
-  cellWidth: number;
-  cellHeight: number;
-}
-
-interface TileRow {
-  rowIndex: number;
-  y: number;
-  tiles: TriangleTile[];
-}
-
-interface HighlightPoint {
+interface TrailPoint {
   x: number;
-  worldY: number;
-  time: number;
-  strength: number;
+  z: number;
+  createdAt: number;
+  velocity: number;
 }
+
+const props = withDefaults(defineProps<{ active?: boolean }>(), {
+  active: true,
+});
+
+const TRAIL_LENGTH = 32;
+const TRAIL_LIFETIME = 2_300;
+const GRID_WIDTH = 34;
+const GRID_DEPTH = 32;
+const GRID_SPACING = 0.8;
+const VERTEX_STEP = 0.32;
 
 const canvas = ref<HTMLCanvasElement | null>(null);
+const failed = ref(false);
+const failureReason = ref<string | null>(null);
 
-const TARGET_TRIANGLES = {
-  desktop: 1000,
-  tablet: 480,
-  mobile: 320,
-} as const;
-
-const MAX_DPR = 1.35;
-
-const FRAME_BUDGET = {
-  idle: 1000 / 30,
-  active: 1000 / 60,
-} as const;
-
-const POINTER_RADIUS = {
-  desktop: 135,
-  mobile: 100,
-} as const;
-
-const HIGHLIGHT_LIFETIME = 1000;
-const MAX_HIGHLIGHT_POINTS = 32;
-const TRAIL_SPACING = 18;
-const MIN_POINTER_DISTANCE = 8;
-const MIN_POINTER_INTERVAL = 24;
-
-const tileRows: TileRow[] = [];
-const highlightTrail: HighlightPoint[] = [];
-
-let context: CanvasRenderingContext2D | null = null;
-let resizeObserver: ResizeObserver | null = null;
+let renderer: THREE.WebGLRenderer | null = null;
+let scene: THREE.Scene | null = null;
+let camera: THREE.PerspectiveCamera | null = null;
+let material: THREE.ShaderMaterial | null = null;
+let grid: THREE.LineSegments | null = null;
+let trailTexture: THREE.DataTexture | null = null;
 let reducedMotion: MediaQueryList | null = null;
-let animationFrame: number | null = null;
+let colorScheme: MediaQueryList | null = null;
+let resizeObserver: ResizeObserver | null = null;
+let contextLost = false;
 
-let width = 1;
-let height = 1;
-let dpr = 1;
+const trail: TrailPoint[] = [];
+const trailData = new Uint8Array(TRAIL_LENGTH * 4);
+const raycaster = new THREE.Raycaster();
+const pointer = new THREE.Vector2();
+const groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+const intersection = new THREE.Vector3();
+let lastPoint: TrailPoint | null = null;
+let lastWheelEmission = 0;
+let lastTouchEmission = 0;
+let lastTouchSample: { x: number; y: number; time: number } | null = null;
 
-let metrics: GridMetrics = {
-  columns: 1,
-  rows: 1,
-  cellWidth: 1,
-  cellHeight: 1,
-};
+const vertexShader = /* glsl */ `
+  #define TRAIL_LENGTH ${TRAIL_LENGTH}
 
-let lastFrameTime = 0;
-let elapsedTime = 0;
+  uniform sampler2D uTrail;
+  uniform float uTrailCount;
+  uniform float uTime;
+  uniform float uMotion;
+  uniform vec2 uGridSize;
 
-let scrollOffset = 0;
-let previousScrollOffset = 0;
+  attribute float aLineStrength;
 
-let pointerX = 0;
-let pointerY = 0;
-let pointerPresent = false;
+  varying float vLineStrength;
+  varying float vWave;
+  varying float vIdle;
+  varying float vDepth;
 
-let lastPointerWorldX = 0;
-let lastPointerWorldY = 0;
-let hasPointerWorldPosition = false;
-let lastPointerPointTime = 0;
+  void main() {
+    vec3 displaced = position;
+    float wave = 0.0;
 
-let isDocumentVisible = true;
+    for (int index = 0; index < TRAIL_LENGTH; index++) {
+      if (float(index) >= uTrailCount) break;
 
-let trianglePathA: Path2D | null = null;
-let trianglePathB: Path2D | null = null;
-let ambientGradient: CanvasGradient | null = null;
+      vec4 point = texture2D(uTrail, vec2((float(index) + 0.5) / float(TRAIL_LENGTH), 0.5));
+      vec2 origin = (point.rg - 0.5) * uGridSize;
+      float age = point.b;
+      float velocity = point.a;
+      float distanceToPoint = distance(position.xz, origin);
+      float radius = 0.18 + age * 5.2;
+      float width = 0.12 + age * 0.18;
+      float ring = exp(-pow((distanceToPoint - radius) / width, 2.0));
+      float wake = exp(-distanceToPoint * 1.8) * exp(-age * 5.0);
 
-let cachedPalette: TrianglePalette | null = null;
-let cachedTheme: string | null = null;
-
-/**
- * Deterministic pseudo-random value used for tile generation.
- *
- * Using a seed instead of Math.random() keeps the grid visually stable
- * across rebuilds and scrolling.
- */
-function seededRandom(seed: number): number {
-  const value = Math.sin(seed * 12.9898 + 78.233) * 43758.5453;
-  return value - Math.floor(value);
-}
-
-function smoothstep(edgeStart: number, edgeEnd: number, value: number): number {
-  const range = edgeEnd - edgeStart;
-
-  if (range === 0) {
-    return value < edgeStart ? 0 : 1;
-  }
-
-  const normalized = Math.min(1, Math.max(0, (value - edgeStart) / range));
-
-  return normalized * normalized * (3 - 2 * normalized);
-}
-
-function getTargetTriangleCount(): number {
-  if (width < 640) {
-    return TARGET_TRIANGLES.mobile;
-  }
-
-  if (width < 1000) {
-    return TARGET_TRIANGLES.tablet;
-  }
-
-  return TARGET_TRIANGLES.desktop;
-}
-
-function getPalette(): TrianglePalette {
-  const theme = document.documentElement.dataset.theme ?? 'dark';
-
-  if (cachedPalette && cachedTheme === theme) {
-    return cachedPalette;
-  }
-
-  cachedTheme = theme;
-
-  cachedPalette =
-    theme === 'light'
-      ? {
-          fill: '68, 96, 134',
-          accent: '7, 95, 215',
-          ambient: '50, 132, 255',
-          background: '#f3f7fc',
-        }
-      : {
-          fill: '112, 142, 181',
-          accent: '114, 170, 255',
-          ambient: '50, 132, 255',
-          background: '#030509',
-        };
-
-  return cachedPalette;
-}
-
-/* Grid generation */
-
-function calculateGridMetrics(): GridMetrics {
-  const aspectRatio = Math.max(width / Math.max(height, 1), 0.35);
-  const targetCells = getTargetTriangleCount() / 2;
-
-  const columns = Math.max(6, Math.round(Math.sqrt(targetCells * aspectRatio)));
-  const rows = Math.max(5, Math.round(targetCells / columns));
-
-  return {
-    columns,
-    rows,
-    cellWidth: width / columns,
-    cellHeight: height / rows,
-  };
-}
-
-function rebuildTrianglePaths(): void {
-  const { cellWidth, cellHeight } = metrics;
-
-  const pathA = new Path2D();
-  pathA.moveTo(0, 0);
-  pathA.lineTo(cellWidth, 0);
-  pathA.lineTo(0, cellHeight);
-  pathA.closePath();
-
-  const pathB = new Path2D();
-  pathB.moveTo(cellWidth, 0);
-  pathB.lineTo(cellWidth, cellHeight);
-  pathB.lineTo(0, cellHeight);
-  pathB.closePath();
-
-  trianglePathA = pathA;
-  trianglePathB = pathB;
-}
-
-function createTile(column: number, row: number, side: TriangleTile['side'], seed: number): TriangleTile {
-  const isPrimary = side === 'a';
-
-  return {
-    column,
-    row,
-    side,
-    tone: isPrimary ? 0.68 + seededRandom(seed) * 0.32 : 0.52 + seededRandom(seed) * 0.34,
-    phase: seededRandom(seed + (isPrimary ? 11 : 41)) * Math.PI * 2,
-    speed: isPrimary ? 0.18 + seededRandom(seed + 17) * 0.22 : 0.16 + seededRandom(seed + 47) * 0.2,
-    driftX: (seededRandom(seed + (isPrimary ? 23 : 53)) - 0.5) * (isPrimary ? 2.4 : 2),
-    driftY: (seededRandom(seed + (isPrimary ? 29 : 59)) - 0.5) * (isPrimary ? 2.4 : 2),
-  };
-}
-
-function buildTileRows(startRowIndex: number, rowCount: number): void {
-  const rows: TileRow[] = [];
-
-  for (let offset = 0; offset < rowCount; offset += 1) {
-    const rowIndex = startRowIndex + offset;
-    const tiles: TriangleTile[] = [];
-
-    for (let column = 0; column < metrics.columns; column += 1) {
-      const seed = rowIndex * 149 + column * 43 + 1;
-
-      tiles.push(createTile(column, rowIndex, 'a', seed));
-      tiles.push(createTile(column, rowIndex, 'b', seed + 36));
+      wave += (ring * 0.3 + wake * 0.1) * (0.28 + velocity * 0.72) * (1.0 - age);
     }
 
-    rows.push({
-      rowIndex,
-      y: rowIndex * metrics.cellHeight,
-      tiles,
-    });
-  }
+    vec2 idleCenter = vec2(sin(uTime * 0.22) * 6.0, cos(uTime * 0.18) * 5.0 - 3.0);
+    float idleDistance = distance(position.xz, idleCenter);
+    float ambientField = sin(position.x * 0.36 + uTime * 0.72)
+      * cos(position.z * 0.3 - uTime * 0.58) * 0.095;
+    float ambientRing = sin(idleDistance * 0.92 - uTime * 1.1)
+      * exp(-idleDistance * 0.035) * 0.05;
+    float idleSweep = pow(0.5 + 0.5 * sin(position.z * 0.62 - uTime * 0.95), 14.0);
+    float ambient = ambientField + ambientRing + idleSweep * 0.045;
+    displaced.y += (min(wave, 1.15) * 0.38 + ambient) * uMotion;
 
-  tileRows.length = 0;
-  tileRows.push(...rows);
+    vLineStrength = aLineStrength;
+    vWave = min(wave, 1.0) * uMotion;
+    vIdle = max(smoothstep(0.025, 0.13, abs(ambient)), idleSweep * 0.9) * uMotion;
+    vDepth = smoothstep(-16.0, 10.0, position.z);
+
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(displaced, 1.0);
+  }
+`;
+
+const fragmentShader = /* glsl */ `
+  uniform vec3 uColor;
+  uniform vec3 uWaveColor;
+  uniform float uOpacity;
+
+  varying float vLineStrength;
+  varying float vWave;
+  varying float vIdle;
+  varying float vDepth;
+
+  void main() {
+    float highlight = max(smoothstep(0.02, 0.52, vWave), vIdle * 0.48);
+    vec3 color = mix(uColor, uWaveColor, highlight);
+    float waveGlow = smoothstep(0.0, 0.58, vWave) * 0.42;
+    float idleGlow = vIdle * 0.23;
+    float alpha = (0.2 + vLineStrength * 0.3 + idleGlow + waveGlow) * uOpacity * vDepth;
+    gl_FragColor = vec4(color, alpha);
+  }
+`;
+
+function appendSegment(
+  positions: number[],
+  strengths: number[],
+  start: [number, number, number],
+  end: [number, number, number],
+  strength: number,
+): void {
+  positions.push(...start, ...end);
+  strengths.push(strength, strength);
 }
 
-function syncRowsForScroll(): void {
-  if (!context) {
-    return;
+function createGridGeometry(): THREE.BufferGeometry {
+  const positions: number[] = [];
+  const strengths: number[] = [];
+  const xLines = Math.floor(GRID_WIDTH / GRID_SPACING);
+  const zLines = Math.floor(GRID_DEPTH / GRID_SPACING);
+  const xSegments = Math.ceil(GRID_WIDTH / VERTEX_STEP);
+  const zSegments = Math.ceil(GRID_DEPTH / VERTEX_STEP);
+
+  for (let zIndex = 0; zIndex <= zLines; zIndex += 1) {
+    const z = -GRID_DEPTH / 2 + (zIndex / zLines) * GRID_DEPTH;
+    const strength = zIndex % 5 === 0 ? 1 : 0.42;
+
+    for (let segment = 0; segment < xSegments; segment += 1) {
+      const xStart = -GRID_WIDTH / 2 + (segment / xSegments) * GRID_WIDTH;
+      const xEnd = -GRID_WIDTH / 2 + ((segment + 1) / xSegments) * GRID_WIDTH;
+      appendSegment(positions, strengths, [xStart, 0, z], [xEnd, 0, z], strength);
+    }
   }
 
-  const rowHeight = metrics.cellHeight;
+  for (let xIndex = 0; xIndex <= xLines; xIndex += 1) {
+    const x = -GRID_WIDTH / 2 + (xIndex / xLines) * GRID_WIDTH;
+    const strength = xIndex % 5 === 0 ? 1 : 0.42;
 
-  const visibleRowCount = Math.max(4, Math.ceil((height + window.innerHeight * 1.2) / Math.max(rowHeight, 1)) + 4);
-
-  const startRowIndex = Math.max(0, Math.floor(scrollOffset / rowHeight) - 2);
-  const rowCount = Math.max(visibleRowCount, 10);
-
-  const currentStart = tileRows[0]?.rowIndex ?? -1;
-  const currentEnd = tileRows[tileRows.length - 1]?.rowIndex ?? -1;
-  const expectedEnd = startRowIndex + rowCount - 1;
-
-  if (tileRows.length === 0 || currentStart !== startRowIndex || currentEnd !== expectedEnd) {
-    buildTileRows(startRowIndex, rowCount);
+    for (let segment = 0; segment < zSegments; segment += 1) {
+      const zStart = -GRID_DEPTH / 2 + (segment / zSegments) * GRID_DEPTH;
+      const zEnd = -GRID_DEPTH / 2 + ((segment + 1) / zSegments) * GRID_DEPTH;
+      appendSegment(positions, strengths, [x, 0, zStart], [x, 0, zEnd], strength);
+    }
   }
+
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  geometry.setAttribute('aLineStrength', new THREE.Float32BufferAttribute(strengths, 1));
+  return geometry;
 }
 
-/* Highlight trail */
+function getPalette(): { color: THREE.Color; waveColor: THREE.Color; opacity: number } {
+  if (document.documentElement.dataset.theme === 'light') {
+    return {
+      color: new THREE.Color('#37628f'),
+      waveColor: new THREE.Color('#075fd7'),
+      opacity: 0.72,
+    };
+  }
 
-function addHighlightPoint(x: number, worldY: number, strength: number, time = performance.now()): void {
-  highlightTrail.push({
-    x,
-    worldY,
-    time,
-    strength,
+  return {
+    color: new THREE.Color('#38679e'),
+    waveColor: new THREE.Color('#72aaff'),
+    opacity: 0.82,
+  };
+}
+
+function applyPalette(): void {
+  if (!material) return;
+  const palette = getPalette();
+  material.uniforms.uColor?.value.copy(palette.color);
+  material.uniforms.uWaveColor?.value.copy(palette.waveColor);
+  const opacityUniform = material.uniforms.uOpacity;
+  if (opacityUniform) opacityUniform.value = palette.opacity;
+}
+
+function updateTrailTexture(now: number): void {
+  if (!trailTexture || !material) return;
+
+  let oldestPoint = trail[0];
+  while (oldestPoint && now - oldestPoint.createdAt > TRAIL_LIFETIME) {
+    trail.shift();
+    oldestPoint = trail[0];
+  }
+  trailData.fill(0);
+
+  trail.forEach((point, index) => {
+    const offset = index * 4;
+    trailData[offset] = Math.round(THREE.MathUtils.clamp(point.x / GRID_WIDTH + 0.5, 0, 1) * 255);
+    trailData[offset + 1] = Math.round(THREE.MathUtils.clamp(point.z / GRID_DEPTH + 0.5, 0, 1) * 255);
+    trailData[offset + 2] = Math.round(THREE.MathUtils.clamp((now - point.createdAt) / TRAIL_LIFETIME, 0, 1) * 255);
+    trailData[offset + 3] = Math.round(point.velocity * 255);
   });
 
-  if (highlightTrail.length > MAX_HIGHLIGHT_POINTS) {
-    highlightTrail.splice(0, highlightTrail.length - MAX_HIGHLIGHT_POINTS);
-  }
+  trailTexture.needsUpdate = true;
+  const trailCountUniform = material.uniforms.uTrailCount;
+  if (trailCountUniform) trailCountUniform.value = trail.length;
 }
 
-function addHighlightSegment(
-  fromX: number,
-  fromWorldY: number,
-  toX: number,
-  toWorldY: number,
-  strength: number,
-  now = performance.now(),
-): void {
-  const distance = Math.hypot(toX - fromX, toWorldY - fromWorldY);
-
-  if (distance < 1) {
-    addHighlightPoint(toX, toWorldY, strength, now);
-    return;
-  }
-
-  const steps = Math.max(1, Math.ceil(distance / TRAIL_SPACING));
-
-  for (let index = 1; index <= steps; index += 1) {
-    const progress = index / steps;
-
-    addHighlightPoint(
-      fromX + (toX - fromX) * progress,
-      fromWorldY + (toWorldY - fromWorldY) * progress,
-      strength,
-      now - (steps - index) * 7,
-    );
-  }
+function renderFrame(now: number): void {
+  if (!renderer || !scene || !camera || !material || contextLost) return;
+  updateTrailTexture(now);
+  const timeUniform = material.uniforms.uTime;
+  if (timeUniform) timeUniform.value = now / 1_000;
+  renderer.render(scene, camera);
 }
-
-function cleanupHighlightTrail(now: number): void {
-  const firstActiveIndex = highlightTrail.findIndex((point) => now - point.time < HIGHLIGHT_LIFETIME);
-
-  if (firstActiveIndex > 0) {
-    highlightTrail.splice(0, firstActiveIndex);
-  } else if (firstActiveIndex === -1) {
-    highlightTrail.length = 0;
-  }
-}
-
-function getTrailInfluence(centerX: number, centerWorldY: number, now: number): number {
-  if (highlightTrail.length === 0) {
-    return 0;
-  }
-
-  const radius = width < 640 ? POINTER_RADIUS.mobile : POINTER_RADIUS.desktop;
-
-  const radiusSquared = radius * radius;
-  let influence = 0;
-
-  for (const point of highlightTrail) {
-    const age = now - point.time;
-
-    if (age >= HIGHLIGHT_LIFETIME) {
-      continue;
-    }
-
-    const dx = centerX - point.x;
-    const dy = centerWorldY - point.worldY;
-    const distanceSquared = dx * dx + dy * dy;
-
-    if (distanceSquared >= radiusSquared) {
-      continue;
-    }
-
-    const distance = Math.sqrt(distanceSquared);
-    const normalizedAge = age / HIGHLIGHT_LIFETIME;
-    const fade = (1 - normalizedAge) ** 2;
-    const proximity = smoothstep(radius, 0, distance);
-
-    influence = Math.max(influence, proximity * fade * point.strength);
-
-    if (influence >= 1) {
-      return 1;
-    }
-  }
-
-  return Math.min(1, influence);
-}
-
-function hasActiveTrail(now: number): boolean {
-  const newest = highlightTrail.at(-1);
-
-  return newest !== undefined && now - newest.time < HIGHLIGHT_LIFETIME;
-}
-
-/* Rendering */
-
-function rebuildAmbientGradient(palette: TrianglePalette): void {
-  if (!context) {
-    ambientGradient = null;
-    return;
-  }
-
-  ambientGradient = context.createRadialGradient(
-    width * 0.5,
-    height * 0.36,
-    0,
-    width * 0.5,
-    height * 0.36,
-    width * 0.72,
-  );
-
-  ambientGradient.addColorStop(0, `rgba(${palette.ambient}, 0.055)`);
-
-  ambientGradient.addColorStop(1, `rgba(${palette.ambient}, 0)`);
-}
-
-function drawAmbientGradient(): void {
-  if (!context) {
-    return;
-  }
-
-  const gradient = ambientGradient;
-
-  if (!gradient) {
-    return;
-  }
-
-  context.fillStyle = gradient;
-  context.fillRect(0, 0, width, height);
-}
-
-function drawTriangle(
-  tile: TriangleTile,
-  palette: TrianglePalette,
-  motion: number,
-  baseWorldY: number,
-  now: number,
-): void {
-  if (!context) {
-    return;
-  }
-
-  const x = tile.column * metrics.cellWidth;
-  const centerWorldX = x + metrics.cellWidth * 0.5;
-  const centerWorldY = baseWorldY + metrics.cellHeight * 0.5;
-
-  const idle = motion * Math.sin(elapsedTime * tile.speed + tile.phase);
-
-  const trailInfluence = getTrailInfluence(centerWorldX, centerWorldY, now);
-
-  const offsetX = tile.driftX * idle;
-  const offsetY = tile.driftY * idle;
-
-  const baseAlpha = 0.045 + tile.tone * 0.055 + Math.abs(idle) * 0.018;
-
-  const alpha = (baseAlpha + trailInfluence * 0.22) * motion;
-
-  const path = tile.side === 'a' ? trianglePathA : trianglePathB;
-
-  if (!path) {
-    return;
-  }
-
-  context.save();
-  context.translate(x + offsetX, baseWorldY - scrollOffset + offsetY);
-
-  if (trailInfluence > 0.015) {
-    context.fillStyle = `rgba(${palette.accent}, ${alpha})`;
-
-    context.fill(path);
-
-    if (trailInfluence > 0.14) {
-      context.strokeStyle = `rgba(${palette.accent}, ${trailInfluence * 0.16})`;
-
-      context.lineWidth = 1;
-      context.stroke(path);
-    }
-  } else {
-    context.fillStyle = `rgba(${palette.fill}, ${alpha})`;
-
-    context.fill(path);
-  }
-
-  context.restore();
-}
-
-function drawFrame(timestamp = performance.now()): void {
-  animationFrame = null;
-
-  if (!context || !canvas.value) {
-    return;
-  }
-
-  const delta = lastFrameTime === 0 ? 16.67 : Math.min(timestamp - lastFrameTime, 48);
-
-  const parent = canvas.value.parentElement;
-
-  const motionEnabled = reducedMotion?.matches !== true && !parent?.classList.contains('background-motion-paused');
-
-  const sceneActive = parent?.classList.contains('background-scene-active') === true;
-
-  cleanupHighlightTrail(timestamp);
-
-  const trailActive = hasActiveTrail(timestamp);
-
-  const shouldContinue = (sceneActive && motionEnabled && isDocumentVisible) || trailActive;
-
-  const frameBudget = shouldContinue ? FRAME_BUDGET.active : FRAME_BUDGET.idle;
-
-  if (lastFrameTime !== 0 && timestamp - lastFrameTime < frameBudget) {
-    if (shouldContinue) {
-      scheduleFrame();
-    }
-
-    return;
-  }
-
-  lastFrameTime = timestamp;
-
-  if (motionEnabled) {
-    elapsedTime += delta / 1000;
-  }
-
-  const palette = getPalette();
-
-  context.clearRect(0, 0, width, height);
-
-  context.fillStyle = palette.background;
-  context.fillRect(0, 0, width, height);
-
-  syncRowsForScroll();
-
-  // Keep a small amount of static visual variation when motion is paused.
-  const motion = motionEnabled ? 1 : 0.82;
-
-  for (const row of tileRows) {
-    const rowScreenY = row.y - scrollOffset;
-
-    if (rowScreenY > height + metrics.cellHeight * 1.2 || rowScreenY < -metrics.cellHeight * 1.2) {
-      continue;
-    }
-
-    for (const tile of row.tiles) {
-      drawTriangle(tile, palette, motion, row.y, timestamp);
-    }
-  }
-
-  drawAmbientGradient();
-
-  if (shouldContinue) {
-    scheduleFrame();
-  }
-}
-
-function scheduleFrame(): void {
-  if (animationFrame !== null) {
-    return;
-  }
-
-  animationFrame = window.requestAnimationFrame(drawFrame);
-}
-
-/* Resize */
 
 function resize(): void {
   const element = canvas.value;
+  if (!element || !renderer || !scene || !camera) return;
 
-  if (!element) {
-    return;
-  }
+  const width = Math.max(element.clientWidth, 1);
+  const height = Math.max(element.clientHeight, 1);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+  renderer.setSize(width, height, false);
+  camera.aspect = width / height;
+  camera.fov = width < 720 ? 52 : 42;
+  camera.position.set(0, width < 720 ? 7.8 : 6.7, width < 720 ? 10.5 : 9.2);
+  camera.lookAt(0, 0, -5.2);
+  camera.updateProjectionMatrix();
 
-  const rect = element.getBoundingClientRect();
-
-  width = Math.max(1, Math.round(rect.width || window.innerWidth || 1));
-
-  height = Math.max(1, Math.round(rect.height || window.innerHeight || 1));
-
-  scrollOffset = window.scrollY;
-  previousScrollOffset = scrollOffset;
-
-  dpr = Math.min(window.devicePixelRatio || 1, MAX_DPR);
-
-  element.width = Math.round(width * dpr);
-  element.height = Math.round(height * dpr);
-
-  context = element.getContext('2d', {
-    alpha: true,
-    desynchronized: true,
-  });
-
-  if (!context) {
-    return;
-  }
-
-  context.setTransform(dpr, 0, 0, dpr, 0, 0);
-
-  metrics = calculateGridMetrics();
-
-  rebuildTrianglePaths();
-  rebuildAmbientGradient(getPalette());
-
-  const rowsNeeded = Math.max(6, Math.ceil((height + window.innerHeight * 1.2) / Math.max(metrics.cellHeight, 1)) + 4);
-
-  buildTileRows(0, rowsNeeded);
-
-  lastFrameTime = 0;
-  scheduleFrame();
+  if (reducedMotion?.matches) renderer.render(scene, camera);
 }
 
-/* Pointer */
+function projectPointer(clientX: number, clientY: number): { x: number; z: number } | null {
+  if (!camera || !canvas.value) return null;
 
-function handlePointerMove(event: PointerEvent): void {
+  const rect = canvas.value.getBoundingClientRect();
+  if (clientY < rect.top || clientY > rect.bottom) return null;
+
+  pointer.set(((clientX - rect.left) / rect.width) * 2 - 1, -((clientY - rect.top) / rect.height) * 2 + 1);
+  raycaster.setFromCamera(pointer, camera);
+  if (!raycaster.ray.intersectPlane(groundPlane, intersection)) return null;
+
+  return {
+    x: THREE.MathUtils.clamp(intersection.x, -GRID_WIDTH / 2, GRID_WIDTH / 2),
+    z: THREE.MathUtils.clamp(intersection.z, -GRID_DEPTH / 2, GRID_DEPTH / 2),
+  };
+}
+
+function addTrailPoint(event: PointerEvent): void {
+  if (reducedMotion?.matches || event.pointerType === 'touch') return;
+  const position = projectPointer(event.clientX, event.clientY);
+  if (!position) return;
+
   const now = performance.now();
+  const distance = lastPoint ? Math.hypot(position.x - lastPoint.x, position.z - lastPoint.z) : 1;
+  const elapsed = lastPoint ? Math.max(now - lastPoint.createdAt, 16) : 16;
+  if (lastPoint && distance < 0.24 && elapsed < 54) return;
 
-  pointerPresent = true;
-  pointerX = event.clientX;
-  pointerY = event.clientY;
-
-  const worldX = pointerX;
-  const worldY = pointerY + scrollOffset;
-
-  if (!hasPointerWorldPosition) {
-    lastPointerWorldX = worldX;
-    lastPointerWorldY = worldY;
-    hasPointerWorldPosition = true;
-    lastPointerPointTime = now;
-
-    addHighlightPoint(worldX, worldY, 1, now);
-    scheduleFrame();
-
-    return;
-  }
-
-  const distance = Math.hypot(worldX - lastPointerWorldX, worldY - lastPointerWorldY);
-
-  const timeSinceLastPoint = now - lastPointerPointTime;
-
-  if (distance >= MIN_POINTER_DISTANCE || timeSinceLastPoint >= MIN_POINTER_INTERVAL) {
-    addHighlightSegment(lastPointerWorldX, lastPointerWorldY, worldX, worldY, 1, now);
-
-    lastPointerWorldX = worldX;
-    lastPointerWorldY = worldY;
-    lastPointerPointTime = now;
-  }
-
-  scheduleFrame();
+  const velocity = THREE.MathUtils.clamp((distance / elapsed) * 72, 0.18, 1);
+  const point = { ...position, createdAt: now, velocity };
+  trail.push(point);
+  if (trail.length > TRAIL_LENGTH) trail.shift();
+  lastPoint = point;
 }
 
-/* Scroll */
+function addLayeredRipple(position: { x: number; z: number }, now: number, velocity: number): void {
+  trail.push({ ...position, createdAt: now - 55, velocity: velocity * 0.9 });
+  trail.push({ ...position, createdAt: now, velocity });
+  while (trail.length > TRAIL_LENGTH) trail.shift();
+}
 
-function handleScroll(): void {
-  const parent = canvas.value?.parentElement;
+function addScrollRipple(event: WheelEvent): void {
+  if (reducedMotion?.matches) return;
+  const now = performance.now();
+  if (now - lastWheelEmission < 80) return;
 
-  if (!parent?.classList.contains('background-scene-active')) {
-    return;
+  const position = projectPointer(event.clientX, event.clientY);
+  if (!position) return;
+
+  const scrollDistance = Math.hypot(event.deltaX, event.deltaY);
+  const velocity = THREE.MathUtils.clamp(scrollDistance / 65, 0.72, 1);
+  addLayeredRipple(position, now, velocity);
+  lastWheelEmission = now;
+}
+
+function startTouchRipple(event: TouchEvent): void {
+  const touch = event.touches[0];
+  if (!touch) return;
+  lastTouchSample = { x: touch.clientX, y: touch.clientY, time: performance.now() };
+}
+
+function addTouchRipple(event: TouchEvent): void {
+  const touch = event.touches[0];
+  if (!touch) return;
+
+  const now = performance.now();
+  const previousSample = lastTouchSample;
+  lastTouchSample = { x: touch.clientX, y: touch.clientY, time: now };
+  if (reducedMotion?.matches || !previousSample || now - lastTouchEmission < 80) return;
+
+  const position = projectPointer(touch.clientX, touch.clientY);
+  if (!position) return;
+
+  const distance = Math.hypot(touch.clientX - previousSample.x, touch.clientY - previousSample.y);
+  const elapsed = Math.max(now - previousSample.time, 16);
+  const velocity = THREE.MathUtils.clamp((distance / elapsed) * 0.8, 0.62, 1);
+  addLayeredRipple(position, now, velocity);
+  lastTouchEmission = now;
+}
+
+function endTouchRipple(): void {
+  lastTouchSample = null;
+}
+
+function setAnimationState(): void {
+  if (!renderer || !scene || !camera || !material) return;
+  const shouldAnimate = props.active && !document.hidden && !reducedMotion?.matches && !contextLost;
+  const motionUniform = material.uniforms.uMotion;
+  if (motionUniform) motionUniform.value = reducedMotion?.matches ? 0 : 1;
+  renderer.setAnimationLoop(shouldAnimate ? renderFrame : null);
+  if (!shouldAnimate && !contextLost) renderer.render(scene, camera);
+}
+
+function initialize(): void {
+  const element = canvas.value;
+  if (!element) return;
+
+  try {
+    const context = element.getContext('webgl2', {
+      alpha: true,
+      antialias: true,
+      depth: false,
+      stencil: false,
+      powerPreference: 'high-performance',
+    });
+    if (!context) throw new Error('WebGL2 is unavailable');
+
+    renderer = new THREE.WebGLRenderer({ canvas: element, context, alpha: true, antialias: true });
+    renderer.setClearColor(0x000000, 0);
+    scene = new THREE.Scene();
+    camera = new THREE.PerspectiveCamera(42, 1, 0.1, 80);
+
+    trailTexture = new THREE.DataTexture(trailData, TRAIL_LENGTH, 1, THREE.RGBAFormat, THREE.UnsignedByteType);
+    trailTexture.minFilter = THREE.NearestFilter;
+    trailTexture.magFilter = THREE.NearestFilter;
+    trailTexture.generateMipmaps = false;
+    trailTexture.needsUpdate = true;
+
+    const palette = getPalette();
+    material = new THREE.ShaderMaterial({
+      uniforms: {
+        uTrail: { value: trailTexture },
+        uTrailCount: { value: 0 },
+        uTime: { value: 0 },
+        uMotion: { value: reducedMotion?.matches ? 0 : 1 },
+        uGridSize: { value: new THREE.Vector2(GRID_WIDTH, GRID_DEPTH) },
+        uColor: { value: palette.color },
+        uWaveColor: { value: palette.waveColor },
+        uOpacity: { value: palette.opacity },
+      },
+      vertexShader,
+      fragmentShader,
+      transparent: true,
+      depthTest: false,
+      depthWrite: false,
+      blending: THREE.NormalBlending,
+    });
+
+    grid = new THREE.LineSegments(createGridGeometry(), material);
+    scene.add(grid);
+    failed.value = false;
+    failureReason.value = null;
+    resize();
+    setAnimationState();
+  } catch (error: unknown) {
+    failed.value = true;
+    failureReason.value = error instanceof Error ? error.message : 'Initialization failed';
+    cleanup(false);
+  }
+}
+
+function cleanup(forceContextLoss: boolean): void {
+  renderer?.setAnimationLoop(null);
+  grid?.geometry.dispose();
+  material?.dispose();
+  trailTexture?.dispose();
+  scene?.clear();
+
+  if (renderer) {
+    renderer.dispose();
+    if (forceContextLoss) renderer.forceContextLoss();
   }
 
-  const nextScrollOffset = window.scrollY;
-  const scrollDelta = nextScrollOffset - previousScrollOffset;
-
-  if (Math.abs(scrollDelta) < 0.01) {
-    return;
-  }
-
-  scrollOffset = nextScrollOffset;
-  previousScrollOffset = nextScrollOffset;
-
-  if (pointerPresent && hasPointerWorldPosition) {
-    const worldX = pointerX;
-    const worldY = pointerY + scrollOffset;
-
-    addHighlightSegment(lastPointerWorldX, lastPointerWorldY, worldX, worldY, 0.95);
-
-    lastPointerWorldX = worldX;
-    lastPointerWorldY = worldY;
-    lastPointerPointTime = performance.now();
-  }
-
-  scheduleFrame();
+  renderer = null;
+  scene = null;
+  camera = null;
+  material = null;
+  grid = null;
+  trailTexture = null;
 }
 
-function clearPointer(): void {
-  pointerPresent = false;
-  hasPointerWorldPosition = false;
-
-  scheduleFrame();
+function onMotionPreferenceChange(): void {
+  trail.length = 0;
+  lastPoint = null;
+  setAnimationState();
 }
 
-/* Environment changes */
-
-function handleVisibilityChange(): void {
-  isDocumentVisible = document.visibilityState === 'visible';
-
-  lastFrameTime = 0;
-
-  if (isDocumentVisible) {
-    scheduleFrame();
-  }
+function onContextLost(event: Event): void {
+  event.preventDefault();
+  contextLost = true;
+  failed.value = true;
+  failureReason.value = 'WebGL context lost';
+  renderer?.setAnimationLoop(null);
 }
 
-function handleThemeChange(): void {
-  cachedPalette = null;
-  cachedTheme = null;
-  ambientGradient = null;
-  lastFrameTime = 0;
-
-  scheduleFrame();
+function onContextRestored(): void {
+  contextLost = false;
+  cleanup(false);
+  initialize();
 }
 
-function handleMotionPreferenceChange(): void {
-  lastFrameTime = 0;
-  scheduleFrame();
-}
-
-/* Lifecycle */
+watch(
+  () => props.active,
+  (active) => {
+    if (active) resize();
+    setAnimationState();
+  },
+  { flush: 'post' },
+);
 
 onMounted(() => {
-  const element = canvas.value;
-
-  if (!element) {
-    return;
-  }
-
   reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-
+  colorScheme = window.matchMedia('(prefers-color-scheme: light)');
   resizeObserver = new ResizeObserver(resize);
-  resizeObserver.observe(element);
+  if (canvas.value) resizeObserver.observe(canvas.value);
 
-  window.addEventListener('resize', resize, {
-    passive: true,
-  });
-
-  window.addEventListener('orientationchange', resize, { passive: true });
-
-  window.addEventListener('scroll', handleScroll, {
-    passive: true,
-  });
-
-  window.addEventListener('pointermove', handlePointerMove, { passive: true });
-
-  window.addEventListener('pointerleave', clearPointer, { passive: true });
-
-  window.addEventListener('blur', clearPointer);
-
-  window.addEventListener('portfolio-theme-change', handleThemeChange);
-
-  document.addEventListener('visibilitychange', handleVisibilityChange);
-
-  reducedMotion.addEventListener('change', handleMotionPreferenceChange);
-
-  resize();
+  window.addEventListener('pointermove', addTrailPoint, { passive: true });
+  window.addEventListener('wheel', addScrollRipple, { passive: true });
+  window.addEventListener('touchstart', startTouchRipple, { passive: true });
+  window.addEventListener('touchmove', addTouchRipple, { passive: true });
+  window.addEventListener('touchend', endTouchRipple, { passive: true });
+  window.addEventListener('touchcancel', endTouchRipple, { passive: true });
+  document.addEventListener('visibilitychange', setAnimationState);
+  reducedMotion.addEventListener('change', onMotionPreferenceChange);
+  colorScheme.addEventListener('change', applyPalette);
+  window.addEventListener('portfolio-theme-change', applyPalette);
+  canvas.value?.addEventListener('webglcontextlost', onContextLost);
+  canvas.value?.addEventListener('webglcontextrestored', onContextRestored);
+  initialize();
 });
 
 onBeforeUnmount(() => {
+  window.removeEventListener('pointermove', addTrailPoint);
+  window.removeEventListener('wheel', addScrollRipple);
+  window.removeEventListener('touchstart', startTouchRipple);
+  window.removeEventListener('touchmove', addTouchRipple);
+  window.removeEventListener('touchend', endTouchRipple);
+  window.removeEventListener('touchcancel', endTouchRipple);
+  document.removeEventListener('visibilitychange', setAnimationState);
+  reducedMotion?.removeEventListener('change', onMotionPreferenceChange);
+  colorScheme?.removeEventListener('change', applyPalette);
+  window.removeEventListener('portfolio-theme-change', applyPalette);
+  canvas.value?.removeEventListener('webglcontextlost', onContextLost);
+  canvas.value?.removeEventListener('webglcontextrestored', onContextRestored);
   resizeObserver?.disconnect();
-  resizeObserver = null;
-
-  if (animationFrame !== null) {
-    window.cancelAnimationFrame(animationFrame);
-    animationFrame = null;
-  }
-
-  window.removeEventListener('resize', resize);
-  window.removeEventListener('orientationchange', resize);
-  window.removeEventListener('scroll', handleScroll);
-  window.removeEventListener('pointermove', handlePointerMove);
-  window.removeEventListener('pointerleave', clearPointer);
-  window.removeEventListener('blur', clearPointer);
-  window.removeEventListener('portfolio-theme-change', handleThemeChange);
-
-  document.removeEventListener('visibilitychange', handleVisibilityChange);
-
-  reducedMotion?.removeEventListener('change', handleMotionPreferenceChange);
-
-  tileRows.length = 0;
-  highlightTrail.length = 0;
-
-  context = null;
-  trianglePathA = null;
-  trianglePathB = null;
-  ambientGradient = null;
-
-  cachedPalette = null;
-  cachedTheme = null;
-  reducedMotion = null;
-
-  pointerPresent = false;
-  hasPointerWorldPosition = false;
-
-  pointerX = 0;
-  pointerY = 0;
-
-  lastPointerWorldX = 0;
-  lastPointerWorldY = 0;
-  lastPointerPointTime = 0;
-
-  scrollOffset = 0;
-  previousScrollOffset = 0;
-
-  lastFrameTime = 0;
-  elapsedTime = 0;
+  cleanup(true);
 });
 </script>
 
 <template>
   <div
-    class="triangle-background"
+    class="wave-grid-background"
+    :class="{ 'is-fallback': failed }"
+    :data-wave-error="failed ? (failureReason ?? 'Unknown WebGL failure') : undefined"
     aria-hidden="true"
   >
     <canvas ref="canvas" />
@@ -807,38 +489,64 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
-.triangle-background {
+.wave-grid-background {
   position: fixed;
-  z-index: 0;
+  z-index: -1;
   inset: 0;
-
-  width: 100vw;
-  height: 100vh;
-
-  min-width: 100vw;
-  min-height: 100vh;
-
-  contain: layout paint style;
+  contain: strict;
   overflow: hidden;
-
-  background: var(--background);
-
+  background:
+    radial-gradient(circle at 73% 24%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 31rem),
+    linear-gradient(to bottom, transparent 60%, var(--background) 98%);
+  mask-image: linear-gradient(to bottom, black 0%, black 82%, transparent 100%);
   pointer-events: none;
-
-  transform: translateZ(0);
-  backface-visibility: hidden;
-  isolation: isolate;
 }
 
-.triangle-background canvas {
+.wave-grid-background::before {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  background: radial-gradient(
+    circle at 38% 39%,
+    transparent 8rem,
+    color-mix(in srgb, var(--background) 22%, transparent) 36rem
+  );
+  content: '';
+}
+
+canvas {
   position: absolute;
   inset: 0;
-
-  display: block;
-
   width: 100%;
   height: 100%;
+}
 
-  pointer-events: none;
+.is-fallback::after {
+  position: absolute;
+  inset: 24% -18% -25%;
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--accent) 30%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--accent) 30%, transparent) 1px, transparent 1px);
+  background-size: 3.25rem 3.25rem;
+  content: '';
+  opacity: 0.7;
+  transform: perspective(34rem) rotateX(58deg) scale(1.22);
+  transform-origin: center bottom;
+}
+
+.is-fallback canvas {
+  display: none;
+}
+
+@media (max-width: 720px) {
+  .wave-grid-background {
+    opacity: 0.82;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wave-grid-background {
+    opacity: 0.72;
+  }
 }
 </style>

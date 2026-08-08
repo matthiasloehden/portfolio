@@ -48,7 +48,7 @@ test('offers the complete navigation in the mobile menu', async ({ page }, testI
   test.skip(testInfo.project.name !== 'mobile-chromium', 'Mobile navigation test');
 
   await page.addInitScript(() => localStorage.setItem('portfolio-theme', 'light'));
-  await page.goto('/projects');
+  await page.goto('/academic');
   await waitForHydration(page);
 
   const menu = page.locator('#site-navigation');

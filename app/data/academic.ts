@@ -1,12 +1,12 @@
-import type { CaseStudyListItem, ProjectCaseStudyContent } from '@/types/content';
+import type { CaseStudyListItem, AcademicCaseStudyContent } from '@/types/content';
 
-export const projectList: CaseStudyListItem[] = [
+export const academicList: CaseStudyListItem[] = [
   { href: '#streaming', number: '01', title: 'Event-streaming analytics', category: 'Scalability & big data' },
   { href: '#passkeys', number: '02', title: 'FIDO2 passkeys', category: 'Security design' },
   { href: '#itsm', number: '03', title: 'IT service management', category: 'Service operations' },
 ];
 
-export const streamingCase: ProjectCaseStudyContent = {
+export const streamingCase: AcademicCaseStudyContent = {
   id: 'streaming',
   number: '01',
   category: 'Scalability & big data',
@@ -27,7 +27,7 @@ export const streamingCase: ProjectCaseStudyContent = {
   ],
 };
 
-export const passkeysCase: ProjectCaseStudyContent = {
+export const passkeysCase: AcademicCaseStudyContent = {
   id: 'passkeys',
   number: '02',
   category: 'Security design',
@@ -48,7 +48,7 @@ export const passkeysCase: ProjectCaseStudyContent = {
   ],
 };
 
-export const itsmCase: ProjectCaseStudyContent = {
+export const itsmCase: AcademicCaseStudyContent = {
   id: 'itsm',
   number: '03',
   category: 'Service operations',

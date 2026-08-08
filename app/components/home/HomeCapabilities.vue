@@ -7,7 +7,7 @@ defineProps<{
 
 const routeFor = (title: string) => {
   if (title === 'Professional') return '/work';
-  if (title === 'Academic') return '/projects';
+  if (title === 'Academic') return '/academic';
   if (title === 'Personal') return '/personal';
   return '/';
 };
