@@ -1,15 +1,22 @@
+```vue
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref } from 'vue';
 
 /**
- * Custom browser events used by the application.
+ * Canvas-based triangular background with:
+ * - deterministic procedural tile generation
+ * - scroll-aware world coordinates
+ * - pointer-driven highlight trails
+ * - reduced-motion support
+ * - adaptive rendering density and device-pixel-ratio
  *
- * This augments WindowEventMap so that:
+ * The background is decorative only. Pointer input creates visual highlights
+ * but never changes layout or page content.
  *
- * window.addEventListener('portfolio-theme-change', ...)
- *
- * remains fully type-safe.
+ * The component remains mounted while inactive so that switching between
+ * background scenes does not recreate the canvas and its rendering state.
  */
+
 declare global {
   interface WindowEventMap {
     'portfolio-theme-change': Event;
@@ -54,6 +61,15 @@ interface HighlightPoint {
   strength: number;
 }
 
+const props = withDefaults(
+  defineProps<{
+    active?: boolean;
+  }>(),
+  {
+    active: true,
+  },
+);
+
 const canvas = ref<HTMLCanvasElement | null>(null);
 
 /* -------------------------------------------------------------------------- */
@@ -69,33 +85,13 @@ const MAX_DPR = 1.35;
 const IDLE_FRAME_BUDGET_MS = 1000 / 30;
 const ACTIVE_FRAME_BUDGET_MS = 1000 / 60;
 
-/**
- * Radius of the highlight trail.
- *
- * This only affects the visual trail.
- * Tiles are never moved towards the pointer.
- */
 const POINTER_RADIUS_DESKTOP = 135;
 const POINTER_RADIUS_MOBILE = 100;
 
-/**
- * How long a highlight point remains visible.
- */
 const HIGHLIGHT_LIFETIME = 1000;
-
-/**
- * Maximum number of stored highlight points.
- */
 const MAX_HIGHLIGHT_POINTS = 32;
-
-/**
- * Distance between interpolated trail points.
- */
 const TRAIL_SPACING = 18;
 
-/**
- * Prevents excessive trail points from frequent pointer events.
- */
 const MIN_POINTER_DISTANCE = 8;
 const MIN_POINTER_INTERVAL = 24;
 
@@ -104,19 +100,11 @@ const MIN_POINTER_INTERVAL = 24;
 /* -------------------------------------------------------------------------- */
 
 const tileRows: TileRow[] = [];
-
-/**
- * Complete highlight trail.
- *
- * Points remain at their original world position.
- */
 const highlightTrail: HighlightPoint[] = [];
 
 let context: CanvasRenderingContext2D | null = null;
-
 let resizeObserver: ResizeObserver | null = null;
 let reducedMotion: MediaQueryList | null = null;
-
 let animationFrame: number | null = null;
 
 let width = 1;
@@ -133,34 +121,16 @@ let metrics: GridMetrics = {
 let lastFrameTime = 0;
 let elapsedTime = 0;
 
-/**
- * Scroll position in world coordinates.
- */
 let scrollOffset = 0;
 let previousScrollOffset = 0;
 
-/**
- * Cursor position in screen coordinates.
- *
- * It is only used to generate the trail.
- * It does not affect tile positions.
- */
-let pointerX = 0;
-let pointerY = 0;
-
+let pointerScreenX = 0;
+let pointerScreenY = 0;
 let pointerPresent = false;
 
-/**
- * Last cursor position in WORLD coordinates.
- *
- * Scrolling can therefore also create virtual cursor movement
- * through the grid world.
- */
 let lastPointerWorldX = 0;
 let lastPointerWorldY = 0;
-
 let hasPointerWorldPosition = false;
-
 let lastPointerPointTime = 0;
 
 let isDocumentVisible = true;
@@ -239,16 +209,14 @@ function getPalette(): TrianglePalette {
 }
 
 /* -------------------------------------------------------------------------- */
-/* Grid                                                                       */
+/* Grid generation                                                            */
 /* -------------------------------------------------------------------------- */
 
 function calculateGridMetrics(): GridMetrics {
   const aspectRatio = Math.max(width / Math.max(height, 1), 0.35);
-
   const targetCells = getTargetTriangleCount() / 2;
 
   const columns = Math.max(6, Math.round(Math.sqrt(targetCells * aspectRatio)));
-
   const rows = Math.max(5, Math.round(targetCells / columns));
 
   return {
@@ -286,9 +254,7 @@ function buildTileRows(startRowIndex: number, rowCount: number): void {
 
   for (let offset = 0; offset < rowCount; offset += 1) {
     const rowIndex = startRowIndex + offset;
-
     const rowTiles: TriangleTile[] = [];
-
     const rowY = rowIndex * metrics.cellHeight;
 
     for (let column = 0; column < metrics.columns; column += 1) {
@@ -342,9 +308,7 @@ function syncRowsForScroll(): void {
   const rowCount = Math.max(visibleRowCount, 10);
 
   const currentStart = tileRows[0]?.rowIndex ?? -1;
-
   const currentEnd = tileRows[tileRows.length - 1]?.rowIndex ?? -1;
-
   const expectedEnd = startRowIndex + rowCount - 1;
 
   if (tileRows.length === 0 || currentStart !== startRowIndex || currentEnd !== expectedEnd) {
@@ -353,9 +317,13 @@ function syncRowsForScroll(): void {
 }
 
 /* -------------------------------------------------------------------------- */
-/* Highlight Trail                                                            */
+/* Highlight trail                                                            */
 /* -------------------------------------------------------------------------- */
 
+/**
+ * Trail points are stored in world coordinates rather than screen coordinates.
+ * This keeps the highlight attached to the grid while the page scrolls.
+ */
 function addHighlightPoint(x: number, worldY: number, strength: number, time = performance.now()): void {
   highlightTrail.push({
     x,
@@ -381,7 +349,6 @@ function addHighlightSegment(
 
   if (distance < 1) {
     addHighlightPoint(toX, toWorldY, strength, now);
-
     return;
   }
 
@@ -391,9 +358,7 @@ function addHighlightSegment(
     const progress = index / steps;
 
     const x = fromX + (toX - fromX) * progress;
-
     const worldY = fromWorldY + (toWorldY - fromWorldY) * progress;
-
     const pointTime = now - (steps - index) * 7;
 
     addHighlightPoint(x, worldY, strength, pointTime);
@@ -406,11 +371,7 @@ function cleanupHighlightTrail(now: number): void {
   while (firstValidIndex < highlightTrail.length) {
     const point = highlightTrail[firstValidIndex];
 
-    if (point === undefined) {
-      break;
-    }
-
-    if (now - point.time < HIGHLIGHT_LIFETIME) {
+    if (point === undefined || now - point.time < HIGHLIGHT_LIFETIME) {
       break;
     }
 
@@ -430,16 +391,9 @@ function getTrailInfluence(centerX: number, centerWorldY: number, now: number): 
   const radius = width < 640 ? POINTER_RADIUS_MOBILE : POINTER_RADIUS_DESKTOP;
 
   const radiusSquared = radius * radius;
-
   let influence = 0;
 
-  for (let index = 0; index < highlightTrail.length; index += 1) {
-    const point = highlightTrail[index];
-
-    if (point === undefined) {
-      continue;
-    }
-
+  for (const point of highlightTrail) {
     const age = now - point.time;
 
     if (age >= HIGHLIGHT_LIFETIME) {
@@ -447,9 +401,7 @@ function getTrailInfluence(centerX: number, centerWorldY: number, now: number): 
     }
 
     const dx = centerX - point.x;
-
     const dy = centerWorldY - point.worldY;
-
     const distanceSquared = dx * dx + dy * dy;
 
     if (distanceSquared >= radiusSquared) {
@@ -457,16 +409,11 @@ function getTrailInfluence(centerX: number, centerWorldY: number, now: number): 
     }
 
     const distance = Math.sqrt(distanceSquared);
-
     const normalizedAge = age / HIGHLIGHT_LIFETIME;
-
     const fade = (1 - normalizedAge) ** 2;
-
     const proximity = smoothstep(radius, 0, distance);
 
-    const pointInfluence = proximity * fade * point.strength;
-
-    influence = Math.max(influence, pointInfluence);
+    influence = Math.max(influence, proximity * fade * point.strength);
 
     if (influence >= 1) {
       return 1;
@@ -477,21 +424,13 @@ function getTrailInfluence(centerX: number, centerWorldY: number, now: number): 
 }
 
 function hasActiveTrail(now: number): boolean {
-  if (highlightTrail.length === 0) {
-    return false;
-  }
-
   const newest = highlightTrail[highlightTrail.length - 1];
 
-  if (newest === undefined) {
-    return false;
-  }
-
-  return now - newest.time < HIGHLIGHT_LIFETIME;
+  return newest !== undefined && now - newest.time < HIGHLIGHT_LIFETIME;
 }
 
 /* -------------------------------------------------------------------------- */
-/* Ambient Gradient                                                           */
+/* Ambient gradient                                                           */
 /* -------------------------------------------------------------------------- */
 
 function rebuildAmbientGradient(palette: TrianglePalette): void {
@@ -516,13 +455,13 @@ function rebuildAmbientGradient(palette: TrianglePalette): void {
   ambientGradient = gradient;
 }
 
-function drawAmbientGradient(palette: TrianglePalette): void {
+function drawAmbientGradient(): void {
   if (context === null) {
     return;
   }
 
   if (ambientGradient === null) {
-    rebuildAmbientGradient(palette);
+    rebuildAmbientGradient(getPalette());
   }
 
   if (ambientGradient === null) {
@@ -530,7 +469,6 @@ function drawAmbientGradient(palette: TrianglePalette): void {
   }
 
   context.fillStyle = ambientGradient;
-
   context.fillRect(0, 0, width, height);
 }
 
@@ -562,7 +500,6 @@ function drawTriangle(
   const trailInfluence = getTrailInfluence(centerWorldX, centerWorldY, now);
 
   const offsetX = tile.driftX * idle;
-
   const offsetY = tile.driftY * idle;
 
   const baseAlpha = 0.045 + tile.tone * 0.055 + Math.abs(idle) * 0.018;
@@ -576,7 +513,6 @@ function drawTriangle(
   }
 
   context.save();
-
   context.translate(x + offsetX, screenY + offsetY);
 
   if (trailInfluence > 0.015) {
@@ -588,7 +524,6 @@ function drawTriangle(
       context.strokeStyle = `rgba(${palette.accent}, ${trailInfluence * 0.16})`;
 
       context.lineWidth = 1;
-
       context.stroke(path);
     }
   } else {
@@ -604,33 +539,30 @@ function drawTriangle(
 /* Animation                                                                  */
 /* -------------------------------------------------------------------------- */
 
-function drawFrame(timestamp = performance.now()): void {
-  animationFrame = null;
-
-  if (context === null) {
+function scheduleFrame(): void {
+  if (animationFrame !== null) {
     return;
   }
 
-  const element = canvas.value;
+  animationFrame = window.requestAnimationFrame(drawFrame);
+}
 
-  if (element === null) {
+function drawFrame(timestamp = performance.now()): void {
+  animationFrame = null;
+
+  if (context === null || canvas.value === null) {
     return;
   }
 
   const delta = lastFrameTime === 0 ? 16.67 : Math.min(timestamp - lastFrameTime, 48);
 
-  const parent = element.parentElement;
-
-  const motionEnabled =
-    reducedMotion?.matches !== true && parent?.classList.contains('background-motion-paused') !== true;
-
-  const sceneActive = parent?.classList.contains('background-scene-active') === true;
+  const motionEnabled = reducedMotion?.matches !== true;
 
   cleanupHighlightTrail(timestamp);
 
   const trailActive = hasActiveTrail(timestamp);
 
-  const shouldContinue = (sceneActive && motionEnabled && isDocumentVisible) || trailActive;
+  const shouldContinue = (props.active && motionEnabled && isDocumentVisible) || trailActive;
 
   const frameBudget = shouldContinue ? ACTIVE_FRAME_BUDGET_MS : IDLE_FRAME_BUDGET_MS;
 
@@ -644,7 +576,7 @@ function drawFrame(timestamp = performance.now()): void {
 
   lastFrameTime = timestamp;
 
-  if (motionEnabled) {
+  if (motionEnabled && props.active) {
     elapsedTime += delta / 1000;
   }
 
@@ -653,11 +585,11 @@ function drawFrame(timestamp = performance.now()): void {
   context.clearRect(0, 0, width, height);
 
   context.fillStyle = palette.background;
-
   context.fillRect(0, 0, width, height);
 
   syncRowsForScroll();
 
+  // Reduced motion stops animation while preserving a static visual state.
   const motion = motionEnabled ? 1 : 0.82;
 
   for (const row of tileRows) {
@@ -672,19 +604,11 @@ function drawFrame(timestamp = performance.now()): void {
     }
   }
 
-  drawAmbientGradient(palette);
+  drawAmbientGradient();
 
   if (shouldContinue) {
     scheduleFrame();
   }
-}
-
-function scheduleFrame(): void {
-  if (animationFrame !== null) {
-    return;
-  }
-
-  animationFrame = window.requestAnimationFrame(drawFrame);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -709,13 +633,11 @@ function resize(): void {
   height = Math.max(1, Math.round(rect.height || viewportHeight));
 
   scrollOffset = window.scrollY;
-
   previousScrollOffset = scrollOffset;
 
   dpr = Math.min(window.devicePixelRatio || 1, MAX_DPR);
 
   element.width = Math.round(width * dpr);
-
   element.height = Math.round(height * dpr);
 
   context = element.getContext('2d', {
@@ -732,7 +654,6 @@ function resize(): void {
   metrics = calculateGridMetrics();
 
   rebuildTrianglePaths();
-
   rebuildAmbientGradient(getPalette());
 
   const rowsNeeded = Math.max(6, Math.ceil((height + window.innerHeight * 1.2) / Math.max(metrics.cellHeight, 1)) + 4);
@@ -740,56 +661,49 @@ function resize(): void {
   buildTileRows(0, rowsNeeded);
 
   lastFrameTime = 0;
-
   scheduleFrame();
 }
 
 /* -------------------------------------------------------------------------- */
-/* Pointer Movement                                                           */
+/* Pointer input                                                              */
 /* -------------------------------------------------------------------------- */
 
 function handlePointerMove(event: PointerEvent): void {
+  if (!props.active) {
+    return;
+  }
+
   const now = performance.now();
 
   pointerPresent = true;
 
-  const newX = event.clientX;
-  const newY = event.clientY;
+  pointerScreenX = event.clientX;
+  pointerScreenY = event.clientY;
 
-  pointerX = newX;
-  pointerY = newY;
-
-  const newWorldX = newX;
-
-  const newWorldY = newY + scrollOffset;
+  const worldX = pointerScreenX;
+  const worldY = pointerScreenY + scrollOffset;
 
   if (!hasPointerWorldPosition) {
-    lastPointerWorldX = newWorldX;
-
-    lastPointerWorldY = newWorldY;
-
+    lastPointerWorldX = worldX;
+    lastPointerWorldY = worldY;
     hasPointerWorldPosition = true;
-
-    addHighlightPoint(newWorldX, newWorldY, 1, now);
-
     lastPointerPointTime = now;
 
+    addHighlightPoint(worldX, worldY, 1, now);
     scheduleFrame();
 
     return;
   }
 
-  const distance = Math.hypot(newWorldX - lastPointerWorldX, newWorldY - lastPointerWorldY);
+  const distance = Math.hypot(worldX - lastPointerWorldX, worldY - lastPointerWorldY);
 
   const timeSinceLastPoint = now - lastPointerPointTime;
 
   if (distance >= MIN_POINTER_DISTANCE || timeSinceLastPoint >= MIN_POINTER_INTERVAL) {
-    addHighlightSegment(lastPointerWorldX, lastPointerWorldY, newWorldX, newWorldY, 1, now);
+    addHighlightSegment(lastPointerWorldX, lastPointerWorldY, worldX, worldY, 1, now);
 
-    lastPointerWorldX = newWorldX;
-
-    lastPointerWorldY = newWorldY;
-
+    lastPointerWorldX = worldX;
+    lastPointerWorldY = worldY;
     lastPointerPointTime = now;
   }
 
@@ -797,33 +711,32 @@ function handlePointerMove(event: PointerEvent): void {
 }
 
 /* -------------------------------------------------------------------------- */
-/* Scroll                                                                     */
+/* Scroll input                                                               */
 /* -------------------------------------------------------------------------- */
 
 function handleScroll(): void {
   const newScrollOffset = window.scrollY;
-
   const scrollDelta = newScrollOffset - previousScrollOffset;
 
-  if (Math.abs(scrollDelta) < 0.01) {
+  scrollOffset = newScrollOffset;
+  previousScrollOffset = newScrollOffset;
+
+  if (!props.active || Math.abs(scrollDelta) < 0.01) {
     return;
   }
 
-  scrollOffset = newScrollOffset;
-
-  previousScrollOffset = newScrollOffset;
-
+  /*
+   * Scrolling changes the cursor's world position even when the cursor
+   * itself does not move. This creates a continuous highlight trail.
+   */
   if (pointerPresent && hasPointerWorldPosition) {
-    const newWorldX = pointerX;
+    const worldX = pointerScreenX;
+    const worldY = pointerScreenY + scrollOffset;
 
-    const newWorldY = pointerY + scrollOffset;
+    addHighlightSegment(lastPointerWorldX, lastPointerWorldY, worldX, worldY, 0.95);
 
-    addHighlightSegment(lastPointerWorldX, lastPointerWorldY, newWorldX, newWorldY, 0.95);
-
-    lastPointerWorldX = newWorldX;
-
-    lastPointerWorldY = newWorldY;
-
+    lastPointerWorldX = worldX;
+    lastPointerWorldY = worldY;
     lastPointerPointTime = performance.now();
   }
 
@@ -831,20 +744,18 @@ function handleScroll(): void {
 }
 
 /* -------------------------------------------------------------------------- */
-/* Pointer Cleanup                                                            */
+/* Pointer cleanup                                                             */
 /* -------------------------------------------------------------------------- */
 
 function clearPointer(): void {
   pointerPresent = false;
 
-  /**
-   * Keep the trail alive so it can fade out naturally.
-   */
+  // Let existing trail points fade out naturally.
   scheduleFrame();
 }
 
 /* -------------------------------------------------------------------------- */
-/* Visibility / Theme / Motion                                                */
+/* Visibility / theme / motion                                                */
 /* -------------------------------------------------------------------------- */
 
 function handleVisibilityChange(): void {
@@ -852,7 +763,7 @@ function handleVisibilityChange(): void {
 
   lastFrameTime = 0;
 
-  if (isDocumentVisible) {
+  if (isDocumentVisible && props.active) {
     scheduleFrame();
   }
 }
@@ -860,18 +771,18 @@ function handleVisibilityChange(): void {
 function handleThemeChange(): void {
   cachedPalette = null;
   cachedTheme = null;
-
   ambientGradient = null;
 
   lastFrameTime = 0;
-
   scheduleFrame();
 }
 
 function handleMotionPreferenceChange(): void {
   lastFrameTime = 0;
 
-  scheduleFrame();
+  if (props.active) {
+    scheduleFrame();
+  }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -918,22 +829,15 @@ onBeforeUnmount(() => {
 
   if (animationFrame !== null) {
     window.cancelAnimationFrame(animationFrame);
-
     animationFrame = null;
   }
 
   window.removeEventListener('resize', resize);
-
   window.removeEventListener('orientationchange', resize);
-
   window.removeEventListener('scroll', handleScroll);
-
   window.removeEventListener('pointermove', handlePointerMove);
-
   window.removeEventListener('pointerleave', clearPointer);
-
   window.removeEventListener('blur', clearPointer);
-
   window.removeEventListener('portfolio-theme-change', handleThemeChange);
 
   document.removeEventListener('visibilitychange', handleVisibilityChange);
@@ -944,25 +848,22 @@ onBeforeUnmount(() => {
   highlightTrail.length = 0;
 
   context = null;
-
   trianglePathA = null;
   trianglePathB = null;
   ambientGradient = null;
 
   cachedPalette = null;
   cachedTheme = null;
-
   reducedMotion = null;
 
   pointerPresent = false;
   hasPointerWorldPosition = false;
 
-  pointerX = 0;
-  pointerY = 0;
+  pointerScreenX = 0;
+  pointerScreenY = 0;
 
   lastPointerWorldX = 0;
   lastPointerWorldY = 0;
-
   lastPointerPointTime = 0;
 
   scrollOffset = 0;

@@ -2,25 +2,29 @@
 import type { BackgroundPreference } from '@/composables/usePortfolioPreferences';
 
 const route = useRoute();
-const normalizedPath = computed(() => route.path.replace(/\/+$/, '') || '/');
+
 const { backgroundPreference, backgroundMotionEnabled, initializePreferences, disposePreferences } =
   usePortfolioPreferences();
 
-const automaticBackground = computed<BackgroundPreference>(() => {
-  if (normalizedPath.value === '/') return 'wave';
-  if (normalizedPath.value === '/work') return 'triangles';
-  if (normalizedPath.value === '/projects') return 'particles';
-  if (normalizedPath.value === '/personal') return 'mesh';
-  return 'none';
-});
+const normalizedPath = computed(() => route.path.replace(/\/+$/, '') || '/');
 
-const selectedBackground = computed(() =>
+const automaticBackgrounds: Record<string, BackgroundPreference> = {
+  '/': 'wave',
+  '/work': 'triangles',
+  '/projects': 'particles',
+  '/personal': 'mesh',
+};
+
+const automaticBackground = computed(() => automaticBackgrounds[normalizedPath.value] ?? 'none');
+
+const selectedBackground = computed<BackgroundPreference>(() =>
   backgroundPreference.value === 'auto' ? automaticBackground.value : backgroundPreference.value,
 );
-const isWaveBackground = computed(() => selectedBackground.value === 'wave');
-const isTriangleBackground = computed(() => selectedBackground.value === 'triangles');
-const isParticleBackground = computed(() => selectedBackground.value === 'particles');
-const isMeshBackground = computed(() => selectedBackground.value === 'mesh');
+
+const isBackgroundActive = (background: BackgroundPreference) => selectedBackground.value === background;
+
+const isMotionEnabled = (background: BackgroundPreference) =>
+  isBackgroundActive(background) && backgroundMotionEnabled.value;
 
 onMounted(initializePreferences);
 onBeforeUnmount(disposePreferences);
@@ -29,8 +33,20 @@ useHead({
   script: [
     {
       key: 'theme-init',
-      innerHTML:
-        "(()=>{let theme;try{theme=localStorage.getItem('portfolio-theme')}catch{}document.documentElement.dataset.theme=theme==='light'||theme==='dark'?theme:matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'})();",
+      innerHTML: `(() => {
+        let theme;
+
+        try {
+          theme = localStorage.getItem('portfolio-theme');
+        } catch {}
+
+        document.documentElement.dataset.theme =
+          theme === 'light' || theme === 'dark'
+            ? theme
+            : matchMedia('(prefers-color-scheme: dark)').matches
+              ? 'dark'
+              : 'light';
+      })();`,
     },
   ],
 });
@@ -39,31 +55,45 @@ useHead({
 <template>
   <div class="relative isolate min-h-screen overflow-hidden">
     <NuxtRouteAnnouncer />
+
     <LayoutSiteSkipLink target="#content" />
+
     <WaveGridBackground
       class="background-scene"
-      :class="{ 'background-scene-active': isWaveBackground }"
-      :active="isWaveBackground && backgroundMotionEnabled"
+      :class="{
+        'background-scene-active': isBackgroundActive('wave'),
+      }"
+      :active="isMotionEnabled('wave')"
     />
+
     <TriangleBackground
       class="background-scene"
       :class="{
-        'background-scene-active': isTriangleBackground,
-        'background-motion-paused': !isTriangleBackground || !backgroundMotionEnabled,
+        'background-scene-active': isBackgroundActive('triangles'),
+        'background-motion-paused': !isMotionEnabled('triangles'),
       }"
     />
+
     <ParticleBackground
       class="background-scene"
-      :class="{ 'background-scene-active': isParticleBackground }"
-      :active="isParticleBackground && backgroundMotionEnabled"
+      :class="{
+        'background-scene-active': isBackgroundActive('particles'),
+      }"
+      :active="isMotionEnabled('particles')"
     />
+
     <PersonalTriangleMeshBackground
       class="background-scene"
-      :class="{ 'background-scene-active': isMeshBackground }"
-      :active="isMeshBackground && backgroundMotionEnabled"
+      :class="{
+        'background-scene-active': isBackgroundActive('mesh'),
+      }"
+      :active="isMotionEnabled('mesh')"
     />
+
     <LayoutSiteHeader />
+
     <slot />
+
     <LayoutSiteFooter />
   </div>
 </template>

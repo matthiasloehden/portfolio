@@ -16,29 +16,32 @@ const navigationItems = computed(() =>
     data-reveal="up"
   >
     <p class="m-0 flex justify-between">
-      <span>
-        © {{ site.name }}
-      </span>
-       <span
-        class="mx-2 text-primary hidden sm:inline-block"
+      <span> © {{ site.name }} </span>
+      <span
+        class="mx-2 hidden text-primary sm:inline-block"
         aria-hidden="true"
-        >/</span>
+        >/</span
+      >
       <a
-        class="text-primary transition-colors hover:text-foreground whitespace-nowrap"
+        class="whitespace-nowrap text-primary transition-colors hover:text-foreground"
         href="https://github.com/matthiasloehden/portfolio"
         target="_blank"
         rel="noopener noreferrer"
         aria-label="View source"
       >
-      View source 
-      <span
-              class="ml-1 text-primary"
-              aria-hidden="true"
-              >↗</span>
+        View source
+        <span
+          class="ml-1 text-primary"
+          aria-hidden="true"
+          >↗</span
+        >
       </a>
     </p>
 
-    <nav aria-label="Footer navigation" class="grow sm:grow-0">
+    <nav
+      aria-label="Footer navigation"
+      class="grow sm:grow-0"
+    >
       <ul class="m-0 flex list-none flex-wrap items-center gap-x-5 gap-y-3 p-0">
         <li
           v-for="item in navigationItems"
