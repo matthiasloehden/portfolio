@@ -138,7 +138,8 @@ function createRoundedPath(
     return ""
   }
 
-  let path = `M ${points[0].x} ${points[0].y}`
+  const first = points[0]!
+  let path = `M ${first.x} ${first.y}`
 
   for (let index = 1; index < points.length - 1; index++) {
     const previous = points[index - 1]!
