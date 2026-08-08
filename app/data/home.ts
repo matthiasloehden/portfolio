@@ -28,6 +28,6 @@ export const capabilities: Capability[] = [
     number: '03',
     layer: 'Independent practice',
     title: 'Personal',
-    skills: ['C#', 'Unity', 'C', 'Assembly', 'TypeScript', 'Nuxt', 'Docker', 'Local LLMs', 'Codex', 'Claude', 'Gemini'],
+    skills: ['Open Source', 'C#', 'Unity', 'C', 'Assembly', 'TypeScript', 'Nuxt', 'Docker', 'Local LLMs', 'Codex', 'Claude', 'Gemini'],
   },
 ];

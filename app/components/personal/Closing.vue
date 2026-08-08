@@ -33,9 +33,9 @@
         href="mailto:m.loehden@proton.me"
       />
       <SharedActionLink
-        label="View home page"
+        label="View source"
         symbol="→"
-        to="/"
+        href="https://github.com/matthiasloehden/portfolio"
         variant="text"
       />
     </div>
