@@ -23,7 +23,7 @@
       These projects connect technical implementation with the systems, standards, and people around it.
     </p>
     <div
-          class="close-actions flex items-center justify-center"
+      class="close-actions flex items-center justify-center"
       data-reveal="up"
       style="--reveal-delay: 180ms"
     >
@@ -32,7 +32,7 @@
         label="Start a conversation"
         href="mailto:m.loehden@proton.me"
       />
-            <SharedActionLink
+      <SharedActionLink
         label="View personal projects"
         symbol="→"
         to="/personal"
