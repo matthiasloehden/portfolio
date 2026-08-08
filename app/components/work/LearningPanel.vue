@@ -13,28 +13,28 @@
       </div>
       <div class="content-cards grid">
         <div class="featured-content">
-  <i aria-hidden="true"></i>
-  <strong>Learning event</strong>
-  <small>Registration · badges · feedback</small>
-</div>
+          <i aria-hidden="true"></i>
+          <strong>Learning event</strong>
+          <small>Registration · badges · feedback</small>
+        </div>
 
-<div>
-  <span aria-hidden="true">▶</span>
-  <strong>Video</strong>
-  <small>On demand</small>
-</div>
+        <div>
+          <span aria-hidden="true">▶</span>
+          <strong>Video</strong>
+          <small>On demand</small>
+        </div>
 
-<div>
-  <span aria-hidden="true">◉</span>
-  <strong>Podcast</strong>
-  <small>Audio series</small>
-</div>
+        <div>
+          <span aria-hidden="true">◉</span>
+          <strong>Podcast</strong>
+          <small>Audio series</small>
+        </div>
 
-<div>
-  <span aria-hidden="true">¶</span>
-  <strong>Article</strong>
-  <small>Editorial</small>
-</div>
+        <div>
+          <span aria-hidden="true">¶</span>
+          <strong>Article</strong>
+          <small>Editorial</small>
+        </div>
       </div>
     </div>
     <div class="panel-status flex items-center border-t border-line">
@@ -93,13 +93,7 @@
   min-height: 8rem;
   background:
     linear-gradient(110deg, var(--surface-hover), transparent),
-    repeating-linear-gradient(
-      90deg,
-      transparent,
-      transparent 2rem,
-      var(--border) 2rem,
-      var(--border) calc(2rem + 1px)
-    );
+    repeating-linear-gradient(90deg, transparent, transparent 2rem, var(--border) 2rem, var(--border) calc(2rem + 1px));
 }
 
 .content-cards i,
