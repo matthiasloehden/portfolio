@@ -32,7 +32,7 @@ useSeoMeta({
       />
 
       <section
-        class="grid border-t border-line grid-cols-1 gap-12 py-20 md:grid-cols-[minmax(15rem,0.65fr)_minmax(0,1.35fr)] md:gap-[6vw] md:py-[6vw]"
+        class="grid grid-cols-1 gap-12 border-t border-line py-20 md:grid-cols-[minmax(15rem,0.65fr)_minmax(0,1.35fr)] md:gap-[6vw] md:py-[6vw]"
         aria-labelledby="work-context-title"
       >
         <div
@@ -47,17 +47,17 @@ useSeoMeta({
             One foundation, different systems.
           </h2>
 
-          <div class="flex flex-col gap-2 mt-8">
+          <div class="mt-8 flex flex-col gap-2">
             <ul
               v-for="(items, category) in coreWorkStack"
               :key="category"
-              class="flex flex-wrap gap-[0.55rem] list-none p-0"
+              class="flex list-none flex-wrap gap-[0.55rem] p-0"
               :aria-label="category"
             >
               <li
                 v-for="item in items"
                 :key="item"
-                class="border border-line px-[0.7rem] py-2 text-muted font-mono text-[0.62rem]"
+                class="border border-line px-[0.7rem] py-2 font-mono text-[0.62rem] text-muted"
               >
                 {{ item }}
               </li>
@@ -70,14 +70,12 @@ useSeoMeta({
           data-reveal="right"
           style="--reveal-delay: 100ms"
         >
-        <h3 class="highlight-h3">
-  Highlights
-</h3>
-          <ul class="mt-4 border-t border-line list-none p-0">
+          <h3 class="highlight-h3">Highlights</h3>
+          <ul class="mt-4 list-none border-t border-line p-0">
             <li
               v-for="highlight in workHighlights"
               :key="highlight"
-              class="motion-hover border-b border-line py-[0.8rem] text-muted leading-[1.55]"
+              class="motion-hover border-b border-line py-[0.8rem] leading-[1.55] text-muted"
             >
               {{ highlight }}
             </li>
