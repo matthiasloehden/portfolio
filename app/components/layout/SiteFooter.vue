@@ -11,7 +11,9 @@ const navigationItems = computed(() =>
 </script>
 
 <template>
-  <footer class="relative z-1 site-container flex flex-col gap-6 border-t border-line py-9 font-mono text-[0.63rem] text-muted sm:flex-row sm:items-center sm:justify-between">
+  <footer
+    class="relative z-1 site-container flex flex-col gap-6 border-t border-line py-9 font-mono text-[0.63rem] text-muted sm:flex-row sm:items-center sm:justify-between"
+  >
     <p class="m-0 flex justify-between">
       <span> © {{ site.name }} </span>
       <span
