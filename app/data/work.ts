@@ -7,24 +7,18 @@ export const workList: CaseStudyListItem[] = [
   { href: '#client-platform', number: '04', title: 'Client platform', category: 'CMS & communication' },
 ];
 
-export const coreWorkStack = [
-  'PHP',
-  'Laravel',
-  'Inertia.js',
-  'Vue.js',
-  'Tailwind CSS',
-  'MySQL',
-  'Redis',
-  'Meilisearch',
-];
+export const coreWorkStack = {
+  languages: ['PHP', 'SQL', 'JavaScript'],
+  backend: ['Laravel', 'MySQL', 'Redis', 'Meilisearch'],
+  frontend: ['Vue', 'Inertia.js', 'Tailwind CSS'],
+};
 
 export const workHighlights = [
-  'Long-term development of production enterprise applications',
-  'Backend architecture, data modelling, and application workflows',
-  'Search and caching with Meilisearch and Redis',
-  'Integrations between applications, services, and external systems',
-  'Refactoring and maintenance of established codebases',
-  'Software connecting digital workflows with real-world operations',
+  'Backend architecture, data modeling, and application workflows',
+  'Single-page applications with Inertia.js',
+  'Caching and evaluating complex user permissions with Redis',
+  'Search and filtering of large datasets with Meilisearch',
+  'Integrating applications with external services and physical systems',
 ];
 
 export const learningCase: WorkCaseStudyContent = {

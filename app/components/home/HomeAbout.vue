@@ -25,8 +25,9 @@
         data-reveal="right"
         style="--reveal-delay: 90ms"
       >
-        My focus is straightforward: understand the real problem, choose the simplest durable solution, and build
-        applications that remain understandable as requirements and systems evolve.
+        I like understanding how systems work and why they are built the way they are. I want to understand the actual
+        problem, make deliberate technical decisions, and build solutions that are reliable, maintainable, and fit for
+        purpose.
       </p>
       <div
         class="principles flex flex-wrap"

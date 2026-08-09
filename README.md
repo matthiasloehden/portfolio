@@ -10,7 +10,7 @@ Live site: [matthiasloehden.github.io/portfolio](https://matthiasloehden.github.
 
 | Area | What to inspect |
 | --- | --- |
-| route-aware background orchestration | [`app/layouts/default.vue`](app/layouts/default.vue) selects the ambient scene per route, while [`app/composables/usePortfolioPreferences.ts`](app/composables/usePortfolioPreferences.ts) handles theme and motion preferences. |
+| background orchestration | [`app/layouts/default.vue`](app/layouts/default.vue) selects the ambient scene per route, while [`app/composables/usePortfolioPreferences.ts`](app/composables/usePortfolioPreferences.ts) handles theme and motion preferences. |
 | wave grid background | [`app/components/WaveGridBackground.vue`](app/components/WaveGridBackground.vue) renders a Three.js shader scene with pointer, touch, scroll, reduced-motion, and inactive-tab handling. |
 | triangle background | [`app/components/TriangleBackground.vue`](app/components/TriangleBackground.vue) uses lightweight CSS geometry and pointer sampling instead of a heavy animation runtime. |
 | particle background | [`app/components/ParticleBackground.vue`](app/components/ParticleBackground.vue) implements a responsive GPU-accelerated particle simulation that reacts to mouse movement and scrolling. |

@@ -32,7 +32,7 @@ useSeoMeta({
       />
 
       <section
-        class="work-context grid border-t border-line"
+        class="grid border-t border-line grid-cols-1 gap-12 py-20 md:grid-cols-[minmax(15rem,0.65fr)_minmax(0,1.35fr)] md:gap-[6vw] md:py-[6vw]"
         aria-labelledby="work-context-title"
       >
         <div
@@ -40,31 +40,44 @@ useSeoMeta({
           data-reveal="left"
         >
           <SharedSectionKicker label="Core stack across these products" />
-          <h2 id="work-context-title">One foundation, different systems.</h2>
-          <ul
-            class="stack-list flex flex-wrap"
-            aria-label="Core professional stack"
+          <h2
+            id="work-context-title"
+            class="work-title mt-6 max-w-[10ch]"
           >
-            <li
-              v-for="item in coreWorkStack"
-              :key="item"
+            One foundation, different systems.
+          </h2>
+
+          <div class="flex flex-col gap-2 mt-8">
+            <ul
+              v-for="(items, category) in coreWorkStack"
+              :key="category"
+              class="flex flex-wrap gap-[0.55rem] list-none p-0"
+              :aria-label="category"
             >
-              {{ item }}
-            </li>
-          </ul>
+              <li
+                v-for="item in items"
+                :key="item"
+                class="border border-line px-[0.7rem] py-2 text-muted font-mono text-[0.62rem]"
+              >
+                {{ item }}
+              </li>
+            </ul>
+          </div>
         </div>
 
         <div
-          class="highlight-block"
+          class="self-end"
           data-reveal="right"
           style="--reveal-delay: 100ms"
         >
-          <h3>Highlights</h3>
-          <ul>
+        <h3 class="highlight-h3">
+  Highlights
+</h3>
+          <ul class="mt-4 border-t border-line list-none p-0">
             <li
               v-for="highlight in workHighlights"
               :key="highlight"
-              class="motion-hover"
+              class="motion-hover border-b border-line py-[0.8rem] text-muted leading-[1.55]"
             >
               {{ highlight }}
             </li>
@@ -100,39 +113,7 @@ useSeoMeta({
 </template>
 
 <style scoped>
-.work-context {
-  grid-template-columns: minmax(15rem, 0.65fr) minmax(0, 1.35fr);
-  gap: clamp(3rem, 8vw, 8rem);
-  padding-block: clamp(5rem, 8vw, 7rem);
-}
-
-.work-context h2 {
-  max-width: 10ch;
-  margin-top: 1.5rem;
-  font-size: clamp(2.8rem, 5vw, 4.7rem);
-  line-height: 0.92;
-}
-
-.stack-list {
-  gap: 0.55rem;
-  margin: 2rem 0 0;
-  padding: 0;
-  list-style: none;
-}
-
-.stack-list li {
-  border: 1px solid var(--border);
-  padding: 0.5rem 0.7rem;
-  color: var(--muted);
-  font-family: var(--mono-font);
-  font-size: 0.62rem;
-}
-
-.highlight-block {
-  align-self: end;
-}
-
-.highlight-block h3 {
+.highlight-h3 {
   color: var(--accent-bright);
   font-family: var(--mono-font);
   font-size: 0.62rem;
@@ -140,24 +121,10 @@ useSeoMeta({
   text-transform: uppercase;
 }
 
-.highlight-block ul {
-  margin: 1rem 0 0;
-  padding: 0;
-  border-top: 1px solid var(--border);
-  list-style: none;
-}
-
-.highlight-block li {
-  padding-block: 0.8rem;
-  border-bottom: 1px solid var(--border);
-  color: var(--muted);
-  line-height: 1.55;
-}
-
-@media (max-width: 820px) {
-  .work-context {
-    grid-template-columns: 1fr;
-  }
+.work-title {
+  margin-top: 1.5rem;
+  font-size: clamp(2.8rem, 5vw, 4.7rem);
+  line-height: 0.92;
 }
 
 @media (hover: hover) and (pointer: fine) {
