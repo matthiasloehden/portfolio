@@ -74,6 +74,5 @@ h2 {
   .closing-copy {
     margin-left: 0;
   }
-
 }
 </style>

@@ -13,9 +13,7 @@
  */
 
 export default defineNuxtPlugin(() => {
-  const motionPreference = window.matchMedia(
-    '(prefers-reduced-motion: reduce)',
-  );
+  const motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)');
 
   /**
    * Defines the reveal area.
@@ -69,18 +67,13 @@ export default defineNuxtPlugin(() => {
    * Used during initialisation and when new DOM nodes are added.
    */
   function bindScope(scope: ParentNode): void {
-    if (
-      scope instanceof HTMLElement &&
-      scope.matches('[data-reveal]')
-    ) {
+    if (scope instanceof HTMLElement && scope.matches('[data-reveal]')) {
       bindElement(scope);
     }
 
-    scope
-      .querySelectorAll('[data-reveal]')
-      .forEach((element) => {
-        bindElement(element as HTMLElement);
-      });
+    scope.querySelectorAll('[data-reveal]').forEach((element) => {
+      bindElement(element as HTMLElement);
+    });
   }
 
   /**
@@ -105,11 +98,9 @@ export default defineNuxtPlugin(() => {
    * Used when reduced motion is enabled.
    */
   function revealAll(): void {
-    document
-      .querySelectorAll('[data-reveal]')
-      .forEach((element) => {
-        (element as HTMLElement).classList.add('is-revealed');
-      });
+    document.querySelectorAll('[data-reveal]').forEach((element) => {
+      (element as HTMLElement).classList.add('is-revealed');
+    });
   }
 
   /**
