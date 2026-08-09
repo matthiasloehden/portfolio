@@ -28,7 +28,6 @@
       style="--reveal-delay: 180ms"
     >
       <SharedActionLink
-        class="mt-9"
         label="Start a conversation"
         href="mailto:m.loehden@proton.me"
       />

@@ -21,10 +21,8 @@ test-results/
 .env.*
 !.env.example
 
-# Private source material
-lebenslauf*.pdf
-
 # Editors and operating systems
 .idea/
 .vscode/
 .DS_Store
+.AGENTS.md
