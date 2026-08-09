@@ -12,7 +12,7 @@ export const streamingCase: AcademicCaseStudyContent = {
   category: 'Scalability & big data',
   type: 'Streaming architecture',
   title: 'From raw events to a live operational view.',
-  lead: 'A proof of concept focused on scalable event processing and big-data analytics with Apache Kafka, Apache Flink, ClickHouse, and Grafana.',
+  lead: 'A prototype centered on distributed systems and real-time data processing, built around a streaming pipeline for live operational insight.',
   description:
     'Kafka decoupled event producers from downstream consumers. Flink validated, enriched, and aggregated the stream before writing query-ready records to ClickHouse. Grafana turned that data into an operational dashboard for inspecting volume, trends, and processing health.',
   notes: [
@@ -33,7 +33,7 @@ export const passkeysCase: AcademicCaseStudyContent = {
   category: 'Security design',
   type: 'Authentication architecture',
   title: 'Passwordless sign-in with FIDO2 passkeys.',
-  lead: 'A prototype focused on designing a more secure authentication system with FIDO2 and WebAuthn from the beginning.',
+  lead: 'A proof of concept exploring secure system design and modern authentication, built around a FIDO2-based passwordless sign-in system.',
   description:
     'Rather than treating security as an additional layer, the system was designed around authentication flows, credentials, trust boundaries, and sensitive operations. Registration associated a public key with the user, while authentication used a scoped challenge-response ceremony protected by the browser and authenticator.',
   notes: [

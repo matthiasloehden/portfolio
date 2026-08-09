@@ -53,7 +53,7 @@ export const retailCase: WorkCaseStudyContent = {
   title: 'Retail operations platform',
   summary: 'A data-heavy operational workspace for tasks, shop records, changes, and reporting.',
   paragraphs: [
-    'The platform gave employees a central place to receive and complete tasks while maintaining the operational record for each shop. Individual shop pages collected opening times, floor layouts, location data, and location or postal-change workflows.',
+    'Our team built the platform that gave employees a central place to receive and complete tasks while maintaining the operational record for each shop. Individual shop pages collected opening times, floor layouts, location data, and location or postal-change workflows.',
     'Its analytics brought shop, task, and related platform data together in Excel reports. The flow also worked in reverse: edited spreadsheets could be uploaded and synchronized back to the database.',
   ],
   facts: [

@@ -36,7 +36,7 @@ performance fallbacks, and automated quality gates.
 | Playwright | Dynamic quality management for browser behavior |
 | GitHub Actions | CI/CD pipeline that automates type checking, linting, formatting validation, static generation, browser tests, and automatic deployment to GitHub Pages on successful builds. |
 
-## Open Source Contributions 
+## My Open Source Contributions 
 | Work | Status | Link |
 | --- | --- | --- |
 | Smart-home control for `magic_mapper` | Merged | [feature/add-tcp-command](https://github.com/andrewfraley/magic_mapper/commit/9f45787c178d706ead3e8574dae0f2775ac24d7b) |

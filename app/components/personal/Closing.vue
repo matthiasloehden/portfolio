@@ -75,9 +75,5 @@ h2 {
     margin-left: 0;
   }
 
-  .close-actions {
-    align-items: flex-start;
-    flex-direction: column;
-  }
 }
 </style>

@@ -66,11 +66,6 @@ h2 {
 }
 
 @media (max-width: 620px) {
-  .close-actions {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
   .work-close {
     text-align: left;
   }
