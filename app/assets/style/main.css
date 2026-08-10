@@ -532,6 +532,12 @@ h2 {
     background-color 180ms ease,
     transform 180ms ease;
 }
+@media (max-width: 768px) {
+.capability-grid article + article,
+  .capability-grid > a + a > article {
+  border-left: 1px solid var(--border);
+}
+}
 .capability-grid article + article,
 .capability-grid > a + a > article {
   border-left: 1px solid var(--border);
@@ -930,11 +936,20 @@ h2 {
 
   .capability-grid article {
     min-height: 14rem;
+    border-left: 0;
+    border-right: 0;
+    border-top: 1px solid var(--border);
   }
 
-  .capability-grid article + article {
+  .capability-grid article + article,
+  .capability-grid > a + a > article {
     border-top: 1px solid var(--border);
     border-left: 0;
+  }
+
+  .capability-grid > a:last-child > article,
+  .capability .capability-grid article:only-of-type {
+    border-bottom: 1px solid var(--border);
   }
 
   .capability-grid h3 {
