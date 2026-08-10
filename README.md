@@ -1,6 +1,7 @@
 # Matthias Löhden — Portfolio
 
-[![Test and deploy](https://github.com/matthiasloehden/portfolio/actions/workflows/ci.yml/badge.svg)](https://github.com/matthiasloehden/portfolio/actions/workflows/ci.yml)
+[![CI](https://github.com/matthiasloehden/portfolio/actions/workflows/ci.yml/badge.svg)](https://github.com/matthiasloehden/portfolio/actions/workflows/ci.yml)
+[![Deploy](https://github.com/matthiasloehden/portfolio/actions/workflows/deploy.yml/badge.svg)](https://github.com/matthiasloehden/portfolio/actions/workflows/deploy.yml)
 
 Personal portfolio for Matthias Löhden, built as a polished static Nuxt site and as a reviewable code sample.
 
