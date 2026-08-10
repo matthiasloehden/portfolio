@@ -23,7 +23,7 @@
           data-reveal="up"
           style="--reveal-delay: 160ms"
         >
-          I’m Matthias, a software engineer focused on building reliable applications and the systems behind them—from
+          I’m Matthias, a software engineer focused on building reliable applications and the systems behind them, from
           backend architecture and data to interfaces, integrations, and long-term maintainability.
         </p>
         <div
