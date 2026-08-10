@@ -21,6 +21,10 @@ env:
   NUXT_APP_BASE_URL: /${{ github.event.repository.name }}/
 
 jobs:
+  # ============================================================
+  # Static checks
+  # Runs independently from build and E2E
+  # ============================================================
   static-check:
     name: Static check
     runs-on: ubuntu-latest
@@ -34,12 +38,13 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version: 22
+          package-manager-cache: false
 
       - name: Enable Corepack
         run: corepack enable
 
-      - name: Install project Yarn
-        run: corepack install
+      - name: Activate Yarn
+        run: corepack prepare yarn@4.13.0 --activate
 
       - name: Verify Node and Yarn
         run: |
@@ -58,6 +63,10 @@ jobs:
       - name: Format check
         run: yarn format:check
 
+  # ============================================================
+  # Build
+  # Runs independently from static checks
+  # ============================================================
   build:
     name: Build
     runs-on: ubuntu-latest
@@ -71,12 +80,13 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version: 22
+          package-manager-cache: false
 
       - name: Enable Corepack
         run: corepack enable
 
-      - name: Install project Yarn
-        run: corepack install
+      - name: Activate Yarn
+        run: corepack prepare yarn@4.13.0 --activate
 
       - name: Verify Node and Yarn
         run: |
@@ -96,6 +106,11 @@ jobs:
           path: .output/public
           retention-days: 1
 
+  # ============================================================
+  # E2E
+  # Starts as soon as build succeeds.
+  # Does NOT depend on static-check.
+  # ============================================================
   e2e:
     name: E2E tests
     runs-on: ubuntu-latest
@@ -110,12 +125,13 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version: 22
+          package-manager-cache: false
 
       - name: Enable Corepack
         run: corepack enable
 
-      - name: Install project Yarn
-        run: corepack install
+      - name: Activate Yarn
+        run: corepack prepare yarn@4.13.0 --activate
 
       - name: Verify Node and Yarn
         run: |
@@ -137,6 +153,11 @@ jobs:
       - name: Run browser tests
         run: yarn test:e2e
 
+  # ============================================================
+  # Deploy
+  # Only runs after static-check, build and E2E succeed.
+  # Skipped for pull requests.
+  # ============================================================
   deploy:
     name: Deploy GitHub Pages
     if: github.event_name != 'pull_request'
