@@ -23,7 +23,7 @@ env:
 jobs:
   # ============================================================
   # Static checks
-  # Runs independently from build and E2E
+  # Runs in parallel with build + E2E
   # ============================================================
   static-check:
     name: Static check
@@ -64,13 +64,14 @@ jobs:
         run: yarn format:check
 
   # ============================================================
-  # Build
-  # Runs independently from static checks
+  # Build + E2E
+  # Runs in parallel with static-check.
+  # Build and E2E share the same runner and dependencies.
   # ============================================================
-  build:
-    name: Build
+  build-and-e2e:
+    name: Build and E2E
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
 
     steps:
       - name: Checkout
@@ -99,23 +100,35 @@ jobs:
       - name: Generate static site
         run: yarn generate
 
-      - name: Upload static site
-        uses: actions/upload-artifact@v4
-        with:
-          name: static-site
-          path: .output/public
-          retention-days: 1
+      - name: Install Chromium
+        run: yarn playwright install --with-deps chromium
+
+      - name: Run browser tests
+        run: yarn test:e2e
 
   # ============================================================
-  # E2E
-  # Starts as soon as build succeeds.
-  # Does NOT depend on static-check.
+  # Deploy
+  # Only runs when static checks AND build/E2E succeed.
+  # Skipped automatically for pull requests.
   # ============================================================
-  e2e:
-    name: E2E tests
+  deploy:
+    name: Deploy GitHub Pages
+    if: github.event_name != 'pull_request'
+    needs:
+      - static-check
+      - build-and-e2e
+
     runs-on: ubuntu-latest
-    timeout-minutes: 20
-    needs: build
+    timeout-minutes: 10
+
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
       - name: Checkout
@@ -133,57 +146,11 @@ jobs:
       - name: Activate Yarn
         run: corepack prepare yarn@4.13.0 --activate
 
-      - name: Verify Node and Yarn
-        run: |
-          node --version
-          yarn --version
-
       - name: Install dependencies
         run: yarn install --immutable
 
-      - name: Install Chromium
-        run: yarn playwright install --with-deps chromium
-
-      - name: Download static site
-        uses: actions/download-artifact@v4
-        with:
-          name: static-site
-          path: .output/public
-
-      - name: Run browser tests
-        run: yarn test:e2e
-
-  # ============================================================
-  # Deploy
-  # Only runs after static-check, build and E2E succeed.
-  # Skipped for pull requests.
-  # ============================================================
-  deploy:
-    name: Deploy GitHub Pages
-    if: github.event_name != 'pull_request'
-    needs:
-      - static-check
-      - build
-      - e2e
-
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-
-    permissions:
-      contents: read
-      pages: write
-      id-token: write
-
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-
-    steps:
-      - name: Download static site
-        uses: actions/download-artifact@v4
-        with:
-          name: static-site
-          path: .output/public
+      - name: Generate static site
+        run: yarn generate
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
