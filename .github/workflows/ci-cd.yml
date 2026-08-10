@@ -1,0 +1,252 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [main]
+
+  pull_request:
+    branches: [main]
+
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: What should this workflow run?
+        required: true
+        default: ci
+        type: choice
+        options:
+          - ci
+          - auto-fix
+
+concurrency:
+  group: ci-cd-${{ github.ref }}-${{ inputs.mode || 'ci' }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  CI: true
+  NUXT_APP_BASE_URL: /${{ github.event.repository.name }}/
+
+jobs:
+  # ============================================================
+  # Static checks
+  #
+  # Runs in parallel with build + E2E.
+  # ============================================================
+  static-check:
+    name: Static Check
+    if: >
+      github.event_name != 'workflow_dispatch' ||
+      inputs.mode == 'ci'
+
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          package-manager-cache: false
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Activate Yarn
+        run: corepack prepare yarn@4.13.0 --activate
+
+      - name: Verify Node and Yarn
+        run: |
+          node --version
+          yarn --version
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Type check
+        run: yarn type-check
+
+      - name: Lint
+        run: yarn lint
+
+      - name: Format check
+        run: yarn format:check
+
+  # ============================================================
+  # Build + E2E
+  #
+  # Runs in parallel with static-check.
+  # The generated site is uploaded as an artifact and used
+  # directly by the deploy job.
+  # ============================================================
+  build-and-e2e:
+    name: Build + E2E
+    if: >
+      github.event_name != 'workflow_dispatch' ||
+      inputs.mode == 'ci'
+
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          package-manager-cache: false
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Activate Yarn
+        run: corepack prepare yarn@4.13.0 --activate
+
+      - name: Verify Node and Yarn
+        run: |
+          node --version
+          yarn --version
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Generate static site
+        run: yarn generate
+
+      - name: Install Chromium
+        run: yarn playwright install --with-deps chromium
+
+      - name: Run browser tests
+        run: yarn test:e2e
+
+      - name: Upload static site
+        uses: actions/upload-artifact@v4
+        with:
+          name: static-site
+          path: .output/public
+          retention-days: 1
+
+  # ============================================================
+  # Deploy
+  #
+  # Uses the exact artifact produced by build-and-e2e.
+  # There is NO second build.
+  # ============================================================
+  deploy:
+    name: Deploy
+    if: >
+      github.event_name != 'pull_request' &&
+      (
+        github.event_name != 'workflow_dispatch' ||
+        inputs.mode == 'ci'
+      )
+
+    needs:
+      - static-check
+      - build-and-e2e
+
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Download static site
+        uses: actions/download-artifact@v4
+        with:
+          name: static-site
+          path: .output/public
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload GitHub Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: .output/public
+
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+  # ============================================================
+  # Auto Fix
+  #
+  # Only runs when manually starting the workflow with
+  # "mode: auto-fix".
+  # ============================================================
+  auto-fix:
+    name: Auto Fix
+    if: >
+      github.event_name == 'workflow_dispatch' &&
+      inputs.mode == 'auto-fix'
+
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          package-manager-cache: false
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Activate Yarn
+        run: corepack prepare yarn@4.13.0 --activate
+
+      - name: Verify Node and Yarn
+        run: |
+          node --version
+          yarn --version
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Fix formatting
+        run: yarn format
+
+      - name: Fix lint
+        run: yarn lint:fix
+
+      - name: Type check
+        run: yarn type-check
+
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add .
+
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+
+          git commit -m "style: auto-fix formatting and lint"
+          git push
