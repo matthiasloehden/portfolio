@@ -31,7 +31,7 @@ performance fallbacks, and automated quality gates.
 | Tailwind CSS | Consistent responsive layout, spacing, typography, and maintainable utility usage. |
 | Vite | Fast development server and build pipeline, including Tailwind's Vite integration. |
 | `vue-tsc` | Static quality management for Vue and TypeScript correctness. |
-| `oxlint` / `oxfmt` | Static quality management for linting and formatting. |
+| `oxlint`/`oxfmt` | Static quality management for linting and formatting. |
 | Playwright | Dynamic quality management for browser behavior |
 | GitHub Actions | CI/CD pipeline that automates type checking, linting, formatting validation, static generation, browser tests, and automatic deployment to GitHub Pages on successful builds. |
 
