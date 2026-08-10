@@ -533,10 +533,10 @@ h2 {
     transform 180ms ease;
 }
 @media (max-width: 768px) {
-.capability-grid article + article,
+  .capability-grid article + article,
   .capability-grid > a + a > article {
-  border-left: 1px solid var(--border);
-}
+    border-left: 1px solid var(--border);
+  }
 }
 .capability-grid article + article,
 .capability-grid > a + a > article {
