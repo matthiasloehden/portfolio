@@ -30,10 +30,10 @@ jobs:
       - name: Enable Corepack
         run: corepack enable
 
-      - name: Activate Yarn
-        run: corepack prepare yarn@4.13.0 --activate
+      - name: Install project Yarn
+        run: corepack install
 
-      - name: Verify versions
+      - name: Verify Node and Yarn
         run: |
           node --version
           yarn --version
