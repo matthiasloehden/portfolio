@@ -23,7 +23,6 @@ env:
 jobs:
   # ============================================================
   # Static checks
-  # Runs independently from build and E2E
   # ============================================================
   static-check:
     name: Static check
@@ -35,13 +34,20 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 22
-          cache: yarn
 
       - name: Enable Corepack
         run: corepack enable
+
+      - name: Activate Yarn
+        run: corepack prepare yarn@4.13.0 --activate
+
+      - name: Verify versions
+        run: |
+          node --version
+          yarn --version
 
       - name: Install dependencies
         run: yarn install --immutable
@@ -57,7 +63,6 @@ jobs:
 
   # ============================================================
   # Build
-  # Runs independently from static checks
   # ============================================================
   build:
     name: Build
@@ -69,13 +74,20 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 22
-          cache: yarn
 
       - name: Enable Corepack
         run: corepack enable
+
+      - name: Activate Yarn
+        run: corepack prepare yarn@4.13.0 --activate
+
+      - name: Verify versions
+        run: |
+          node --version
+          yarn --version
 
       - name: Install dependencies
         run: yarn install --immutable
@@ -92,8 +104,6 @@ jobs:
 
   # ============================================================
   # E2E
-  # Starts as soon as build succeeds.
-  # Does NOT depend on static-check.
   # ============================================================
   e2e:
     name: E2E tests
@@ -106,13 +116,20 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 22
-          cache: yarn
 
       - name: Enable Corepack
         run: corepack enable
+
+      - name: Activate Yarn
+        run: corepack prepare yarn@4.13.0 --activate
+
+      - name: Verify versions
+        run: |
+          node --version
+          yarn --version
 
       - name: Install dependencies
         run: yarn install --immutable
@@ -131,8 +148,6 @@ jobs:
 
   # ============================================================
   # Deploy
-  # Only runs when ALL required jobs succeed.
-  # Skipped automatically for pull requests.
   # ============================================================
   deploy:
     name: Deploy GitHub Pages

@@ -23,13 +23,20 @@ jobs:
           ref: ${{ github.ref }}
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 22
-          cache: yarn
 
       - name: Enable Corepack
         run: corepack enable
+
+      - name: Activate Yarn
+        run: corepack prepare yarn@4.13.0 --activate
+
+      - name: Verify versions
+        run: |
+          node --version
+          yarn --version
 
       - name: Install dependencies
         run: yarn install --immutable
