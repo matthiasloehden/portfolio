@@ -1,14 +1,14 @@
 <script setup lang="ts">
 /**
- * Interactive WebGL background with a perspective grid,
- * independent idle, cursor-movement, cursor-click and scroll channels, and
- * temporary ripples triggered by enabled interactions.
+ * Interactive WebGL background with independent idle, cursor-movement,
+ * cursor-click and scroll channels.
  *
- * Rendering pauses while inactive, hidden or static. WebGL failure
- * falls back to CSS so the visual never becomes a page dependency.
+ * Vue owns browser input and lifecycle orchestration. WaveGridRenderer owns the
+ * Three.js scene and GPU resources. Rendering pauses while inactive, hidden or
+ * static, and WebGL failure falls back to CSS.
  */
 
-import * as THREE from 'three';
+import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
 
 import {
   createDefaultBackgroundAnimationSettings,
@@ -16,20 +16,17 @@ import {
   WAVE_GRID_MAX_TRAIL_POINTS,
   type WaveGridBackgroundProps,
 } from '@/types/background';
-import { createWaveGridGeometry } from './geometry';
-import { createWaveGridVertexShader, waveGridFragmentShader } from './shaders';
 
-interface TrailPoint {
-  x: number;
-  z: number;
-  createdAt: number;
-  velocity: number;
-}
-
-interface GridPosition {
-  x: number;
-  z: number;
-}
+import {
+  CLICK_RIPPLE_LAYERS,
+  DEFAULT_RIPPLE_LAYERS,
+  getWaveGridPalette,
+  RIPPLE_LAYER_OFFSET,
+  SCROLL_RIPPLE_THROTTLE,
+  TOUCH_RIPPLE_THROTTLE,
+} from './config';
+import type { GridPosition, TrailPoint } from './types';
+import { WaveGridRenderer } from './WaveGridRenderer';
 
 const props = withDefaults(defineProps<WaveGridBackgroundProps>(), {
   active: true,
@@ -37,49 +34,17 @@ const props = withDefaults(defineProps<WaveGridBackgroundProps>(), {
   settings: createDefaultWaveGridSettings,
 });
 
-// Shader capacity is fixed so trail-length changes do not require recompilation.
-const MAX_TRAIL_POINTS = WAVE_GRID_MAX_TRAIL_POINTS;
-
-// Minimum time between scroll-generated ripples.
-const SCROLL_RIPPLE_THROTTLE = 80;
-
-// Minimum time between touch-movement ripples.
-const TOUCH_RIPPLE_THROTTLE = 80;
-
-// Time offset between layered ripple points.
-const RIPPLE_LAYER_OFFSET = 55;
-
-// Number of points used for a deliberate click/tap ripple.
-const CLICK_RIPPLE_LAYERS = 3;
-
-// Number of points used for passive scroll/touch ripples.
-const DEFAULT_RIPPLE_LAYERS = 2;
-
 const canvas = ref<HTMLCanvasElement | null>(null);
 const failed = ref(false);
 const failureReason = ref<string | null>(null);
 
-let renderer: THREE.WebGLRenderer | null = null;
-let scene: THREE.Scene | null = null;
-let camera: THREE.PerspectiveCamera | null = null;
-let material: THREE.ShaderMaterial | null = null;
-let grid: THREE.LineSegments | null = null;
-let trailTexture: THREE.DataTexture | null = null;
-
+let runtime: WaveGridRenderer | null = null;
 let reducedMotion: MediaQueryList | null = null;
 let colorScheme: MediaQueryList | null = null;
 let resizeObserver: ResizeObserver | null = null;
 let contextLost = false;
 
 const trail: TrailPoint[] = [];
-const trailData = new Uint8Array(MAX_TRAIL_POINTS * 4);
-
-const raycaster = new THREE.Raycaster();
-const pointer = new THREE.Vector2();
-
-const groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
-
-const intersection = new THREE.Vector3();
 
 let lastPoint: TrailPoint | null = null;
 let lastWheelEmission = 0;
@@ -93,40 +58,11 @@ let lastTouchSample: {
   time: number;
 } | null = null;
 
-const vertexShader = createWaveGridVertexShader(MAX_TRAIL_POINTS);
-
-function getPalette(): {
-  color: THREE.Color;
-  waveColor: THREE.Color;
-  opacity: number;
-} {
-  if (document.documentElement.dataset.theme === 'light') {
-    return {
-      color: new THREE.Color('#37628f'),
-      waveColor: new THREE.Color('#075fd7'),
-      opacity: 0.72,
-    };
-  }
-
-  return {
-    color: new THREE.Color('#38679e'),
-    waveColor: new THREE.Color('#72aaff'),
-    opacity: 0.82,
-  };
-}
-
 function applyPalette(): void {
-  if (!material) return;
+  if (!runtime) return;
 
-  const palette = getPalette();
-
-  material.uniforms.uColor?.value.copy(palette.color);
-
-  material.uniforms.uWaveColor?.value.copy(palette.waveColor);
-
-  if (material.uniforms.uOpacity) {
-    material.uniforms.uOpacity.value = palette.opacity;
-  }
+  runtime.applyPalette(getWaveGridPalette(document.documentElement.dataset.theme));
+  runtime.render(performance.now(), trail, props.settings);
 }
 
 function addRipple(position: GridPosition, now: number, velocity: number, layers: number): void {
@@ -138,6 +74,10 @@ function addRipple(position: GridPosition, now: number, velocity: number, layers
     });
   }
 
+  trimTrail();
+}
+
+function trimTrail(): void {
   while (trail.length > props.settings.trailLength) {
     trail.shift();
   }
@@ -152,145 +92,49 @@ function removeExpiredTrailPoints(now: number): void {
   }
 }
 
-function updateTrailTexture(now: number): void {
-  if (!trailTexture || !material) {
-    return;
-  }
-
-  removeExpiredTrailPoints(now);
-
-  trailData.fill(0);
-
-  trail.forEach((point, index) => {
-    const offset = index * 4;
-
-    // X position.
-    trailData[offset] = Math.round(THREE.MathUtils.clamp(point.x / props.settings.gridWidth + 0.5, 0, 1) * 255);
-
-    // Z position.
-    trailData[offset + 1] = Math.round(THREE.MathUtils.clamp(point.z / props.settings.gridDepth + 0.5, 0, 1) * 255);
-
-    // Normalized age.
-    trailData[offset + 2] = Math.round(
-      THREE.MathUtils.clamp((now - point.createdAt) / props.settings.trailLifetime, 0, 1) * 255,
-    );
-
-    // Velocity / ripple strength.
-    trailData[offset + 3] = Math.round(THREE.MathUtils.clamp(point.velocity, 0, 1) * 255);
-  });
-
-  trailTexture.needsUpdate = true;
-
-  if (material.uniforms.uTrailCount) {
-    material.uniforms.uTrailCount.value = trail.length;
-  }
-}
-
 function hasActiveTrail(now: number): boolean {
   removeExpiredTrailPoints(now);
-
   return trail.length > 0;
 }
 
+function resetInteractions(): void {
+  trail.length = 0;
+  lastPoint = null;
+  lastPointerPosition = null;
+  lastTouchSample = null;
+  lastWheelEmission = 0;
+  lastTouchEmission = 0;
+}
+
 function renderFrame(now: number): void {
-  if (!renderer || !scene || !camera || !material || contextLost) {
-    return;
-  }
+  if (!runtime || contextLost) return;
 
-  updateTrailTexture(now);
+  removeExpiredTrailPoints(now);
+  runtime.render(now, trail, props.settings);
 
-  if (material.uniforms.uTime) {
-    material.uniforms.uTime.value = now / 1_000;
-  }
-
-  renderer.render(scene, camera);
-
-  if (!props.animations.idle && !hasActiveTrail(now)) {
+  if (!props.animations.idle && trail.length === 0) {
     setAnimationState();
   }
 }
 
 function resize(): void {
-  const element = canvas.value;
+  if (!runtime) return;
 
-  if (!element || !renderer || !scene || !camera) {
-    return;
-  }
-
-  const width = Math.max(element.clientWidth, 1);
-
-  const height = Math.max(element.clientHeight, 1);
-
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, props.settings.pixelRatioCap));
-
-  renderer.setSize(width, height, false);
-
-  camera.aspect = width / height;
-
-  const isMobile = width < 720;
-
-  camera.fov = isMobile ? 52 : 42;
-
-  camera.position.set(0, isMobile ? 7.8 : 6.7, isMobile ? 10.5 : 9.2);
-
-  camera.lookAt(0, 0, -5.2);
-
-  camera.updateProjectionMatrix();
-
-  if (reducedMotion?.matches) {
-    renderer.render(scene, camera);
-  }
+  runtime.resize(props.settings);
+  runtime.render(performance.now(), trail, props.settings);
 }
 
 function applyWaveGridSettings(): void {
-  if (!grid || !material) return;
+  if (!runtime) return;
 
-  const nextGeometry = createWaveGridGeometry(props.settings);
-
-  grid.geometry.dispose();
-  grid.geometry = nextGeometry;
-
-  const gridSize = material.uniforms.uGridSize?.value;
-
-  if (gridSize instanceof THREE.Vector2) {
-    gridSize.set(props.settings.gridWidth, props.settings.gridDepth);
-  }
-
-  while (trail.length > props.settings.trailLength) {
-    trail.shift();
-  }
-
+  runtime.applySettings(props.settings);
+  trimTrail();
   resize();
   setAnimationState();
 }
 
-function projectPointer(clientX: number, clientY: number): GridPosition | null {
-  if (!camera || !canvas.value) {
-    return null;
-  }
-
-  const rect = canvas.value.getBoundingClientRect();
-
-  if (clientX < rect.left || clientX > rect.right || clientY < rect.top || clientY > rect.bottom) {
-    return null;
-  }
-
-  pointer.set(((clientX - rect.left) / rect.width) * 2 - 1, -(((clientY - rect.top) / rect.height) * 2 - 1));
-
-  raycaster.setFromCamera(pointer, camera);
-
-  if (!raycaster.ray.intersectPlane(groundPlane, intersection)) {
-    return null;
-  }
-
-  return {
-    x: THREE.MathUtils.clamp(intersection.x, -props.settings.gridWidth / 2, props.settings.gridWidth / 2),
-    z: THREE.MathUtils.clamp(intersection.z, -props.settings.gridDepth / 2, props.settings.gridDepth / 2),
-  };
-}
-
 function updatePointerPosition(clientX: number, clientY: number): GridPosition | null {
-  const position = projectPointer(clientX, clientY);
+  const position = runtime?.projectPointer(clientX, clientY, props.settings) ?? null;
 
   if (position) {
     lastPointerPosition = position;
@@ -310,50 +154,34 @@ function handlePointerMove(event: PointerEvent): void {
 
   const position = updatePointerPosition(event.clientX, event.clientY);
 
-  if (!position) return;
-
-  if (!props.animations.cursorMovement || reducedMotion?.matches) return;
+  if (!position || !props.animations.cursorMovement || reducedMotion?.matches) return;
 
   const now = performance.now();
-
   const distance = lastPoint ? Math.hypot(position.x - lastPoint.x, position.z - lastPoint.z) : 1;
-
   const elapsed = lastPoint ? Math.max(now - lastPoint.createdAt, 16) : 16;
 
-  if (lastPoint && distance < 0.24 && elapsed < 54) {
-    return;
-  }
-
-  const velocity = THREE.MathUtils.clamp((distance / elapsed) * 72, 0.18, 1);
+  if (lastPoint && distance < 0.24 && elapsed < 54) return;
 
   const point: TrailPoint = {
     ...position,
     createdAt: now,
-    velocity,
+    velocity: Math.min(1, Math.max(0.18, (distance / elapsed) * 72)),
   };
 
   trail.push(point);
-
-  if (trail.length > props.settings.trailLength) {
-    trail.shift();
-  }
+  trimTrail();
 
   lastPoint = point;
   setAnimationState();
 }
 
 function addPointerRipple(event: PointerEvent): void {
-  if (!props.active || (!props.animations.cursorClick && !props.animations.scroll)) {
-    return;
-  }
+  if (!props.active || (!props.animations.cursorClick && !props.animations.scroll)) return;
 
   const position = updatePointerPosition(event.clientX, event.clientY);
 
-  if (!position) return;
+  if (!position || !props.animations.cursorClick || reducedMotion?.matches) return;
 
-  if (!props.animations.cursorClick || reducedMotion?.matches) return;
-
-  // Clicks/taps use more layers, making the ripple feel larger and stronger.
   addRipple(position, performance.now(), 1, CLICK_RIPPLE_LAYERS);
 
   // Prevent the next pointer movement from creating a velocity spike.
@@ -364,7 +192,7 @@ function addPointerRipple(event: PointerEvent): void {
 function emitScrollRipple(position: GridPosition, distance: number, now: number): void {
   if (now - lastWheelEmission < SCROLL_RIPPLE_THROTTLE) return;
 
-  const velocity = THREE.MathUtils.clamp(distance / 65, 0.72, 1);
+  const velocity = Math.min(1, Math.max(0.72, distance / 65));
 
   addRipple(position, now, velocity, DEFAULT_RIPPLE_LAYERS);
 
@@ -373,16 +201,13 @@ function emitScrollRipple(position: GridPosition, distance: number, now: number)
 }
 
 function addScrollRipple(event: WheelEvent): void {
-  if (!props.active || !props.animations.scroll || reducedMotion?.matches) {
-    return;
-  }
+  if (!props.active || !props.animations.scroll || reducedMotion?.matches) return;
 
-  const now = performance.now();
   const position = updatePointerPosition(event.clientX, event.clientY);
 
   if (!position) return;
 
-  emitScrollRipple(position, Math.hypot(event.deltaX, event.deltaY), now);
+  emitScrollRipple(position, Math.hypot(event.deltaX, event.deltaY), performance.now());
 }
 
 function handleScroll(): void {
@@ -417,7 +242,6 @@ function startTouchRipple(event: TouchEvent): void {
   if (!touch) return;
 
   lastPointerPosition = updatePointerPosition(touch.clientX, touch.clientY);
-
   lastTouchSample = {
     x: touch.clientX,
     y: touch.clientY,
@@ -433,7 +257,6 @@ function addTouchRipple(event: TouchEvent): void {
   if (!touch) return;
 
   const position = updatePointerPosition(touch.clientX, touch.clientY);
-
   const now = performance.now();
   const previousSample = lastTouchSample;
 
@@ -454,10 +277,8 @@ function addTouchRipple(event: TouchEvent): void {
   }
 
   const distance = Math.hypot(touch.clientX - previousSample.x, touch.clientY - previousSample.y);
-
   const elapsed = Math.max(now - previousSample.time, 16);
-
-  const velocity = THREE.MathUtils.clamp((distance / elapsed) * 0.8, 0.62, 1);
+  const velocity = Math.min(1, Math.max(0.62, (distance / elapsed) * 0.8));
 
   addRipple(position, now, velocity, DEFAULT_RIPPLE_LAYERS);
 
@@ -470,29 +291,17 @@ function endTouchRipple(): void {
 }
 
 function setAnimationState(): void {
-  if (!renderer || !scene || !camera || !material) {
-    return;
-  }
+  if (!runtime) return;
 
   const now = performance.now();
   const motionAllowed = !document.hidden && !reducedMotion?.matches && !contextLost;
-
-  updateTrailTexture(now);
-
   const shouldAnimate = props.active && motionAllowed && (props.animations.idle || hasActiveTrail(now));
 
-  if (material.uniforms.uIdleMotion) {
-    material.uniforms.uIdleMotion.value = motionAllowed && props.animations.idle ? 1 : 0;
-  }
-
-  if (material.uniforms.uInteractionMotion) {
-    material.uniforms.uInteractionMotion.value = motionAllowed ? 1 : 0;
-  }
-
-  renderer.setAnimationLoop(shouldAnimate ? renderFrame : null);
+  runtime.setMotion(props.active && motionAllowed && props.animations.idle, props.active && motionAllowed);
+  runtime.setAnimationLoop(shouldAnimate ? renderFrame : null);
 
   if (!shouldAnimate && !contextLost) {
-    renderer.render(scene, camera);
+    runtime.render(now, trail, props.settings);
   }
 }
 
@@ -502,86 +311,12 @@ function initialize(): void {
   if (!element) return;
 
   try {
-    const context = element.getContext('webgl2', {
-      alpha: true,
-      antialias: true,
-      depth: false,
-      stencil: false,
-      powerPreference: 'high-performance',
-    });
-
-    if (!context) {
-      throw new Error('WebGL2 is unavailable');
-    }
-
-    renderer = new THREE.WebGLRenderer({
-      canvas: element,
-      context,
-      alpha: true,
-      antialias: true,
-    });
-
-    renderer.setClearColor(0x000000, 0);
-
-    scene = new THREE.Scene();
-
-    camera = new THREE.PerspectiveCamera(42, 1, 0.1, 80);
-
-    trailTexture = new THREE.DataTexture(trailData, MAX_TRAIL_POINTS, 1, THREE.RGBAFormat, THREE.UnsignedByteType);
-
-    trailTexture.minFilter = THREE.NearestFilter;
-
-    trailTexture.magFilter = THREE.NearestFilter;
-
-    trailTexture.generateMipmaps = false;
-
-    trailTexture.needsUpdate = true;
-
-    const palette = getPalette();
-
-    material = new THREE.ShaderMaterial({
-      uniforms: {
-        uTrail: {
-          value: trailTexture,
-        },
-        uTrailCount: {
-          value: 0,
-        },
-        uTime: {
-          value: 0,
-        },
-        uIdleMotion: {
-          value: reducedMotion?.matches || !props.animations.idle ? 0 : 1,
-        },
-        uInteractionMotion: {
-          value: reducedMotion?.matches ? 0 : 1,
-        },
-        uGridSize: {
-          value: new THREE.Vector2(props.settings.gridWidth, props.settings.gridDepth),
-        },
-        uColor: {
-          value: palette.color,
-        },
-        uWaveColor: {
-          value: palette.waveColor,
-        },
-        uOpacity: {
-          value: palette.opacity,
-        },
-      },
-
-      vertexShader,
-      fragmentShader: waveGridFragmentShader,
-
-      transparent: true,
-      depthTest: false,
-      depthWrite: false,
-      blending: THREE.NormalBlending,
-    });
-
-    grid = new THREE.LineSegments(createWaveGridGeometry(props.settings), material);
-
-    scene.add(grid);
+    runtime = WaveGridRenderer.create(
+      element,
+      WAVE_GRID_MAX_TRAIL_POINTS,
+      props.settings,
+      getWaveGridPalette(document.documentElement.dataset.theme),
+    );
 
     failed.value = false;
     failureReason.value = null;
@@ -590,42 +325,18 @@ function initialize(): void {
     setAnimationState();
   } catch (error: unknown) {
     failed.value = true;
-
     failureReason.value = error instanceof Error ? error.message : 'Initialization failed';
-
     cleanup(false);
   }
 }
 
 function cleanup(forceContextLoss: boolean): void {
-  renderer?.setAnimationLoop(null);
-
-  grid?.geometry.dispose();
-  material?.dispose();
-  trailTexture?.dispose();
-
-  scene?.clear();
-
-  if (renderer) {
-    renderer.dispose();
-
-    if (forceContextLoss) {
-      renderer.forceContextLoss();
-    }
-  }
-
-  renderer = null;
-  scene = null;
-  camera = null;
-  material = null;
-  grid = null;
-  trailTexture = null;
+  runtime?.dispose(forceContextLoss);
+  runtime = null;
 }
 
 function onMotionPreferenceChange(): void {
-  trail.length = 0;
-  lastPoint = null;
-  lastPointerPosition = null;
+  resetInteractions();
   setAnimationState();
 }
 
@@ -636,7 +347,7 @@ function onContextLost(event: Event): void {
   failed.value = true;
   failureReason.value = 'WebGL context lost';
 
-  renderer?.setAnimationLoop(null);
+  runtime?.setAnimationLoop(null);
 }
 
 function onContextRestored(): void {
@@ -656,10 +367,8 @@ watch(
   ([active, , cursorMovement, cursorClick, scroll]) => {
     if (active) resize();
 
-    if (!cursorMovement && !cursorClick && !scroll) {
-      trail.length = 0;
-      lastPoint = null;
-      lastPointerPosition = null;
+    if (!active || (!cursorMovement && !cursorClick && !scroll)) {
+      resetInteractions();
     }
 
     setAnimationState();
@@ -683,47 +392,29 @@ watch(
 
 onMounted(() => {
   reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-
   colorScheme = window.matchMedia('(prefers-color-scheme: light)');
-
   resizeObserver = new ResizeObserver(resize);
 
   if (canvas.value) {
     resizeObserver.observe(canvas.value);
   }
 
-  // Desktop pointer trail.
   window.addEventListener('pointermove', handlePointerMove, { passive: true });
-
-  // Clicks, taps and stylus presses.
   window.addEventListener('pointerdown', addPointerRipple, { passive: true });
-
-  // Mouse wheel and trackpad scrolling.
   window.addEventListener('wheel', addScrollRipple, { passive: true });
-
   window.addEventListener('scroll', handleScroll, { passive: true });
-
-  // Touch movement.
   window.addEventListener('touchstart', startTouchRipple, { passive: true });
-
   window.addEventListener('touchmove', addTouchRipple, { passive: true });
-
   window.addEventListener('touchend', endTouchRipple, { passive: true });
-
   window.addEventListener('touchcancel', endTouchRipple, { passive: true });
-
+  window.addEventListener('portfolio-theme-change', applyPalette);
   document.addEventListener('visibilitychange', setAnimationState);
 
   lastScrollOffset = window.scrollY;
 
   reducedMotion.addEventListener('change', onMotionPreferenceChange);
-
   colorScheme.addEventListener('change', applyPalette);
-
-  window.addEventListener('portfolio-theme-change', applyPalette);
-
   canvas.value?.addEventListener('webglcontextlost', onContextLost);
-
   canvas.value?.addEventListener('webglcontextrestored', onContextRestored);
 
   initialize();
@@ -731,35 +422,23 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   window.removeEventListener('pointermove', handlePointerMove);
-
   window.removeEventListener('pointerdown', addPointerRipple);
-
   window.removeEventListener('wheel', addScrollRipple);
-
   window.removeEventListener('scroll', handleScroll);
-
   window.removeEventListener('touchstart', startTouchRipple);
-
   window.removeEventListener('touchmove', addTouchRipple);
-
   window.removeEventListener('touchend', endTouchRipple);
-
   window.removeEventListener('touchcancel', endTouchRipple);
-
+  window.removeEventListener('portfolio-theme-change', applyPalette);
   document.removeEventListener('visibilitychange', setAnimationState);
 
   reducedMotion?.removeEventListener('change', onMotionPreferenceChange);
-
   colorScheme?.removeEventListener('change', applyPalette);
-
-  window.removeEventListener('portfolio-theme-change', applyPalette);
-
   canvas.value?.removeEventListener('webglcontextlost', onContextLost);
-
   canvas.value?.removeEventListener('webglcontextrestored', onContextRestored);
 
   resizeObserver?.disconnect();
-
+  resetInteractions();
   cleanup(true);
 });
 </script>
@@ -771,7 +450,7 @@ onBeforeUnmount(() => {
     :data-wave-error="failed ? (failureReason ?? 'Unknown WebGL failure') : undefined"
     aria-hidden="true"
   >
-    <canvas ref="canvas"></canvas>
+    <canvas ref="canvas" />
   </div>
 </template>
 
