@@ -1,30 +1,16 @@
+<!--
+  Provides the application shell and initializes persisted display preferences.
+  Background selection and animation dispatch live in LayoutBackgroundOrchestrator
+  so this layout remains responsible only for page-level composition.
+-->
 <script setup lang="ts">
-import type { BackgroundPreference } from '@/composables/usePortfolioPreferences';
-
-const route = useRoute();
-
-const { backgroundPreference, backgroundMotionEnabled, initializePreferences, disposePreferences } =
-  usePortfolioPreferences();
-
-const normalizedPath = computed(() => route.path.replace(/\/+$/, '') || '/');
-
-const automaticBackgrounds: Record<string, BackgroundPreference> = {
-  '/': 'wave',
-  '/work': 'triangles',
-  '/academic': 'particles',
-  '/personal': 'mesh',
-};
-
-const automaticBackground = computed(() => automaticBackgrounds[normalizedPath.value] ?? 'none');
-
-const selectedBackground = computed<BackgroundPreference>(() =>
-  backgroundPreference.value === 'auto' ? automaticBackground.value : backgroundPreference.value,
-);
-
-const isBackgroundActive = (background: BackgroundPreference) => selectedBackground.value === background;
-
-const isMotionEnabled = (background: BackgroundPreference) =>
-  isBackgroundActive(background) && backgroundMotionEnabled.value;
+const {
+  backgroundPreference,
+  backgroundAnimations,
+  backgroundAdvancedSettings,
+  initializePreferences,
+  disposePreferences,
+} = usePortfolioPreferences();
 
 onMounted(initializePreferences);
 onBeforeUnmount(disposePreferences);
@@ -58,36 +44,10 @@ useHead({
 
     <LayoutSiteSkipLink target="#content" />
 
-    <WaveGridBackground
-      class="background-scene"
-      :class="{
-        'background-scene-active': isBackgroundActive('wave'),
-      }"
-      :active="isMotionEnabled('wave')"
-    />
-
-    <TriangleBackground
-      class="background-scene"
-      :class="{
-        'background-scene-active': isBackgroundActive('triangles'),
-        'background-motion-paused': !isMotionEnabled('triangles'),
-      }"
-    />
-
-    <ParticleBackground
-      class="background-scene"
-      :class="{
-        'background-scene-active': isBackgroundActive('particles'),
-      }"
-      :active="isMotionEnabled('particles')"
-    />
-
-    <PersonalTriangleMeshBackground
-      class="background-scene"
-      :class="{
-        'background-scene-active': isBackgroundActive('mesh'),
-      }"
-      :active="isMotionEnabled('mesh')"
+    <LayoutBackgroundOrchestrator
+      :preference="backgroundPreference"
+      :animations="backgroundAnimations"
+      :advanced-settings="backgroundAdvancedSettings"
     />
 
     <LayoutSiteHeader />

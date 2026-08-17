@@ -1,10 +1,38 @@
-export type ThemePreference = 'system' | 'light' | 'dark';
+/**
+ * Stores display preferences and synchronizes browser-only effects such as
+ * theme attributes. General animation controls and per-scene advanced options
+ * are persisted independently, keeping future background additions isolated.
+ */
 
-export type BackgroundPreference = 'auto' | 'wave' | 'particles' | 'triangles' | 'mesh' | 'none';
+import {
+  createBackgroundAnimationSettings,
+  createDefaultBackgroundAdvancedSettings,
+  createDefaultBackgroundAnimationSettings,
+  createWaveGridSettings,
+  type BackgroundAnimation,
+  type BackgroundAdvancedSettings,
+  type BackgroundAnimationSettings,
+  type BackgroundPreference,
+  type WaveGridSetting,
+  type WaveGridSettings,
+} from '@/types/background';
+
+export type {
+  BackgroundAnimation,
+  BackgroundAdvancedSettings,
+  BackgroundAnimationSettings,
+  BackgroundPreference,
+  WaveGridSetting,
+  WaveGridSettings,
+} from '@/types/background';
+
+export type ThemePreference = 'system' | 'light' | 'dark';
 
 const THEME_STORAGE_KEY = 'portfolio-theme';
 const BACKGROUND_STORAGE_KEY = 'portfolio-background';
-const BACKGROUND_MOTION_STORAGE_KEY = 'portfolio-background-motion';
+const BACKGROUND_ANIMATIONS_STORAGE_KEY = 'portfolio-background-animations';
+const BACKGROUND_ADVANCED_SETTINGS_STORAGE_KEY = 'portfolio-background-advanced-settings';
+const LEGACY_BACKGROUND_MOTION_STORAGE_KEY = 'portfolio-background-motion';
 
 const themePreferences: readonly ThemePreference[] = ['system', 'light', 'dark'];
 
@@ -26,6 +54,55 @@ function isThemePreference(value: unknown): value is ThemePreference {
 
 function isBackgroundPreference(value: unknown): value is BackgroundPreference {
   return typeof value === 'string' && backgroundPreferences.includes(value as BackgroundPreference);
+}
+
+function isBackgroundAnimationSettings(value: unknown): value is BackgroundAnimationSettings {
+  if (typeof value !== 'object' || value === null) return false;
+
+  const settings = value as Record<string, unknown>;
+
+  return (
+    typeof settings.idle === 'boolean' &&
+    typeof settings.cursorMovement === 'boolean' &&
+    typeof settings.cursorClick === 'boolean' &&
+    typeof settings.scroll === 'boolean'
+  );
+}
+
+function isLegacyBackgroundAnimationSettings(value: unknown): value is {
+  idle: boolean;
+  cursor: boolean;
+  scroll: boolean;
+} {
+  if (typeof value !== 'object' || value === null) return false;
+
+  const settings = value as Record<string, unknown>;
+
+  return (
+    typeof settings.idle === 'boolean' && typeof settings.cursor === 'boolean' && typeof settings.scroll === 'boolean'
+  );
+}
+
+function isWaveGridSettings(value: unknown): value is WaveGridSettings {
+  if (typeof value !== 'object' || value === null) return false;
+
+  const settings = value as Record<string, unknown>;
+
+  return (
+    typeof settings.gridWidth === 'number' &&
+    typeof settings.gridDepth === 'number' &&
+    typeof settings.gridSpacing === 'number' &&
+    typeof settings.vertexStep === 'number' &&
+    typeof settings.trailLength === 'number' &&
+    typeof settings.trailLifetime === 'number' &&
+    typeof settings.pixelRatioCap === 'number'
+  );
+}
+
+function isBackgroundAdvancedSettings(value: unknown): value is BackgroundAdvancedSettings {
+  if (typeof value !== 'object' || value === null) return false;
+
+  return isWaveGridSettings((value as Record<string, unknown>).wave);
 }
 
 function readStorage(key: string): string | null {
@@ -53,12 +130,74 @@ function removeStorage(key: string): void {
   }
 }
 
+function readBackgroundAnimationSettings(): BackgroundAnimationSettings {
+  const storedSettings = readStorage(BACKGROUND_ANIMATIONS_STORAGE_KEY);
+
+  if (storedSettings !== null) {
+    try {
+      const parsedSettings: unknown = JSON.parse(storedSettings);
+
+      if (isBackgroundAnimationSettings(parsedSettings)) {
+        return createBackgroundAnimationSettings(parsedSettings);
+      }
+
+      if (isLegacyBackgroundAnimationSettings(parsedSettings)) {
+        return createBackgroundAnimationSettings({
+          idle: parsedSettings.idle,
+          cursorMovement: parsedSettings.cursor,
+          cursorClick: parsedSettings.cursor,
+          scroll: parsedSettings.scroll,
+        });
+      }
+    } catch {
+      // Invalid stored data falls back to a safe default below.
+    }
+  }
+
+  const legacyMotionEnabled = readStorage(LEGACY_BACKGROUND_MOTION_STORAGE_KEY) !== 'false';
+
+  return createBackgroundAnimationSettings({
+    idle: legacyMotionEnabled,
+    cursorMovement: legacyMotionEnabled,
+    cursorClick: legacyMotionEnabled,
+    scroll: legacyMotionEnabled,
+  });
+}
+
+function readBackgroundAdvancedSettings(): BackgroundAdvancedSettings {
+  const storedSettings = readStorage(BACKGROUND_ADVANCED_SETTINGS_STORAGE_KEY);
+
+  if (storedSettings === null) return createDefaultBackgroundAdvancedSettings();
+
+  try {
+    const parsedSettings: unknown = JSON.parse(storedSettings);
+
+    if (isBackgroundAdvancedSettings(parsedSettings)) {
+      return {
+        wave: createWaveGridSettings(parsedSettings.wave),
+      };
+    }
+  } catch {
+    // Invalid stored data falls back to the defaults below.
+  }
+
+  return createDefaultBackgroundAdvancedSettings();
+}
+
 export function usePortfolioPreferences() {
   const themePreference = useState<ThemePreference>('portfolio-theme-preference', () => 'system');
 
   const backgroundPreference = useState<BackgroundPreference>('portfolio-background-preference', () => 'auto');
 
-  const backgroundMotionEnabled = useState<boolean>('portfolio-background-motion', () => true);
+  const backgroundAnimations = useState<BackgroundAnimationSettings>(
+    'portfolio-background-animations',
+    createDefaultBackgroundAnimationSettings,
+  );
+
+  const backgroundAdvancedSettings = useState<BackgroundAdvancedSettings>(
+    'portfolio-background-advanced-settings',
+    createDefaultBackgroundAdvancedSettings,
+  );
 
   function applyTheme(): void {
     if (!import.meta.client) return;
@@ -71,10 +210,12 @@ export function usePortfolioPreferences() {
     window.dispatchEvent(new CustomEvent('portfolio-theme-change'));
   }
 
-  function applyBackgroundMotion(): void {
+  function applyBackgroundAnimationState(): void {
     if (!import.meta.client) return;
 
-    document.documentElement.dataset.backgroundMotion = backgroundMotionEnabled.value ? 'playing' : 'paused';
+    const hasEnabledAnimation = Object.values(backgroundAnimations.value).some(Boolean);
+
+    document.documentElement.dataset.backgroundMotion = hasEnabledAnimation ? 'playing' : 'paused';
   }
 
   function setThemePreference(preference: ThemePreference): void {
@@ -98,13 +239,49 @@ export function usePortfolioPreferences() {
     writeStorage(BACKGROUND_STORAGE_KEY, preference);
   }
 
-  function setBackgroundMotionEnabled(enabled: boolean): void {
-    backgroundMotionEnabled.value = enabled;
-    applyBackgroundMotion();
+  function setBackgroundAnimationEnabled(animation: BackgroundAnimation, enabled: boolean): void {
+    backgroundAnimations.value = createBackgroundAnimationSettings({
+      ...backgroundAnimations.value,
+      [animation]: enabled,
+    });
+
+    applyBackgroundAnimationState();
 
     if (!import.meta.client) return;
 
-    writeStorage(BACKGROUND_MOTION_STORAGE_KEY, String(enabled));
+    writeStorage(BACKGROUND_ANIMATIONS_STORAGE_KEY, JSON.stringify(backgroundAnimations.value));
+  }
+
+  function setWaveGridSetting(setting: WaveGridSetting, value: number): void {
+    backgroundAdvancedSettings.value = {
+      ...backgroundAdvancedSettings.value,
+      wave: createWaveGridSettings({
+        ...backgroundAdvancedSettings.value.wave,
+        [setting]: value,
+      }),
+    };
+
+    if (!import.meta.client) return;
+
+    writeStorage(BACKGROUND_ADVANCED_SETTINGS_STORAGE_KEY, JSON.stringify(backgroundAdvancedSettings.value));
+  }
+
+  function restoreDefaultSettings(): void {
+    themePreference.value = 'system';
+    backgroundPreference.value = 'auto';
+    backgroundAnimations.value = createDefaultBackgroundAnimationSettings();
+    backgroundAdvancedSettings.value = createDefaultBackgroundAdvancedSettings();
+
+    applyTheme();
+    applyBackgroundAnimationState();
+
+    if (!import.meta.client) return;
+
+    removeStorage(THEME_STORAGE_KEY);
+    removeStorage(BACKGROUND_STORAGE_KEY);
+    removeStorage(BACKGROUND_ANIMATIONS_STORAGE_KEY);
+    removeStorage(BACKGROUND_ADVANCED_SETTINGS_STORAGE_KEY);
+    removeStorage(LEGACY_BACKGROUND_MOTION_STORAGE_KEY);
   }
 
   function syncSystemTheme(): void {
@@ -120,16 +297,16 @@ export function usePortfolioPreferences() {
 
     const storedTheme = readStorage(THEME_STORAGE_KEY);
     const storedBackground = readStorage(BACKGROUND_STORAGE_KEY);
-    const storedMotion = readStorage(BACKGROUND_MOTION_STORAGE_KEY);
 
     themePreference.value = isThemePreference(storedTheme) ? storedTheme : 'system';
 
     backgroundPreference.value = isBackgroundPreference(storedBackground) ? storedBackground : 'auto';
 
-    backgroundMotionEnabled.value = storedMotion !== 'false';
+    backgroundAnimations.value = readBackgroundAnimationSettings();
+    backgroundAdvancedSettings.value = readBackgroundAdvancedSettings();
 
     applyTheme();
-    applyBackgroundMotion();
+    applyBackgroundAnimationState();
 
     colorSchemeQuery.addEventListener('change', syncSystemTheme);
 
@@ -148,10 +325,13 @@ export function usePortfolioPreferences() {
   return {
     themePreference,
     backgroundPreference,
-    backgroundMotionEnabled,
+    backgroundAnimations,
+    backgroundAdvancedSettings,
     setThemePreference,
     setBackgroundPreference,
-    setBackgroundMotionEnabled,
+    setBackgroundAnimationEnabled,
+    setWaveGridSetting,
+    restoreDefaultSettings,
     initializePreferences,
     disposePreferences,
   };

@@ -10,8 +10,8 @@
  * - PerformanceManager: runtime performance monitoring and quality scaling.
  * - Lifecycle management: visibility, reduced motion, resize and WebGL recovery.
  *
- * Rendering automatically pauses when the component is inactive, the document
- * is hidden, reduced motion is requested, or the WebGL context is unavailable.
+ * Rendering automatically pauses when the component is inactive, hidden,
+ * static, reduced-motion, or the WebGL context is unavailable.
  *
  * WebGL2 failure is handled gracefully through a CSS fallback, so the visual
  * background never becomes a functional dependency of the page.
@@ -20,10 +20,12 @@
 import * as THREE from 'three';
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
 
-import { PARTICLE_CONFIG, chooseInitialQuality, getParticleQuality } from './particles/config';
-import { InteractionManager } from './particles/InteractionManager';
-import { ParticleSimulation } from './particles/ParticleSimulation';
-import { PerformanceManager } from './particles/PerformanceManager';
+import { createDefaultBackgroundAnimationSettings, type BackgroundSceneProps } from '@/types/background';
+
+import { PARTICLE_CONFIG, chooseInitialQuality, getParticleQuality } from './config';
+import { InteractionManager } from './InteractionManager';
+import { ParticleSimulation } from './ParticleSimulation';
+import { PerformanceManager } from './PerformanceManager';
 
 interface DebugStats {
   renderer: string;
@@ -45,14 +47,10 @@ interface DebugStats {
  * defineProps() and withDefaults() are compiler macros in <script setup>
  * and therefore must not be imported from Vue.
  */
-const props = withDefaults(
-  defineProps<{
-    active?: boolean;
-  }>(),
-  {
-    active: true,
-  },
-);
+const props = withDefaults(defineProps<BackgroundSceneProps>(), {
+  active: true,
+  animations: createDefaultBackgroundAnimationSettings,
+});
 
 const canvas = ref<HTMLCanvasElement | null>(null);
 
@@ -235,7 +233,7 @@ function renderFrame(now: number): void {
 
   const state = interaction.update(now, delta);
 
-  simulation.update(now / 1000, delta, state);
+  simulation.update(now / 1000, delta, state, props.animations);
 
   renderer.render(scene, camera);
 
@@ -250,6 +248,10 @@ function renderFrame(now: number): void {
   }
 
   updateDebug(now);
+
+  if (!props.animations.idle && !interaction.hasActiveAnimation()) {
+    setAnimationState();
+  }
 }
 
 /**
@@ -271,7 +273,12 @@ function setAnimationState(): void {
     return;
   }
 
-  const shouldAnimate = props.active && !document.hidden && reducedMotion?.matches !== true && !contextLost;
+  const shouldAnimate =
+    props.active &&
+    !document.hidden &&
+    reducedMotion?.matches !== true &&
+    !contextLost &&
+    (props.animations.idle || interaction?.hasActiveAnimation() === true);
 
   previousTime = 0;
 
@@ -329,7 +336,7 @@ function initialize(): void {
 
     camera.position.z = 2;
 
-    interaction = new InteractionManager();
+    interaction = new InteractionManager(props.animations, setAnimationState);
 
     qualityIndex = chooseInitialQuality();
     performanceManager = new PerformanceManager(qualityIndex);
@@ -440,8 +447,10 @@ function onContextRestored(): void {
 /* -------------------------------------------------------------------------- */
 
 watch(
-  () => props.active,
-  (active) => {
+  () => [props.active, props.animations.idle, props.animations.cursor, props.animations.scroll],
+  ([active]) => {
+    interaction?.setAnimations(props.animations);
+
     if (active) {
       resizeRenderer();
     }

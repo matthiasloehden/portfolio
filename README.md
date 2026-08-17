@@ -10,11 +10,11 @@ Live site: [matthiasloehden.github.io/portfolio](https://matthiasloehden.github.
 
 | Area | What to inspect |
 | --- | --- |
-| background orchestration | [`app/layouts/default.vue`](app/layouts/default.vue) selects the ambient scene per route, while [`app/composables/usePortfolioPreferences.ts`](app/composables/usePortfolioPreferences.ts) handles theme and motion preferences. |
-| wave grid background | [`app/components/WaveGridBackground.vue`](app/components/WaveGridBackground.vue) renders a Three.js shader scene with pointer, touch, scroll, reduced-motion, and inactive-tab handling. |
-| triangle background | [`app/components/TriangleBackground.vue`](app/components/TriangleBackground.vue) uses lightweight CSS geometry and pointer sampling instead of a heavy animation runtime. |
-| particle background | [`app/components/ParticleBackground.vue`](app/components/ParticleBackground.vue) implements a responsive GPU-accelerated particle simulation that reacts to mouse movement and scrolling. |
-| mesh background | [`app/components/PersonalTriangleMeshBackground.vue`](app/components/PersonalTriangleMeshBackground.vue) renders a viewport-synchronized 2D canvas mesh with procedural vertex animation and pointer-aware deformation. |
+| background orchestration | [`app/components/layout/BackgroundOrchestrator.vue`](app/components/layout/BackgroundOrchestrator.vue) selects the ambient scene per route and passes independent animation channels to each scene, while [`app/composables/usePortfolioPreferences.ts`](app/composables/usePortfolioPreferences.ts) persists theme and display preferences. |
+| wave grid background | [`app/components/backgrounds/wave-grid/WaveGridBackground.vue`](app/components/backgrounds/wave-grid/WaveGridBackground.vue) renders a Three.js shader scene with pointer, touch, scroll, reduced-motion, and inactive-tab handling. |
+| triangle background | [`app/components/backgrounds/triangles/TriangleBackground.vue`](app/components/backgrounds/triangles/TriangleBackground.vue) uses lightweight CSS geometry and pointer sampling instead of a heavy animation runtime. |
+| particle background | [`app/components/backgrounds/particles/ParticleBackground.vue`](app/components/backgrounds/particles/ParticleBackground.vue) implements a responsive GPU-accelerated particle simulation that reacts to mouse movement and scrolling. |
+| mesh background | [`app/components/backgrounds/triangle-mesh/TriangleMeshBackground.vue`](app/components/backgrounds/triangle-mesh/TriangleMeshBackground.vue) renders a viewport-synchronized 2D canvas mesh with procedural vertex animation and pointer-aware deformation. |
 | cooling loop diagram | [`app/components/personal/cooling/CoolingLoopPanel.vue`](app/components/personal/cooling/CoolingLoopPanel.vue) composes typed SVG components with procedural animation to visualize a custom liquid cooling system. |
 
 ## Stack

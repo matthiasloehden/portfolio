@@ -1,3 +1,8 @@
+/**
+ * Covers shared layout behaviour: navigation, persisted display preferences
+ * and responsive menu accessibility across the portfolio routes.
+ */
+
 import { expect, test, type Page } from '@playwright/test';
 
 async function waitForHydration(page: Page): Promise<void> {
@@ -28,6 +33,58 @@ test('shares active navigation and persists the selected theme', async ({ page }
   await waitForHydration(page);
   await page.getByRole('button', { name: 'Display settings' }).click();
   await expect(page.getByLabel('Theme')).toHaveValue('light');
+});
+
+test('persists independent background animation preferences', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'desktop-chromium', 'Desktop preference test');
+
+  await page.goto('/');
+  await waitForHydration(page);
+
+  await page.getByRole('button', { name: 'Display settings' }).click();
+
+  const idleAnimation = page.getByRole('checkbox', { name: 'Background idle animation' });
+  const cursorAnimation = page.getByRole('checkbox', { name: 'Cursor movement animation' });
+  const cursorClickAnimation = page.getByRole('checkbox', { name: 'Cursor click animation' });
+  const scrollAnimation = page.getByRole('checkbox', { name: 'Scroll animation' });
+
+  await idleAnimation.uncheck();
+  await cursorAnimation.uncheck();
+  await cursorClickAnimation.uncheck();
+  await scrollAnimation.uncheck();
+
+  await expect(page.locator('html')).toHaveAttribute('data-background-motion', 'paused');
+
+  await page.reload();
+  await waitForHydration(page);
+  await page.getByRole('button', { name: 'Display settings' }).click();
+
+  await expect(idleAnimation).not.toBeChecked();
+  await expect(cursorAnimation).not.toBeChecked();
+  await expect(cursorClickAnimation).not.toBeChecked();
+  await expect(scrollAnimation).not.toBeChecked();
+});
+
+test('shows advanced settings only for the active background and restores defaults', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'desktop-chromium', 'Desktop preference test');
+
+  await page.goto('/work');
+  await waitForHydration(page);
+  await page.getByRole('button', { name: 'Display settings' }).click();
+
+  await expect(page.getByText('Wave grid advanced settings')).toBeHidden();
+
+  await page.getByLabel('Background').selectOption('wave');
+  await expect(page.getByText('Wave grid advanced settings')).toBeVisible();
+
+  await page.getByLabel('Theme').selectOption('dark');
+  await page.getByRole('checkbox', { name: 'Background idle animation' }).uncheck();
+  await page.getByRole('button', { name: 'Restore default settings' }).click();
+
+  await expect(page.getByLabel('Theme')).toHaveValue('system');
+  await expect(page.getByLabel('Background')).toHaveValue('auto');
+  await expect(page.getByRole('checkbox', { name: 'Background idle animation' })).toBeChecked();
+  await expect(page.getByText('Wave grid advanced settings')).toBeHidden();
 });
 
 test('uses a full-viewport triangle background on the work page', async ({ page }, testInfo) => {

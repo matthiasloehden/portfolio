@@ -1,15 +1,23 @@
 <script setup lang="ts">
-import * as THREE from 'three';
-
 /**
  * Interactive WebGL background with a perspective grid,
- * subtle idle motion, and temporary ripples triggered by
- * pointer movement, clicks, scrolling, and touch input.
+ * independent idle, cursor-movement, cursor-click and scroll channels, and
+ * temporary ripples triggered by enabled interactions.
  *
- * The component respects reduced-motion preferences,
- * adapts to light/dark themes, pauses when inactive or
- * hidden, and falls back to a CSS grid if WebGL fails.
+ * Rendering pauses while inactive, hidden or static. WebGL failure
+ * falls back to CSS so the visual never becomes a page dependency.
  */
+
+import * as THREE from 'three';
+
+import {
+  createDefaultBackgroundAnimationSettings,
+  createDefaultWaveGridSettings,
+  WAVE_GRID_MAX_TRAIL_POINTS,
+  type WaveGridBackgroundProps,
+} from '@/types/background';
+import { createWaveGridGeometry } from './geometry';
+import { createWaveGridVertexShader, waveGridFragmentShader } from './shaders';
 
 interface TrailPoint {
   x: number;
@@ -18,27 +26,19 @@ interface TrailPoint {
   velocity: number;
 }
 
-const props = withDefaults(defineProps<{ active?: boolean }>(), {
+interface GridPosition {
+  x: number;
+  z: number;
+}
+
+const props = withDefaults(defineProps<WaveGridBackgroundProps>(), {
   active: true,
+  animations: createDefaultBackgroundAnimationSettings,
+  settings: createDefaultWaveGridSettings,
 });
 
-// Maximum number of active trail/ripple points.
-const TRAIL_LENGTH = 32;
-
-// Lifetime of each trail point in milliseconds.
-const TRAIL_LIFETIME = 2_300;
-
-// Width of the grid in world units.
-const GRID_WIDTH = 34;
-
-// Depth of the grid in world units.
-const GRID_DEPTH = 32;
-
-// Distance between neighboring grid lines.
-const GRID_SPACING = 0.8;
-
-// Distance between geometry vertices along each grid line.
-const VERTEX_STEP = 0.32;
+// Shader capacity is fixed so trail-length changes do not require recompilation.
+const MAX_TRAIL_POINTS = WAVE_GRID_MAX_TRAIL_POINTS;
 
 // Minimum time between scroll-generated ripples.
 const SCROLL_RIPPLE_THROTTLE = 80;
@@ -54,9 +54,6 @@ const CLICK_RIPPLE_LAYERS = 3;
 
 // Number of points used for passive scroll/touch ripples.
 const DEFAULT_RIPPLE_LAYERS = 2;
-
-// Maximum device pixel ratio used for rendering.
-const MAX_PIXEL_RATIO = 1.5;
 
 const canvas = ref<HTMLCanvasElement | null>(null);
 const failed = ref(false);
@@ -75,7 +72,7 @@ let resizeObserver: ResizeObserver | null = null;
 let contextLost = false;
 
 const trail: TrailPoint[] = [];
-const trailData = new Uint8Array(TRAIL_LENGTH * 4);
+const trailData = new Uint8Array(MAX_TRAIL_POINTS * 4);
 
 const raycaster = new THREE.Raycaster();
 const pointer = new THREE.Vector2();
@@ -87,6 +84,8 @@ const intersection = new THREE.Vector3();
 let lastPoint: TrailPoint | null = null;
 let lastWheelEmission = 0;
 let lastTouchEmission = 0;
+let lastScrollOffset = 0;
+let lastPointerPosition: GridPosition | null = null;
 
 let lastTouchSample: {
   x: number;
@@ -94,284 +93,7 @@ let lastTouchSample: {
   time: number;
 } | null = null;
 
-const vertexShader = /* glsl */ `
-  #define TRAIL_LENGTH ${TRAIL_LENGTH}
-
-  uniform sampler2D uTrail;
-  uniform float uTrailCount;
-  uniform float uTime;
-  uniform float uMotion;
-  uniform vec2 uGridSize;
-
-  attribute float aLineStrength;
-
-  varying float vLineStrength;
-  varying float vWave;
-  varying float vIdle;
-  varying float vDepth;
-
-  void main() {
-    vec3 displaced = position;
-    float wave = 0.0;
-
-    for (int index = 0; index < TRAIL_LENGTH; index++) {
-      if (float(index) >= uTrailCount) break;
-
-      vec4 point = texture2D(
-        uTrail,
-        vec2(
-          (float(index) + 0.5) /
-          float(TRAIL_LENGTH),
-          0.5
-        )
-      );
-
-      vec2 origin =
-        (point.rg - 0.5) *
-        uGridSize;
-
-      float age = point.b;
-      float velocity = point.a;
-
-      float distanceToPoint =
-        distance(
-          position.xz,
-          origin
-        );
-
-      float radius =
-        0.18 +
-        age * 5.2;
-
-      float width =
-        0.12 +
-        age * 0.18;
-
-      float ring =
-        exp(
-          -pow(
-            (distanceToPoint - radius) /
-            width,
-            2.0
-          )
-        );
-
-      float wake =
-        exp(
-          -distanceToPoint * 1.8
-        ) *
-        exp(
-          -age * 5.0
-        );
-
-      wave +=
-        (
-          ring * 0.3 +
-          wake * 0.1
-        ) *
-        (
-          0.28 +
-          velocity * 0.72
-        ) *
-        (1.0 - age);
-    }
-
-    // Subtle ambient motion keeps the grid alive when idle.
-    vec2 idleCenter = vec2(
-      sin(uTime * 0.22) * 6.0,
-      cos(uTime * 0.18) * 5.0 - 3.0
-    );
-
-    float idleDistance =
-      distance(
-        position.xz,
-        idleCenter
-      );
-
-    float ambientField =
-      sin(
-        position.x * 0.36 +
-        uTime * 0.72
-      ) *
-      cos(
-        position.z * 0.3 -
-        uTime * 0.58
-      ) *
-      0.095;
-
-    float ambientRing =
-      sin(
-        idleDistance * 0.92 -
-        uTime * 1.1
-      ) *
-      exp(
-        -idleDistance * 0.035
-      ) *
-      0.05;
-
-    float idleSweep =
-      pow(
-        0.5 +
-        0.5 *
-        sin(
-          position.z * 0.62 -
-          uTime * 0.95
-        ),
-        14.0
-      );
-
-    float ambient =
-      ambientField +
-      ambientRing +
-      idleSweep * 0.045;
-
-    displaced.y +=
-      (
-        min(wave, 1.15) * 0.38 +
-        ambient
-      ) *
-      uMotion;
-
-    vLineStrength = aLineStrength;
-    vWave = min(wave, 1.0) * uMotion;
-
-    vIdle =
-      max(
-        smoothstep(
-          0.025,
-          0.13,
-          abs(ambient)
-        ),
-        idleSweep * 0.9
-      ) *
-      uMotion;
-
-    vDepth =
-      smoothstep(
-        -16.0,
-        10.0,
-        position.z
-      );
-
-    gl_Position =
-      projectionMatrix *
-      modelViewMatrix *
-      vec4(displaced, 1.0);
-  }
-`;
-
-const fragmentShader = /* glsl */ `
-  uniform vec3 uColor;
-  uniform vec3 uWaveColor;
-  uniform float uOpacity;
-
-  varying float vLineStrength;
-  varying float vWave;
-  varying float vIdle;
-  varying float vDepth;
-
-  void main() {
-    float highlight =
-      max(
-        smoothstep(0.02, 0.52, vWave),
-        vIdle * 0.48
-      );
-
-    vec3 color =
-      mix(
-        uColor,
-        uWaveColor,
-        highlight
-      );
-
-    float waveGlow =
-      smoothstep(
-        0.0,
-        0.58,
-        vWave
-      ) *
-      0.42;
-
-    float idleGlow =
-      vIdle * 0.23;
-
-    float alpha =
-      (
-        0.2 +
-        vLineStrength * 0.3 +
-        idleGlow +
-        waveGlow
-      ) *
-      uOpacity *
-      vDepth;
-
-    gl_FragColor =
-      vec4(color, alpha);
-  }
-`;
-
-function appendSegment(
-  positions: number[],
-  strengths: number[],
-  start: [number, number, number],
-  end: [number, number, number],
-  strength: number,
-): void {
-  positions.push(...start, ...end);
-  strengths.push(strength, strength);
-}
-
-function createGridGeometry(): THREE.BufferGeometry {
-  const positions: number[] = [];
-  const strengths: number[] = [];
-
-  const xLines = Math.floor(GRID_WIDTH / GRID_SPACING);
-
-  const zLines = Math.floor(GRID_DEPTH / GRID_SPACING);
-
-  const xSegments = Math.ceil(GRID_WIDTH / VERTEX_STEP);
-
-  const zSegments = Math.ceil(GRID_DEPTH / VERTEX_STEP);
-
-  // Horizontal lines.
-  for (let zIndex = 0; zIndex <= zLines; zIndex += 1) {
-    const z = -GRID_DEPTH / 2 + (zIndex / zLines) * GRID_DEPTH;
-
-    // Every fifth line is slightly brighter.
-    const strength = zIndex % 5 === 0 ? 1 : 0.42;
-
-    for (let segment = 0; segment < xSegments; segment += 1) {
-      const xStart = -GRID_WIDTH / 2 + (segment / xSegments) * GRID_WIDTH;
-
-      const xEnd = -GRID_WIDTH / 2 + ((segment + 1) / xSegments) * GRID_WIDTH;
-
-      appendSegment(positions, strengths, [xStart, 0, z], [xEnd, 0, z], strength);
-    }
-  }
-
-  // Vertical lines.
-  for (let xIndex = 0; xIndex <= xLines; xIndex += 1) {
-    const x = -GRID_WIDTH / 2 + (xIndex / xLines) * GRID_WIDTH;
-
-    const strength = xIndex % 5 === 0 ? 1 : 0.42;
-
-    for (let segment = 0; segment < zSegments; segment += 1) {
-      const zStart = -GRID_DEPTH / 2 + (segment / zSegments) * GRID_DEPTH;
-
-      const zEnd = -GRID_DEPTH / 2 + ((segment + 1) / zSegments) * GRID_DEPTH;
-
-      appendSegment(positions, strengths, [x, 0, zStart], [x, 0, zEnd], strength);
-    }
-  }
-
-  const geometry = new THREE.BufferGeometry();
-
-  geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-
-  geometry.setAttribute('aLineStrength', new THREE.Float32BufferAttribute(strengths, 1));
-
-  return geometry;
-}
+const vertexShader = createWaveGridVertexShader(MAX_TRAIL_POINTS);
 
 function getPalette(): {
   color: THREE.Color;
@@ -407,7 +129,7 @@ function applyPalette(): void {
   }
 }
 
-function addRipple(position: { x: number; z: number }, now: number, velocity: number, layers: number): void {
+function addRipple(position: GridPosition, now: number, velocity: number, layers: number): void {
   for (let layer = layers - 1; layer >= 0; layer -= 1) {
     trail.push({
       ...position,
@@ -416,8 +138,17 @@ function addRipple(position: { x: number; z: number }, now: number, velocity: nu
     });
   }
 
-  while (trail.length > TRAIL_LENGTH) {
+  while (trail.length > props.settings.trailLength) {
     trail.shift();
+  }
+}
+
+function removeExpiredTrailPoints(now: number): void {
+  let oldestPoint = trail[0];
+
+  while (oldestPoint && now - oldestPoint.createdAt > props.settings.trailLifetime) {
+    trail.shift();
+    oldestPoint = trail[0];
   }
 }
 
@@ -426,13 +157,7 @@ function updateTrailTexture(now: number): void {
     return;
   }
 
-  // Remove expired points before uploading the texture.
-  let oldestPoint = trail[0];
-
-  while (oldestPoint && now - oldestPoint.createdAt > TRAIL_LIFETIME) {
-    trail.shift();
-    oldestPoint = trail[0];
-  }
+  removeExpiredTrailPoints(now);
 
   trailData.fill(0);
 
@@ -440,13 +165,15 @@ function updateTrailTexture(now: number): void {
     const offset = index * 4;
 
     // X position.
-    trailData[offset] = Math.round(THREE.MathUtils.clamp(point.x / GRID_WIDTH + 0.5, 0, 1) * 255);
+    trailData[offset] = Math.round(THREE.MathUtils.clamp(point.x / props.settings.gridWidth + 0.5, 0, 1) * 255);
 
     // Z position.
-    trailData[offset + 1] = Math.round(THREE.MathUtils.clamp(point.z / GRID_DEPTH + 0.5, 0, 1) * 255);
+    trailData[offset + 1] = Math.round(THREE.MathUtils.clamp(point.z / props.settings.gridDepth + 0.5, 0, 1) * 255);
 
     // Normalized age.
-    trailData[offset + 2] = Math.round(THREE.MathUtils.clamp((now - point.createdAt) / TRAIL_LIFETIME, 0, 1) * 255);
+    trailData[offset + 2] = Math.round(
+      THREE.MathUtils.clamp((now - point.createdAt) / props.settings.trailLifetime, 0, 1) * 255,
+    );
 
     // Velocity / ripple strength.
     trailData[offset + 3] = Math.round(THREE.MathUtils.clamp(point.velocity, 0, 1) * 255);
@@ -457,6 +184,12 @@ function updateTrailTexture(now: number): void {
   if (material.uniforms.uTrailCount) {
     material.uniforms.uTrailCount.value = trail.length;
   }
+}
+
+function hasActiveTrail(now: number): boolean {
+  removeExpiredTrailPoints(now);
+
+  return trail.length > 0;
 }
 
 function renderFrame(now: number): void {
@@ -471,6 +204,10 @@ function renderFrame(now: number): void {
   }
 
   renderer.render(scene, camera);
+
+  if (!props.animations.idle && !hasActiveTrail(now)) {
+    setAnimationState();
+  }
 }
 
 function resize(): void {
@@ -484,7 +221,7 @@ function resize(): void {
 
   const height = Math.max(element.clientHeight, 1);
 
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, MAX_PIXEL_RATIO));
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, props.settings.pixelRatioCap));
 
   renderer.setSize(width, height, false);
 
@@ -505,7 +242,29 @@ function resize(): void {
   }
 }
 
-function projectPointer(clientX: number, clientY: number): { x: number; z: number } | null {
+function applyWaveGridSettings(): void {
+  if (!grid || !material) return;
+
+  const nextGeometry = createWaveGridGeometry(props.settings);
+
+  grid.geometry.dispose();
+  grid.geometry = nextGeometry;
+
+  const gridSize = material.uniforms.uGridSize?.value;
+
+  if (gridSize instanceof THREE.Vector2) {
+    gridSize.set(props.settings.gridWidth, props.settings.gridDepth);
+  }
+
+  while (trail.length > props.settings.trailLength) {
+    trail.shift();
+  }
+
+  resize();
+  setAnimationState();
+}
+
+function projectPointer(clientX: number, clientY: number): GridPosition | null {
   if (!camera || !canvas.value) {
     return null;
   }
@@ -525,19 +284,35 @@ function projectPointer(clientX: number, clientY: number): { x: number; z: numbe
   }
 
   return {
-    x: THREE.MathUtils.clamp(intersection.x, -GRID_WIDTH / 2, GRID_WIDTH / 2),
-    z: THREE.MathUtils.clamp(intersection.z, -GRID_DEPTH / 2, GRID_DEPTH / 2),
+    x: THREE.MathUtils.clamp(intersection.x, -props.settings.gridWidth / 2, props.settings.gridWidth / 2),
+    z: THREE.MathUtils.clamp(intersection.z, -props.settings.gridDepth / 2, props.settings.gridDepth / 2),
   };
 }
 
-function addTrailPoint(event: PointerEvent): void {
-  if (reducedMotion?.matches || event.pointerType === 'touch') {
+function updatePointerPosition(clientX: number, clientY: number): GridPosition | null {
+  const position = projectPointer(clientX, clientY);
+
+  if (position) {
+    lastPointerPosition = position;
+  }
+
+  return position;
+}
+
+function handlePointerMove(event: PointerEvent): void {
+  if (
+    !props.active ||
+    (!props.animations.cursorMovement && !props.animations.scroll) ||
+    event.pointerType === 'touch'
+  ) {
     return;
   }
 
-  const position = projectPointer(event.clientX, event.clientY);
+  const position = updatePointerPosition(event.clientX, event.clientY);
 
   if (!position) return;
+
+  if (!props.animations.cursorMovement || reducedMotion?.matches) return;
 
   const now = performance.now();
 
@@ -559,57 +334,89 @@ function addTrailPoint(event: PointerEvent): void {
 
   trail.push(point);
 
-  if (trail.length > TRAIL_LENGTH) {
+  if (trail.length > props.settings.trailLength) {
     trail.shift();
   }
 
   lastPoint = point;
+  setAnimationState();
 }
 
 function addPointerRipple(event: PointerEvent): void {
-  if (reducedMotion?.matches) {
+  if (!props.active || (!props.animations.cursorClick && !props.animations.scroll)) {
     return;
   }
 
-  const position = projectPointer(event.clientX, event.clientY);
+  const position = updatePointerPosition(event.clientX, event.clientY);
 
   if (!position) return;
+
+  if (!props.animations.cursorClick || reducedMotion?.matches) return;
 
   // Clicks/taps use more layers, making the ripple feel larger and stronger.
   addRipple(position, performance.now(), 1, CLICK_RIPPLE_LAYERS);
 
   // Prevent the next pointer movement from creating a velocity spike.
   lastPoint = null;
+  setAnimationState();
 }
 
-function addScrollRipple(event: WheelEvent): void {
-  if (reducedMotion?.matches) {
-    return;
-  }
+function emitScrollRipple(position: GridPosition, distance: number, now: number): void {
+  if (now - lastWheelEmission < SCROLL_RIPPLE_THROTTLE) return;
 
-  const now = performance.now();
-
-  if (now - lastWheelEmission < SCROLL_RIPPLE_THROTTLE) {
-    return;
-  }
-
-  const position = projectPointer(event.clientX, event.clientY);
-
-  if (!position) return;
-
-  const scrollDistance = Math.hypot(event.deltaX, event.deltaY);
-
-  const velocity = THREE.MathUtils.clamp(scrollDistance / 65, 0.72, 1);
+  const velocity = THREE.MathUtils.clamp(distance / 65, 0.72, 1);
 
   addRipple(position, now, velocity, DEFAULT_RIPPLE_LAYERS);
 
   lastWheelEmission = now;
+  setAnimationState();
+}
+
+function addScrollRipple(event: WheelEvent): void {
+  if (!props.active || !props.animations.scroll || reducedMotion?.matches) {
+    return;
+  }
+
+  const now = performance.now();
+  const position = updatePointerPosition(event.clientX, event.clientY);
+
+  if (!position) return;
+
+  emitScrollRipple(position, Math.hypot(event.deltaX, event.deltaY), now);
+}
+
+function handleScroll(): void {
+  const nextScrollOffset = window.scrollY;
+  const scrollDistance = Math.abs(nextScrollOffset - lastScrollOffset);
+
+  lastScrollOffset = nextScrollOffset;
+
+  if (
+    !props.active ||
+    !props.animations.scroll ||
+    reducedMotion?.matches ||
+    !lastPointerPosition ||
+    scrollDistance < 1
+  ) {
+    return;
+  }
+
+  emitScrollRipple(lastPointerPosition, scrollDistance, performance.now());
 }
 
 function startTouchRipple(event: TouchEvent): void {
+  if (
+    !props.active ||
+    (!props.animations.cursorMovement && !props.animations.cursorClick && !props.animations.scroll)
+  ) {
+    return;
+  }
+
   const touch = event.touches[0];
 
   if (!touch) return;
+
+  lastPointerPosition = updatePointerPosition(touch.clientX, touch.clientY);
 
   lastTouchSample = {
     x: touch.clientX,
@@ -619,9 +426,13 @@ function startTouchRipple(event: TouchEvent): void {
 }
 
 function addTouchRipple(event: TouchEvent): void {
+  if (!props.active || (!props.animations.cursorMovement && !props.animations.scroll)) return;
+
   const touch = event.touches[0];
 
   if (!touch) return;
+
+  const position = updatePointerPosition(touch.clientX, touch.clientY);
 
   const now = performance.now();
   const previousSample = lastTouchSample;
@@ -632,13 +443,15 @@ function addTouchRipple(event: TouchEvent): void {
     time: now,
   };
 
-  if (reducedMotion?.matches || !previousSample || now - lastTouchEmission < TOUCH_RIPPLE_THROTTLE) {
+  if (
+    !props.animations.cursorMovement ||
+    reducedMotion?.matches ||
+    !previousSample ||
+    now - lastTouchEmission < TOUCH_RIPPLE_THROTTLE ||
+    !position
+  ) {
     return;
   }
-
-  const position = projectPointer(touch.clientX, touch.clientY);
-
-  if (!position) return;
 
   const distance = Math.hypot(touch.clientX - previousSample.x, touch.clientY - previousSample.y);
 
@@ -649,6 +462,7 @@ function addTouchRipple(event: TouchEvent): void {
   addRipple(position, now, velocity, DEFAULT_RIPPLE_LAYERS);
 
   lastTouchEmission = now;
+  setAnimationState();
 }
 
 function endTouchRipple(): void {
@@ -660,10 +474,19 @@ function setAnimationState(): void {
     return;
   }
 
-  const shouldAnimate = props.active && !document.hidden && !reducedMotion?.matches && !contextLost;
+  const now = performance.now();
+  const motionAllowed = !document.hidden && !reducedMotion?.matches && !contextLost;
 
-  if (material.uniforms.uMotion) {
-    material.uniforms.uMotion.value = reducedMotion?.matches ? 0 : 1;
+  updateTrailTexture(now);
+
+  const shouldAnimate = props.active && motionAllowed && (props.animations.idle || hasActiveTrail(now));
+
+  if (material.uniforms.uIdleMotion) {
+    material.uniforms.uIdleMotion.value = motionAllowed && props.animations.idle ? 1 : 0;
+  }
+
+  if (material.uniforms.uInteractionMotion) {
+    material.uniforms.uInteractionMotion.value = motionAllowed ? 1 : 0;
   }
 
   renderer.setAnimationLoop(shouldAnimate ? renderFrame : null);
@@ -704,7 +527,7 @@ function initialize(): void {
 
     camera = new THREE.PerspectiveCamera(42, 1, 0.1, 80);
 
-    trailTexture = new THREE.DataTexture(trailData, TRAIL_LENGTH, 1, THREE.RGBAFormat, THREE.UnsignedByteType);
+    trailTexture = new THREE.DataTexture(trailData, MAX_TRAIL_POINTS, 1, THREE.RGBAFormat, THREE.UnsignedByteType);
 
     trailTexture.minFilter = THREE.NearestFilter;
 
@@ -727,11 +550,14 @@ function initialize(): void {
         uTime: {
           value: 0,
         },
-        uMotion: {
+        uIdleMotion: {
+          value: reducedMotion?.matches || !props.animations.idle ? 0 : 1,
+        },
+        uInteractionMotion: {
           value: reducedMotion?.matches ? 0 : 1,
         },
         uGridSize: {
-          value: new THREE.Vector2(GRID_WIDTH, GRID_DEPTH),
+          value: new THREE.Vector2(props.settings.gridWidth, props.settings.gridDepth),
         },
         uColor: {
           value: palette.color,
@@ -745,7 +571,7 @@ function initialize(): void {
       },
 
       vertexShader,
-      fragmentShader,
+      fragmentShader: waveGridFragmentShader,
 
       transparent: true,
       depthTest: false,
@@ -753,7 +579,7 @@ function initialize(): void {
       blending: THREE.NormalBlending,
     });
 
-    grid = new THREE.LineSegments(createGridGeometry(), material);
+    grid = new THREE.LineSegments(createWaveGridGeometry(props.settings), material);
 
     scene.add(grid);
 
@@ -799,6 +625,7 @@ function cleanup(forceContextLoss: boolean): void {
 function onMotionPreferenceChange(): void {
   trail.length = 0;
   lastPoint = null;
+  lastPointerPosition = null;
   setAnimationState();
 }
 
@@ -819,11 +646,38 @@ function onContextRestored(): void {
 }
 
 watch(
-  () => props.active,
-  (active) => {
+  () => [
+    props.active,
+    props.animations.idle,
+    props.animations.cursorMovement,
+    props.animations.cursorClick,
+    props.animations.scroll,
+  ],
+  ([active, , cursorMovement, cursorClick, scroll]) => {
     if (active) resize();
+
+    if (!cursorMovement && !cursorClick && !scroll) {
+      trail.length = 0;
+      lastPoint = null;
+      lastPointerPosition = null;
+    }
+
     setAnimationState();
   },
+  { flush: 'post' },
+);
+
+watch(
+  () => [
+    props.settings.gridWidth,
+    props.settings.gridDepth,
+    props.settings.gridSpacing,
+    props.settings.vertexStep,
+    props.settings.trailLength,
+    props.settings.trailLifetime,
+    props.settings.pixelRatioCap,
+  ],
+  applyWaveGridSettings,
   { flush: 'post' },
 );
 
@@ -839,13 +693,15 @@ onMounted(() => {
   }
 
   // Desktop pointer trail.
-  window.addEventListener('pointermove', addTrailPoint, { passive: true });
+  window.addEventListener('pointermove', handlePointerMove, { passive: true });
 
   // Clicks, taps and stylus presses.
   window.addEventListener('pointerdown', addPointerRipple, { passive: true });
 
   // Mouse wheel and trackpad scrolling.
   window.addEventListener('wheel', addScrollRipple, { passive: true });
+
+  window.addEventListener('scroll', handleScroll, { passive: true });
 
   // Touch movement.
   window.addEventListener('touchstart', startTouchRipple, { passive: true });
@@ -857,6 +713,8 @@ onMounted(() => {
   window.addEventListener('touchcancel', endTouchRipple, { passive: true });
 
   document.addEventListener('visibilitychange', setAnimationState);
+
+  lastScrollOffset = window.scrollY;
 
   reducedMotion.addEventListener('change', onMotionPreferenceChange);
 
@@ -872,11 +730,13 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
-  window.removeEventListener('pointermove', addTrailPoint);
+  window.removeEventListener('pointermove', handlePointerMove);
 
   window.removeEventListener('pointerdown', addPointerRipple);
 
   window.removeEventListener('wheel', addScrollRipple);
+
+  window.removeEventListener('scroll', handleScroll);
 
   window.removeEventListener('touchstart', startTouchRipple);
 

@@ -1,4 +1,12 @@
 <script setup lang="ts">
+/**
+ * Renders a viewport-synchronized Canvas2D triangle mesh. Idle movement,
+ * pointer deformation and scroll-driven wake updates are independently
+ * controllable while cached geometry keeps static rendering inexpensive.
+ */
+
+import { createDefaultBackgroundAnimationSettings, type BackgroundSceneProps } from '@/types/background';
+
 interface MeshPoint {
   baseX: number;
   baseY: number;
@@ -34,14 +42,10 @@ interface MeshPalette {
   baseFillAlpha: number;
 }
 
-const props = withDefaults(
-  defineProps<{
-    active?: boolean;
-  }>(),
-  {
-    active: true,
-  },
-);
+const props = withDefaults(defineProps<BackgroundSceneProps>(), {
+  active: true,
+  animations: createDefaultBackgroundAnimationSettings,
+});
 
 const canvas = ref<HTMLCanvasElement | null>(null);
 
@@ -806,7 +810,7 @@ function render(now: number): void {
 
   lastFrameTime = now;
 
-  const motionEnabled = props.active && !reducedMotion?.matches;
+  const motionEnabled = props.active && props.animations.idle && !reducedMotion?.matches;
 
   if (motionEnabled) {
     elapsedTime += delta;
@@ -929,7 +933,7 @@ function resize(): void {
 /* -------------------------------------------------------------------------- */
 
 function handlePointerMove(event: PointerEvent): void {
-  if (!props.active || event.pointerType === 'touch') {
+  if (!props.active || !props.animations.cursor || event.pointerType === 'touch') {
     return;
   }
 
@@ -959,7 +963,7 @@ function handlePointerOut(event: PointerEvent): void {
 }
 
 function handlePointerDown(event: PointerEvent): void {
-  if (!props.active || event.pointerType !== 'touch') {
+  if (!props.active || !props.animations.cursor || event.pointerType !== 'touch') {
     return;
   }
 
@@ -1005,7 +1009,7 @@ function handleScroll(): void {
    * Scrollen hält den Wake-Effekt aktiv,
    * wenn der Pointer vorhanden ist.
    */
-  if (props.active && pointerPresent) {
+  if (props.active && props.animations.scroll && pointerPresent) {
     lastPointerActivity = performance.now();
   }
 
@@ -1048,9 +1052,9 @@ function handleThemeChange(): void {
 /* -------------------------------------------------------------------------- */
 
 watch(
-  () => props.active,
-  (active) => {
-    if (!active) {
+  () => [props.active, props.animations.idle, props.animations.cursor, props.animations.scroll],
+  ([active, , cursor, scroll]) => {
+    if (!active || (!cursor && !scroll)) {
       pointerStrength = 0;
       pointerPresent = false;
     }
@@ -1166,7 +1170,7 @@ onBeforeUnmount(() => {
 
 <template>
   <div
-    class="personal-triangle-mesh"
+    class="triangle-mesh-background"
     aria-hidden="true"
   >
     <canvas ref="canvas" />
@@ -1176,7 +1180,7 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
-.personal-triangle-mesh {
+.triangle-mesh-background {
   position: fixed;
   z-index: 0;
   inset: 0;
@@ -1192,7 +1196,7 @@ onBeforeUnmount(() => {
   isolation: isolate;
 }
 
-.personal-triangle-mesh::before {
+.triangle-mesh-background::before {
   position: absolute;
   inset: 0;
 
@@ -1207,7 +1211,7 @@ onBeforeUnmount(() => {
   pointer-events: none;
 }
 
-.personal-triangle-mesh canvas {
+.triangle-mesh-background canvas {
   position: absolute;
   inset: 0;
 
@@ -1234,7 +1238,7 @@ onBeforeUnmount(() => {
 }
 
 @media (max-width: 620px) {
-  .personal-triangle-mesh {
+  .triangle-mesh-background {
     opacity: 0.76;
   }
 }

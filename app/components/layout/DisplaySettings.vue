@@ -1,13 +1,26 @@
+<!--
+  Renders the compact display-preferences dialog. It presents typed controls
+  for theme, scene selection and independent background animation channels.
+-->
 <script setup lang="ts">
-import type { BackgroundPreference, ThemePreference } from '@/composables/usePortfolioPreferences';
+import type {
+  BackgroundAnimation,
+  BackgroundPreference,
+  ThemePreference,
+  WaveGridSetting,
+} from '@/composables/usePortfolioPreferences';
+import { WAVE_GRID_SETTING_CONTROLS } from '@/types/background';
 
 const {
   themePreference,
   backgroundPreference,
-  backgroundMotionEnabled,
+  backgroundAnimations,
+  backgroundAdvancedSettings,
   setThemePreference,
   setBackgroundPreference,
-  setBackgroundMotionEnabled,
+  setBackgroundAnimationEnabled,
+  setWaveGridSetting,
+  restoreDefaultSettings,
 } = usePortfolioPreferences();
 
 const root = ref<HTMLElement | null>(null);
@@ -28,6 +41,23 @@ const backgroundOptions: { value: BackgroundPreference; label: string }[] = [
   { value: 'none', label: 'None' },
 ];
 
+const route = useRoute();
+
+const automaticBackgrounds: Record<string, BackgroundPreference> = {
+  '/': 'wave',
+  '/work': 'triangles',
+  '/academic': 'particles',
+  '/personal': 'mesh',
+};
+
+const normalizedPath = computed(() => route.path.replace(/\/+$/, '') || '/');
+
+const activeBackground = computed<BackgroundPreference>(() =>
+  backgroundPreference.value === 'auto'
+    ? (automaticBackgrounds[normalizedPath.value] ?? 'none')
+    : backgroundPreference.value,
+);
+
 function onThemeChange(event: Event): void {
   setThemePreference((event.target as HTMLSelectElement).value as ThemePreference);
 }
@@ -36,8 +66,18 @@ function onBackgroundChange(event: Event): void {
   setBackgroundPreference((event.target as HTMLSelectElement).value as BackgroundPreference);
 }
 
-function onMotionChange(event: Event): void {
-  setBackgroundMotionEnabled((event.target as HTMLInputElement).checked);
+function onAnimationChange(animation: BackgroundAnimation, event: Event): void {
+  setBackgroundAnimationEnabled(animation, (event.target as HTMLInputElement).checked);
+}
+
+function onWaveGridSettingChange(setting: WaveGridSetting, event: Event): void {
+  const value = Number((event.target as HTMLInputElement).value);
+
+  if (Number.isFinite(value)) setWaveGridSetting(setting, value);
+}
+
+function onRestoreDefaults(): void {
+  restoreDefaultSettings();
 }
 
 function onDocumentPointerDown(event: PointerEvent): void {
@@ -134,21 +174,103 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onDocumentPoin
         </select>
       </label>
 
-      <label class="mt-4 flex cursor-pointer items-center justify-between gap-4 border-t border-line pt-4">
-        <span class="grid gap-1">
-          <strong class="font-mono text-[0.65rem] font-semibold text-foreground">Background motion</strong>
-          <small class="font-mono text-[0.56rem] leading-relaxed text-muted"
-            >Keep the scene visible but pause it.</small
+      <fieldset class="mt-4 grid gap-3 border-t border-line pt-4">
+        <legend class="sr-only">Background animations</legend>
+        <label class="settings-toggle">
+          <span class="grid gap-1">
+            <strong>Background idle animation</strong>
+            <small>Animate the scene while it is idle.</small>
+          </span>
+          <input
+            class="motion-toggle"
+            type="checkbox"
+            :checked="backgroundAnimations.idle"
+            :disabled="backgroundPreference === 'none'"
+            @change="onAnimationChange('idle', $event)"
+          />
+        </label>
+
+        <label class="settings-toggle">
+          <span class="grid gap-1">
+            <strong>Cursor movement animation</strong>
+            <small>React to mouse, pen and touch input.</small>
+          </span>
+          <input
+            class="motion-toggle"
+            type="checkbox"
+            :checked="backgroundAnimations.cursorMovement"
+            :disabled="backgroundPreference === 'none'"
+            @change="onAnimationChange('cursorMovement', $event)"
+          />
+        </label>
+
+        <label class="settings-toggle">
+          <span class="grid gap-1">
+            <strong>Cursor click animation</strong>
+            <small>React to mouse, pen and touch presses.</small>
+          </span>
+          <input
+            class="motion-toggle"
+            type="checkbox"
+            :checked="backgroundAnimations.cursorClick"
+            :disabled="backgroundPreference === 'none'"
+            @change="onAnimationChange('cursorClick', $event)"
+          />
+        </label>
+
+        <label class="settings-toggle">
+          <span class="grid gap-1">
+            <strong>Scroll animation</strong>
+            <small>React to scrolling and wheel gestures.</small>
+          </span>
+          <input
+            class="motion-toggle"
+            type="checkbox"
+            :checked="backgroundAnimations.scroll"
+            :disabled="backgroundPreference === 'none'"
+            @change="onAnimationChange('scroll', $event)"
+          />
+        </label>
+      </fieldset>
+
+      <details
+        v-if="activeBackground === 'wave'"
+        class="advanced-settings mt-4 border-t border-line pt-4"
+      >
+        <summary>Wave grid advanced settings</summary>
+
+        <p>Visual density, ripple capacity and render resolution.</p>
+
+        <div class="grid gap-3">
+          <label
+            v-for="control in WAVE_GRID_SETTING_CONTROLS"
+            :key="control.key"
+            class="settings-field"
           >
-        </span>
-        <input
-          class="motion-toggle"
-          type="checkbox"
-          :checked="backgroundMotionEnabled"
-          :disabled="backgroundPreference === 'none'"
-          @change="onMotionChange"
-        />
-      </label>
+            <span>
+              {{ control.label }}
+              <small>{{ control.description }}</small>
+            </span>
+            <input
+              type="number"
+              :value="backgroundAdvancedSettings.wave[control.key]"
+              :min="control.min"
+              :max="control.max"
+              :step="control.step"
+              :disabled="backgroundPreference === 'none'"
+              @change="onWaveGridSettingChange(control.key, $event)"
+            />
+          </label>
+        </div>
+      </details>
+
+      <button
+        class="restore-defaults mt-4 w-full border border-line px-3 py-2 font-mono text-[0.6rem] text-muted transition-colors hover:border-line-strong hover:text-foreground focus-visible:border-line-strong focus-visible:text-foreground"
+        type="button"
+        @click="onRestoreDefaults"
+      >
+        Restore default settings
+      </button>
     </div>
   </div>
 </template>
@@ -176,6 +298,9 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onDocumentPoin
 }
 
 .settings-panel {
+  max-height: min(44rem, calc(100vh - 5rem));
+  overflow-y: auto;
+  overscroll-behavior: contain;
   animation: settings-enter 180ms cubic-bezier(0.22, 1, 0.36, 1) both;
   transform-origin: top right;
 }
@@ -205,6 +330,23 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onDocumentPoin
   border-color: var(--border-strong);
 }
 
+.settings-field input {
+  width: 100%;
+  min-height: 2.4rem;
+  padding-inline: 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: 0;
+  outline: none;
+  background: var(--background);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.65rem;
+}
+
+.settings-field input:focus-visible {
+  border-color: var(--border-strong);
+}
+
 .motion-toggle {
   width: 2.35rem;
   height: 1.3rem;
@@ -216,6 +358,59 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onDocumentPoin
 .motion-toggle:disabled {
   cursor: not-allowed;
   opacity: 0.45;
+}
+
+.settings-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  cursor: pointer;
+}
+
+.settings-toggle strong {
+  color: var(--text);
+  font-family: var(--mono-font);
+  font-size: 0.65rem;
+  font-weight: 600;
+}
+
+.settings-toggle small {
+  color: var(--muted);
+  font-family: var(--mono-font);
+  font-size: 0.56rem;
+  line-height: 1.45;
+}
+
+.advanced-settings summary {
+  cursor: pointer;
+  color: var(--text);
+  font-family: var(--mono-font);
+  font-size: 0.65rem;
+  font-weight: 600;
+}
+
+.advanced-settings > p {
+  margin: 0.6rem 0 0.85rem;
+  color: var(--muted);
+  font-family: var(--mono-font);
+  font-size: 0.56rem;
+  line-height: 1.45;
+}
+
+.restore-defaults {
+  cursor: pointer;
+}
+
+.settings-field span {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.settings-field small {
+  color: var(--muted);
+  font-size: 0.56rem;
+  line-height: 1.4;
 }
 
 @keyframes settings-enter {

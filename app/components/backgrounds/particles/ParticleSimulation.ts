@@ -1,5 +1,13 @@
+/**
+ * Owns the GPU particle simulation and translates typed interaction settings
+ * into shader uniforms. It contains no browser listeners, making orchestration
+ * and lifecycle control remain in the parent background component.
+ */
+
 import * as THREE from 'three';
 import { GPUComputationRenderer, type Variable } from 'three/addons/misc/GPUComputationRenderer.js';
+
+import type { BackgroundAnimationSettings } from '@/types/background';
 
 import { PARTICLE_CONFIG, type ParticleQuality } from './config';
 import type { InteractionState } from './InteractionManager';
@@ -95,7 +103,7 @@ export class ParticleSimulation {
     this.scene.add(this.points);
   }
 
-  update(time: number, delta: number, interaction: InteractionState): void {
+  update(time: number, delta: number, interaction: InteractionState, animations: BackgroundAnimationSettings): void {
     const velocityUniforms = this.velocityVariable.material.uniforms;
     const positionUniforms = this.positionVariable.material.uniforms;
     const touch = interaction.pointerType === 'touch';
@@ -104,6 +112,11 @@ export class ParticleSimulation {
     this.pointerVelocity.set(interaction.pointerVelocityX, interaction.pointerVelocityY);
     this.getUniform(velocityUniforms, 'uTime').value = time;
     this.getUniform(velocityUniforms, 'uDelta').value = delta;
+    this.getUniform(velocityUniforms, 'uAmbientStrength').value = animations.idle ? PARTICLE_CONFIG.ambientStrength : 0;
+    this.getUniform(velocityUniforms, 'uIdleAttraction').value = animations.idle ? PARTICLE_CONFIG.idleAttraction : 0;
+    this.getUniform(velocityUniforms, 'uIdleOrbitStrength').value = animations.idle
+      ? PARTICLE_CONFIG.idleOrbitStrength
+      : 0;
     this.getUniform(velocityUniforms, 'uPointerRadius').value = touch
       ? PARTICLE_CONFIG.touchRadius
       : PARTICLE_CONFIG.pointerRadius;

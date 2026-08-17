@@ -1,3 +1,11 @@
+/**
+ * Collects and decays pointer and scroll input for the particle simulation.
+ * Individual interaction channels can be disabled without removing listeners,
+ * keeping runtime preference changes cheap and deterministic.
+ */
+
+import type { BackgroundAnimationSettings } from '@/types/background';
+
 import { PARTICLE_CONFIG } from './config';
 
 export interface InteractionState {
@@ -39,7 +47,10 @@ export class InteractionManager {
   private scrollTarget = 0;
   private lastMovementTime = 0;
 
-  constructor() {
+  constructor(
+    private animations: BackgroundAnimationSettings,
+    private readonly onActivity: () => void,
+  ) {
     this.resize();
     this.lastScrollY = window.scrollY;
     this.lastScrollTime = performance.now();
@@ -76,6 +87,36 @@ export class InteractionManager {
     this.state.interactionMomentum *= momentumDecay;
 
     return this.state;
+  }
+
+  setAnimations(animations: BackgroundAnimationSettings): void {
+    this.animations = animations;
+
+    if (!animations.cursor) {
+      this.state.pointerVelocityX = 0;
+      this.state.pointerVelocityY = 0;
+      this.state.pointerSpeed = 0;
+      this.state.pointerInfluence = 0;
+      this.state.touchActive = false;
+    }
+
+    if (!animations.scroll) {
+      this.scrollTarget = 0;
+      this.state.scrollVelocity = 0;
+    }
+
+    if (!animations.cursor && !animations.scroll) {
+      this.state.interactionMomentum = 0;
+    }
+  }
+
+  hasActiveAnimation(): boolean {
+    return (
+      this.animations.idle ||
+      this.state.pointerInfluence > 0.001 ||
+      Math.abs(this.state.scrollVelocity) > 0.001 ||
+      this.state.interactionMomentum > 0.001
+    );
   }
 
   dispose(): void {
@@ -126,25 +167,38 @@ export class InteractionManager {
   }
 
   private readonly onPointerDown = (event: PointerEvent): void => {
+    if (!this.animations.cursor) return;
+
     this.setPointer(event);
     this.state.touchActive = event.pointerType === 'touch';
     this.state.pointerInfluence = Math.max(this.state.pointerInfluence, 0.34);
+    this.onActivity();
   };
 
   private readonly onPointerMove = (event: PointerEvent): void => {
+    if (!this.animations.cursor) return;
+
     this.setPointer(event);
+    this.onActivity();
   };
 
   private readonly onPointerEnd = (event: PointerEvent): void => {
+    if (!this.animations.cursor) return;
+
     if (event.pointerType === 'touch') this.state.touchActive = false;
     this.lastMovementTime = performance.now();
+    this.onActivity();
   };
 
   private readonly onPointerOut = (event: PointerEvent): void => {
+    if (!this.animations.cursor) return;
+
     if (event.relatedTarget === null && event.pointerType !== 'touch') this.lastMovementTime = performance.now();
   };
 
   private readonly onScroll = (): void => {
+    if (!this.animations.scroll) return;
+
     const now = performance.now();
     // Ignore long idle gaps between scroll gestures. Otherwise the first wheel
     // tick after a pause is divided by the entire idle duration and disappears.
@@ -162,6 +216,7 @@ export class InteractionManager {
     );
     this.lastScrollY = currentY;
     this.lastScrollTime = now;
+    this.onActivity();
   };
 
   private readonly onBlur = (): void => {

@@ -1,21 +1,17 @@
 ```vue
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref } from 'vue';
-
 /**
- * Canvas-based triangular background with:
- * - deterministic procedural tile generation
- * - scroll-aware world coordinates
- * - pointer-driven highlight trails
- * - reduced-motion support
- * - adaptive rendering density and device-pixel-ratio
+ * Draws a lightweight Canvas2D triangle field with separate idle, cursor and
+ * scroll animation channels. Geometry, palette and drawing paths are cached
+ * so static scenes only render when their visible state needs updating.
  *
- * The background is decorative only. Pointer input creates visual highlights
- * but never changes layout or page content.
- *
- * The component remains mounted while inactive so that switching between
- * background scenes does not recreate the canvas and its rendering state.
+ * The scene remains mounted while inactive, allowing orchestration to switch
+ * routes without rebuilding its deterministic tile data.
  */
+
+import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
+
+import { createDefaultBackgroundAnimationSettings, type BackgroundSceneProps } from '@/types/background';
 
 declare global {
   interface WindowEventMap {
@@ -61,14 +57,10 @@ interface HighlightPoint {
   strength: number;
 }
 
-const props = withDefaults(
-  defineProps<{
-    active?: boolean;
-  }>(),
-  {
-    active: true,
-  },
-);
+const props = withDefaults(defineProps<BackgroundSceneProps>(), {
+  active: true,
+  animations: createDefaultBackgroundAnimationSettings,
+});
 
 const canvas = ref<HTMLCanvasElement | null>(null);
 
@@ -556,13 +548,13 @@ function drawFrame(timestamp = performance.now()): void {
 
   const delta = lastFrameTime === 0 ? 16.67 : Math.min(timestamp - lastFrameTime, 48);
 
-  const motionEnabled = reducedMotion?.matches !== true;
+  const idleMotionEnabled = props.active && props.animations.idle && reducedMotion?.matches !== true;
 
   cleanupHighlightTrail(timestamp);
 
   const trailActive = hasActiveTrail(timestamp);
 
-  const shouldContinue = (props.active && motionEnabled && isDocumentVisible) || trailActive;
+  const shouldContinue = (idleMotionEnabled && isDocumentVisible) || trailActive;
 
   const frameBudget = shouldContinue ? ACTIVE_FRAME_BUDGET_MS : IDLE_FRAME_BUDGET_MS;
 
@@ -576,7 +568,7 @@ function drawFrame(timestamp = performance.now()): void {
 
   lastFrameTime = timestamp;
 
-  if (motionEnabled && props.active) {
+  if (idleMotionEnabled) {
     elapsedTime += delta / 1000;
   }
 
@@ -589,8 +581,8 @@ function drawFrame(timestamp = performance.now()): void {
 
   syncRowsForScroll();
 
-  // Reduced motion stops animation while preserving a static visual state.
-  const motion = motionEnabled ? 1 : 0.82;
+  // A disabled idle channel preserves a calm, static visual state.
+  const motion = idleMotionEnabled ? 1 : 0.82;
 
   for (const row of tileRows) {
     const rowScreenY = row.y - scrollOffset;
@@ -669,7 +661,7 @@ function resize(): void {
 /* -------------------------------------------------------------------------- */
 
 function handlePointerMove(event: PointerEvent): void {
-  if (!props.active) {
+  if (!props.active || !props.animations.cursor) {
     return;
   }
 
@@ -729,7 +721,7 @@ function handleScroll(): void {
    * Scrolling changes the cursor's world position even when the cursor
    * itself does not move. This creates a continuous highlight trail.
    */
-  if (pointerPresent && hasPointerWorldPosition) {
+  if (props.animations.scroll && pointerPresent && hasPointerWorldPosition) {
     const worldX = pointerScreenX;
     const worldY = pointerScreenY + scrollOffset;
 
@@ -784,6 +776,21 @@ function handleMotionPreferenceChange(): void {
     scheduleFrame();
   }
 }
+
+watch(
+  () => [props.active, props.animations.idle, props.animations.cursor, props.animations.scroll],
+  ([active, idle, cursor, scroll]) => {
+    if (!active || (!cursor && !scroll)) {
+      highlightTrail.length = 0;
+      hasPointerWorldPosition = false;
+    }
+
+    if (active || idle || cursor || scroll) {
+      lastFrameTime = 0;
+      scheduleFrame();
+    }
+  },
+);
 
 /* -------------------------------------------------------------------------- */
 /* Lifecycle                                                                  */
