@@ -1,7 +1,4 @@
-import type {
-  BackgroundPerformanceMode,
-  BackgroundQualityPreset,
-} from '@/types/background';
+import type { BackgroundPerformanceMode, BackgroundQualityPreset } from '@/types/background';
 
 import {
   AdaptivePerformanceManager,
@@ -28,12 +25,7 @@ export class BackgroundPerformanceRuntime<Preset extends BackgroundQualityPreset
     mode: BackgroundPerformanceMode,
     options: BackgroundPerformanceRuntimeOptions = {},
   ) {
-    this.manager = new AdaptivePerformanceManager(
-      presets,
-      mode,
-      chooseInitialBackgroundQuality(),
-      options,
-    );
+    this.manager = new AdaptivePerformanceManager(presets, mode, chooseInitialBackgroundQuality(), options);
     this.statsUpdateInterval = options.statsUpdateInterval ?? 250;
   }
 

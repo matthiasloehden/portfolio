@@ -1,0 +1,591 @@
+import { seededRandom, smoothstep } from '../shared/math';
+import { getTriangleMeshPalette, TRIANGLE_MESH_CONFIG, type TriangleMeshQualityPreset } from './config';
+import type { TriangleMeshPalette, TriangleMeshRendererStats, TriangleMeshRenderState } from './types';
+
+interface MeshPoint {
+  baseX: number;
+  baseY: number;
+  x: number;
+  y: number;
+  amplitudeX: number;
+  amplitudeY: number;
+  phaseX: number;
+  phaseY: number;
+  speedX: number;
+  speedY: number;
+  secondaryPhase: number;
+}
+
+interface MeshTriangle {
+  a: number;
+  b: number;
+  c: number;
+  tone: number;
+}
+
+interface MeshEdge {
+  a: number;
+  b: number;
+  tone: number;
+}
+
+/** Owns Canvas2D resources, mesh geometry and pointer-wake simulation. */
+export class TriangleMeshRenderer {
+  private context: CanvasRenderingContext2D | null;
+  private quality: TriangleMeshQualityPreset;
+  private palette: TriangleMeshPalette;
+
+  private readonly points: MeshPoint[] = [];
+  private readonly triangles: MeshTriangle[] = [];
+  private readonly edges: MeshEdge[] = [];
+  private readonly pointWakeInfluence: number[] = [];
+  private readonly pointCoreInfluence: number[] = [];
+
+  private width = 1;
+  private height = 1;
+  private worldHeight = 1;
+  private dpr = 1;
+  private scrollOffset = 0;
+
+  private spacing = 1;
+  private rowSpacing = 1;
+  private columnCount = 1;
+  private totalRowCount = 1;
+  private meshStartRow = -1;
+  private meshEndRow = -1;
+
+  private lastFrameTime = 0;
+  private elapsedTime = 0;
+
+  private pointerX = 0;
+  private pointerY = 0;
+  private pointerClientY = 0;
+  private pointerStrength = 0;
+  private pointerRadius: number = TRIANGLE_MESH_CONFIG.pointerWakeMinRadius;
+  private pointerPresent = false;
+  private lastPointerActivity = Number.NEGATIVE_INFINITY;
+  private activityWasFresh = false;
+  private releaseStartedAt = Number.NEGATIVE_INFINITY;
+  private releaseStartStrength = 0;
+  private releaseStartRadius: number = TRIANGLE_MESH_CONFIG.pointerWakeMinRadius;
+
+  private constructor(
+    private readonly canvas: HTMLCanvasElement,
+    quality: TriangleMeshQualityPreset,
+    theme: string | undefined,
+  ) {
+    this.quality = quality;
+    this.palette = getTriangleMeshPalette(theme);
+    this.context = canvas.getContext('2d', {
+      alpha: true,
+      desynchronized: true,
+    });
+
+    if (!this.context) throw new Error('Canvas2D is unavailable');
+  }
+
+  static create(
+    canvas: HTMLCanvasElement,
+    quality: TriangleMeshQualityPreset,
+    theme: string | undefined,
+  ): TriangleMeshRenderer {
+    return new TriangleMeshRenderer(canvas, quality, theme);
+  }
+
+  resize(quality: TriangleMeshQualityPreset = this.quality): void {
+    const context = this.context;
+
+    if (!context) return;
+
+    this.quality = quality;
+
+    const bounds = this.canvas.getBoundingClientRect();
+
+    this.width = Math.max(1, Math.round(bounds.width));
+    this.height = Math.max(1, Math.round(bounds.height));
+    this.worldHeight = Math.max(this.height, this.canvas.parentElement?.parentElement?.scrollHeight ?? this.height);
+    this.scrollOffset = window.scrollY;
+    this.dpr = Math.min(window.devicePixelRatio || 1, quality.pixelRatioCap);
+
+    this.canvas.width = Math.round(this.width * this.dpr);
+    this.canvas.height = Math.round(this.height * this.dpr);
+    context.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+
+    this.configureMeshGrid();
+    this.syncMeshWindow(true);
+    this.resetFrameTime();
+  }
+
+  setQuality(quality: TriangleMeshQualityPreset): void {
+    this.resize(quality);
+  }
+
+  setTheme(theme: string | undefined): void {
+    this.palette = getTriangleMeshPalette(theme);
+  }
+
+  setPointer(clientX: number, clientY: number, now = performance.now()): void {
+    this.pointerX = clientX;
+    this.pointerClientY = clientY;
+    this.pointerY = clientY + this.scrollOffset;
+    this.pointerPresent = true;
+    this.lastPointerActivity = now;
+  }
+
+  clearPointer(): void {
+    this.pointerPresent = false;
+    this.lastPointerActivity = Number.NEGATIVE_INFINITY;
+  }
+
+  setScrollOffset(scrollOffset: number, activateWake: boolean, now = performance.now()): void {
+    this.scrollOffset = scrollOffset;
+    this.pointerY = this.pointerClientY + scrollOffset;
+
+    if (activateWake && this.pointerPresent) this.lastPointerActivity = now;
+  }
+
+  resetInteractions(): void {
+    this.pointerStrength = 0;
+    this.pointerRadius = TRIANGLE_MESH_CONFIG.pointerWakeMinRadius;
+    this.pointerPresent = false;
+    this.lastPointerActivity = Number.NEGATIVE_INFINITY;
+    this.activityWasFresh = false;
+    this.releaseStartedAt = Number.NEGATIVE_INFINITY;
+    this.releaseStartStrength = 0;
+    this.releaseStartRadius = TRIANGLE_MESH_CONFIG.pointerWakeMinRadius;
+  }
+
+  resetMotion(): void {
+    this.elapsedTime = 0;
+    this.resetFrameTime();
+  }
+
+  resetFrameTime(): void {
+    this.lastFrameTime = 0;
+  }
+
+  render(now: number, state: TriangleMeshRenderState): boolean {
+    if (!this.context) return false;
+
+    const delta = this.lastFrameTime === 0 ? 0 : Math.min((now - this.lastFrameTime) / 1_000, 0.05);
+
+    this.lastFrameTime = now;
+
+    if (state.advanceIdle) this.elapsedTime += delta;
+
+    this.syncMeshWindow();
+
+    const activityIsFresh = state.active && now - this.lastPointerActivity < TRIANGLE_MESH_CONFIG.pointerActivityHold;
+
+    this.updatePointerTransition(now, delta, state.active, activityIsFresh);
+    this.updatePointPositions(state.motionAllowed);
+    this.drawScene(state.active);
+
+    return activityIsFresh || this.pointerStrength > 0.002;
+  }
+
+  getPerformanceStats(): TriangleMeshRendererStats {
+    return {
+      width: Math.round(this.width * this.dpr),
+      height: Math.round(this.height * this.dpr),
+      dpr: this.dpr,
+      pointCount: this.points.length,
+      triangleCount: this.triangles.length,
+      edgeCount: this.edges.length,
+      rowCount: Math.max(0, this.meshEndRow - this.meshStartRow + 1),
+      pointerStrength: this.pointerStrength,
+    };
+  }
+
+  dispose(): void {
+    this.points.length = 0;
+    this.triangles.length = 0;
+    this.edges.length = 0;
+    this.pointWakeInfluence.length = 0;
+    this.pointCoreInfluence.length = 0;
+    this.meshStartRow = -1;
+    this.meshEndRow = -1;
+    this.context = null;
+  }
+
+  private configureMeshGrid(): void {
+    const spacingConfig = TRIANGLE_MESH_CONFIG.spacing;
+    const breakpoints = TRIANGLE_MESH_CONFIG.viewportBreakpoints;
+    const baseSpacing =
+      this.width < breakpoints.mobile
+        ? spacingConfig.mobile
+        : this.width < breakpoints.tablet
+          ? spacingConfig.tablet
+          : spacingConfig.desktop;
+
+    this.spacing = baseSpacing * this.quality.spacingScale;
+    this.rowSpacing = this.spacing * spacingConfig.rowScale;
+    this.columnCount = Math.ceil(this.width / this.spacing) + 3;
+    this.totalRowCount = Math.ceil(this.worldHeight / this.rowSpacing) + 3;
+    this.meshStartRow = -1;
+    this.meshEndRow = -1;
+  }
+
+  private syncMeshWindow(force = false): void {
+    const config = TRIANGLE_MESH_CONFIG;
+    const rowOriginY = -this.rowSpacing;
+    const visibleTop = this.scrollOffset - config.viewportBuffer;
+    const visibleBottom = this.scrollOffset + this.height + config.viewportBuffer;
+    const startRow = Math.max(0, Math.floor((visibleTop - rowOriginY) / this.rowSpacing) - 1);
+    const endRow = Math.min(this.totalRowCount - 1, Math.ceil((visibleBottom - rowOriginY) / this.rowSpacing) + 1);
+
+    if (!force && startRow === this.meshStartRow && endRow === this.meshEndRow) return;
+
+    this.buildMeshWindow(startRow, endRow);
+  }
+
+  private buildMeshWindow(startRow: number, endRow: number): void {
+    this.points.length = 0;
+    this.triangles.length = 0;
+    this.edges.length = 0;
+    this.pointWakeInfluence.length = 0;
+    this.pointCoreInfluence.length = 0;
+
+    this.meshStartRow = startRow;
+    this.meshEndRow = endRow;
+
+    const rows = Math.max(0, endRow - startRow + 1);
+    const startX = -this.spacing * 1.25;
+    const rowOriginY = -this.rowSpacing;
+
+    for (let localRow = 0; localRow < rows; localRow += 1) {
+      const globalRow = startRow + localRow;
+
+      for (let column = 0; column < this.columnCount; column += 1) {
+        const seed = globalRow * 101 + column * 37 + 1;
+        const offsetX = globalRow % 2 === 0 ? 0 : this.spacing * 0.5;
+        const jitterX = (seededRandom(seed) - 0.5) * this.spacing * 0.26;
+        const jitterY = (seededRandom(seed + 7) - 0.5) * this.rowSpacing * 0.24;
+        const baseX = startX + column * this.spacing + offsetX + jitterX;
+        const baseY = rowOriginY + globalRow * this.rowSpacing + jitterY;
+
+        this.points.push({
+          baseX,
+          baseY,
+          x: baseX,
+          y: baseY,
+          amplitudeX: 8 + seededRandom(seed + 13) * 18,
+          amplitudeY: 7 + seededRandom(seed + 19) * 16,
+          phaseX: seededRandom(seed + 23) * Math.PI * 2,
+          phaseY: seededRandom(seed + 29) * Math.PI * 2,
+          speedX: 0.22 + seededRandom(seed + 31) * 0.25,
+          speedY: 0.18 + seededRandom(seed + 43) * 0.28,
+          secondaryPhase: (globalRow * this.columnCount + column) * 0.31,
+        });
+        this.pointWakeInfluence.push(0);
+        this.pointCoreInfluence.push(0);
+      }
+    }
+
+    const edgeKeys = new Set<string>();
+
+    for (let localRow = 0; localRow < rows - 1; localRow += 1) {
+      const globalRow = startRow + localRow;
+
+      for (let column = 0; column < this.columnCount - 1; column += 1) {
+        const topLeft = localRow * this.columnCount + column;
+        const topRight = topLeft + 1;
+        const bottomLeft = topLeft + this.columnCount;
+        const bottomRight = bottomLeft + 1;
+        const tone = 0.72 + seededRandom(globalRow * 89 + column * 17) * 0.28;
+
+        if ((globalRow + column) % 2 === 0) {
+          this.addTriangle(topLeft, topRight, bottomRight, tone, edgeKeys);
+          this.addTriangle(topLeft, bottomRight, bottomLeft, tone * 0.82, edgeKeys);
+        } else {
+          this.addTriangle(topLeft, topRight, bottomLeft, tone * 0.82, edgeKeys);
+          this.addTriangle(topRight, bottomRight, bottomLeft, tone, edgeKeys);
+        }
+      }
+    }
+  }
+
+  private addTriangle(a: number, b: number, c: number, tone: number, edgeKeys: Set<string>): void {
+    this.triangles.push({ a, b, c, tone });
+    this.addEdge(a, b, tone, edgeKeys);
+    this.addEdge(b, c, tone, edgeKeys);
+    this.addEdge(c, a, tone, edgeKeys);
+  }
+
+  private addEdge(a: number, b: number, tone: number, edgeKeys: Set<string>): void {
+    const start = Math.min(a, b);
+    const end = Math.max(a, b);
+    const key = `${start}:${end}`;
+
+    if (edgeKeys.has(key)) return;
+
+    edgeKeys.add(key);
+    this.edges.push({ a: start, b: end, tone });
+  }
+
+  private updatePointerTransition(now: number, delta: number, active: boolean, activityIsFresh: boolean): void {
+    const config = TRIANGLE_MESH_CONFIG;
+
+    if (activityIsFresh) {
+      const fadeIn = 1 - Math.exp(-delta * config.pointerWakeAttackRate);
+
+      this.pointerStrength += (1 - this.pointerStrength) * fadeIn;
+      this.pointerRadius += (config.pointerWakeRadius - this.pointerRadius) * fadeIn;
+    } else {
+      if (this.activityWasFresh) {
+        this.releaseStartedAt = now;
+        this.releaseStartStrength = this.pointerStrength;
+        this.releaseStartRadius = this.pointerRadius;
+      }
+
+      const releaseProgress = Math.min(1, Math.max(0, (now - this.releaseStartedAt) / config.pointerWakeDuration));
+      const easedReleaseProgress = smoothstep(0, 1, releaseProgress);
+
+      this.pointerStrength = this.releaseStartStrength * (1 - easedReleaseProgress);
+      this.pointerRadius =
+        this.releaseStartRadius + (config.pointerWakeMinRadius - this.releaseStartRadius) * easedReleaseProgress;
+    }
+
+    if (!active) {
+      this.pointerStrength = 0;
+      this.pointerRadius = config.pointerWakeMinRadius;
+    }
+
+    this.activityWasFresh = activityIsFresh;
+  }
+
+  private updatePointPositions(motionAllowed: boolean): void {
+    if (!motionAllowed) {
+      for (const point of this.points) {
+        point.x = point.baseX;
+        point.y = point.baseY;
+      }
+
+      return;
+    }
+
+    for (let index = 0; index < this.points.length; index += 1) {
+      const point = this.points[index];
+
+      if (!point) continue;
+
+      point.x =
+        point.baseX +
+        (Math.sin(this.elapsedTime * point.speedX + point.phaseX) * point.amplitudeX +
+          Math.sin(this.elapsedTime * 0.07 + point.secondaryPhase) * point.amplitudeX * 0.35);
+      point.y =
+        point.baseY +
+        (Math.cos(this.elapsedTime * point.speedY + point.phaseY) * point.amplitudeY +
+          Math.sin(this.elapsedTime * 0.085 - point.secondaryPhase) * point.amplitudeY * 0.28);
+    }
+  }
+
+  private updatePointerInfluenceCache(active: boolean): void {
+    if (this.pointerStrength <= 0.001 && !this.pointerPresent) {
+      this.pointWakeInfluence.fill(0);
+      this.pointCoreInfluence.fill(0);
+      return;
+    }
+
+    for (let index = 0; index < this.points.length; index += 1) {
+      const point = this.points[index];
+
+      if (!point) continue;
+
+      this.pointWakeInfluence[index] = this.getWakeInfluenceAt(point.x, point.y, 275);
+      this.pointCoreInfluence[index] = this.getCoreInfluenceAt(point.x, point.y, active);
+    }
+  }
+
+  private getWakeInfluenceAt(x: number, y: number, radius: number): number {
+    if (this.pointerStrength <= 0.001) return 0;
+
+    const config = TRIANGLE_MESH_CONFIG;
+    const dynamicRadius = Math.max(
+      config.pointerWakeMinRadius,
+      radius * (this.pointerRadius / config.pointerWakeRadius),
+    );
+    const dx = x - this.pointerX;
+    const dy = y - this.pointerY;
+    const distanceSquared = dx * dx + dy * dy;
+
+    if (distanceSquared >= dynamicRadius * dynamicRadius) return 0;
+
+    const distance = Math.sqrt(distanceSquared);
+
+    return (1 - smoothstep(dynamicRadius * 0.18, dynamicRadius, distance)) * this.pointerStrength;
+  }
+
+  private getCoreInfluenceAt(x: number, y: number, active: boolean): number {
+    if (!active || !this.pointerPresent) return 0;
+
+    const dx = x - this.pointerX;
+    const dy = y - this.pointerY;
+    const distanceSquared = dx * dx + dy * dy;
+    const radius = TRIANGLE_MESH_CONFIG.pointerCoreRadius;
+
+    if (distanceSquared >= radius * radius) return 0;
+
+    return 1 - smoothstep(radius * 0.18, radius, Math.sqrt(distanceSquared));
+  }
+
+  private drawScene(active: boolean): void {
+    const context = this.context;
+
+    if (!context) return;
+
+    context.clearRect(0, 0, this.width, this.height);
+
+    const pointerScreenY = this.pointerY - this.scrollOffset;
+
+    this.drawPointerGlow(context, pointerScreenY, active);
+    this.updatePointerInfluenceCache(active);
+
+    for (const triangle of this.triangles) this.drawTriangle(context, triangle);
+    for (const edge of this.edges) this.drawEdge(context, edge);
+
+    for (let index = 0; index < this.points.length; index += 1) {
+      const point = this.points[index];
+
+      if (point) this.drawNode(context, point, index);
+    }
+
+    context.globalAlpha = 1;
+    context.shadowBlur = 0;
+  }
+
+  private drawPointerGlow(context: CanvasRenderingContext2D, pointerScreenY: number, active: boolean): void {
+    if (this.pointerStrength > 0.002) {
+      const glow = context.createRadialGradient(
+        this.pointerX,
+        pointerScreenY,
+        0,
+        this.pointerX,
+        pointerScreenY,
+        this.pointerRadius,
+      );
+
+      glow.addColorStop(0, `rgba(${this.palette.ambient}, ${0.075 * this.pointerStrength})`);
+      glow.addColorStop(0.42, `rgba(${this.palette.ambient}, ${0.025 * this.pointerStrength})`);
+      glow.addColorStop(1, `rgba(${this.palette.ambient}, 0)`);
+      context.fillStyle = glow;
+      context.globalAlpha = 1;
+      context.fillRect(
+        this.pointerX - this.pointerRadius,
+        pointerScreenY - this.pointerRadius,
+        this.pointerRadius * 2,
+        this.pointerRadius * 2,
+      );
+    }
+
+    if (!active || !this.pointerPresent) return;
+
+    const radius = TRIANGLE_MESH_CONFIG.pointerCoreRadius;
+    const coreGlow = context.createRadialGradient(
+      this.pointerX,
+      pointerScreenY,
+      0,
+      this.pointerX,
+      pointerScreenY,
+      radius,
+    );
+
+    coreGlow.addColorStop(0, `rgba(${this.palette.ambient}, 0.075)`);
+    coreGlow.addColorStop(0.35, `rgba(${this.palette.ambient}, 0.028)`);
+    coreGlow.addColorStop(1, `rgba(${this.palette.ambient}, 0)`);
+    context.fillStyle = coreGlow;
+    context.globalAlpha = 1;
+    context.fillRect(this.pointerX - radius, pointerScreenY - radius, radius * 2, radius * 2);
+  }
+
+  private drawTriangle(context: CanvasRenderingContext2D, triangle: MeshTriangle): void {
+    const a = this.points[triangle.a];
+    const b = this.points[triangle.b];
+    const c = this.points[triangle.c];
+
+    if (!a || !b || !c) return;
+
+    const minY = Math.min(a.y, b.y, c.y);
+    const maxY = Math.max(a.y, b.y, c.y);
+    const margin = TRIANGLE_MESH_CONFIG.renderMargin;
+
+    if (maxY - this.scrollOffset < -margin || minY - this.scrollOffset > this.height + margin) return;
+
+    const centerX = (a.x + b.x + c.x) / 3;
+    const centerY = (a.y + b.y + c.y) / 3;
+    const influence = this.getWakeInfluenceAt(centerX, centerY, 275);
+    const idlePulse = 0.5 + Math.sin(this.elapsedTime * 0.18 + triangle.tone * 9) * 0.5;
+    const alpha = this.palette.baseFillAlpha * triangle.tone + influence * (0.045 + idlePulse * 0.028);
+
+    if (alpha < 0.002) return;
+
+    context.beginPath();
+    context.moveTo(a.x, a.y - this.scrollOffset);
+    context.lineTo(b.x, b.y - this.scrollOffset);
+    context.lineTo(c.x, c.y - this.scrollOffset);
+    context.closePath();
+    context.fillStyle = influence > 0.01 ? this.palette.glow : this.palette.line;
+    context.globalAlpha = alpha;
+    context.fill();
+  }
+
+  private drawEdge(context: CanvasRenderingContext2D, edge: MeshEdge): void {
+    const a = this.points[edge.a];
+    const b = this.points[edge.b];
+
+    if (!a || !b) return;
+
+    const screenAY = a.y - this.scrollOffset;
+    const screenBY = b.y - this.scrollOffset;
+
+    if ((screenAY < -40 && screenBY < -40) || (screenAY > this.height + 40 && screenBY > this.height + 40)) {
+      return;
+    }
+
+    const wakeInfluence = Math.max(this.pointWakeInfluence[edge.a] ?? 0, this.pointWakeInfluence[edge.b] ?? 0);
+    const midpointWake = this.getWakeInfluenceAt((a.x + b.x) * 0.5, (a.y + b.y) * 0.5, 250);
+    const finalWake = Math.max(wakeInfluence, midpointWake);
+    const coreInfluence = Math.max(
+      (this.pointCoreInfluence[edge.a] ?? 0) * 0.34,
+      (this.pointCoreInfluence[edge.b] ?? 0) * 0.34,
+    );
+    const influence = Math.max(finalWake, coreInfluence);
+    const idleShimmer = 0.78 + Math.sin(this.elapsedTime * 0.3 + edge.tone * 17) * 0.22;
+
+    context.beginPath();
+    context.moveTo(a.x, screenAY);
+    context.lineTo(b.x, screenBY);
+    context.strokeStyle = influence > 0.015 ? this.palette.glow : this.palette.line;
+    context.globalAlpha = this.palette.baseLineAlpha * edge.tone * idleShimmer + influence * 0.62;
+    context.lineWidth = 0.78 + influence * 1.55;
+    context.stroke();
+  }
+
+  private drawNode(context: CanvasRenderingContext2D, point: MeshPoint, pointIndex: number): void {
+    const screenY = point.y - this.scrollOffset;
+
+    if (screenY < -10 || screenY > this.height + 10) return;
+
+    const wakeInfluence = this.pointWakeInfluence[pointIndex] ?? 0;
+    const coreInfluence = this.pointCoreInfluence[pointIndex] ?? 0;
+    const influence = Math.max(wakeInfluence, coreInfluence);
+
+    if (influence < 0.025) return;
+
+    context.beginPath();
+    context.arc(point.x, screenY, 1.1 + influence * 2.1, 0, Math.PI * 2);
+    context.fillStyle = this.palette.node;
+    context.globalAlpha = 0.24 + influence * 0.76;
+
+    if (coreInfluence > 0.01) {
+      context.shadowColor = this.palette.glow;
+      context.shadowBlur = 5 + coreInfluence * 10;
+    } else {
+      context.shadowBlur = 0;
+    }
+
+    context.fill();
+    context.globalAlpha = 1;
+    context.shadowBlur = 0;
+  }
+}

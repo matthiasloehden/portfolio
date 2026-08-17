@@ -464,10 +464,7 @@ watch(
 );
 
 onMounted(() => {
-  performanceRuntime = new BackgroundPerformanceRuntime(
-    WAVE_GRID_QUALITY_PRESETS,
-    props.performance.mode,
-  );
+  performanceRuntime = new BackgroundPerformanceRuntime(WAVE_GRID_QUALITY_PRESETS, props.performance.mode);
   syncRuntimeSettings();
 
   environment = new BackgroundEnvironment({

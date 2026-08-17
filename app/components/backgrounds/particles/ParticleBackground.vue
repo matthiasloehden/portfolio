@@ -214,15 +214,11 @@ watch(
 );
 
 onMounted(() => {
-  performanceRuntime = new BackgroundPerformanceRuntime(
-    PARTICLE_QUALITY,
-    props.performance.mode,
-    {
-      warmupFrames: PARTICLE_CONFIG.performanceWarmupFrames,
-      sampleFrames: PARTICLE_CONFIG.performanceSampleFrames,
-      poorPerformanceWindows: PARTICLE_CONFIG.poorPerformanceWindows,
-    },
-  );
+  performanceRuntime = new BackgroundPerformanceRuntime(PARTICLE_QUALITY, props.performance.mode, {
+    warmupFrames: PARTICLE_CONFIG.performanceWarmupFrames,
+    sampleFrames: PARTICLE_CONFIG.performanceSampleFrames,
+    poorPerformanceWindows: PARTICLE_CONFIG.poorPerformanceWindows,
+  });
 
   environment = new BackgroundEnvironment({
     onMotionPreferenceChange,
