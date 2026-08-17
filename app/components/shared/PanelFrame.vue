@@ -10,27 +10,10 @@ defineProps<{
     class="motion-panel m-0 border border-line-strong bg-raised shadow-panel"
     data-reveal="scale"
   >
-    <figcaption>
+    <figcaption class="flex justify-between gap-4 border-b border-line px-4 py-3 font-mono text-[0.6rem] text-muted">
       <span>{{ title }}</span
-      ><span>{{ meta }}</span>
+      ><span class="text-quiet">{{ meta }}</span>
     </figcaption>
     <slot />
   </figure>
 </template>
-
-<style scoped>
-figcaption {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 0.75rem 1rem;
-  border-bottom: 1px solid var(--border);
-  color: var(--muted);
-  font-family: var(--mono-font);
-  font-size: 0.6rem;
-}
-
-figcaption span:last-child {
-  color: var(--quiet);
-}
-</style>

@@ -1,78 +1,44 @@
+<script setup lang="ts">
+import type { WorkClosingContent } from '@/types/content';
+
+defineProps<{
+  content: WorkClosingContent;
+}>();
+</script>
+
 <template>
   <section
-    class="work-close border-t border-line text-center"
+    class="border-t border-line py-28 text-left sm:py-32 sm:text-center md:py-40 lg:py-48"
     aria-labelledby="work-close-title"
   >
     <SharedSectionKicker
-      prefix="/ CONTEXT"
-      label="A note on client work"
+      :prefix="content.kickerPrefix"
+      :label="content.kicker"
       hide-prefix-from-screen-readers
     />
-    <h2
+    <SharedDisplayHeading
       id="work-close-title"
-      class="motion-hover"
+      class="motion-hover mx-0 max-w-[13ch] sm:mx-auto"
+      size="closing"
       data-reveal="scale"
     >
-      Built for the people operating it every day.
-    </h2>
+      {{ content.title }}
+    </SharedDisplayHeading>
     <p
-      class="closing-copy motion-hover"
+      class="motion-hover mt-7 max-w-[38rem] leading-[1.7] text-muted [--reveal-delay:100ms] sm:mx-auto"
       data-reveal="up"
-      style="--reveal-delay: 100ms"
     >
-      These projects are described at a system level. The common thread is practical software that connects content,
-      workflows, data, and physical operations.
+      {{ content.description }}
     </p>
     <div
-      class="close-actions flex items-center justify-center"
+      class="mt-9 flex items-center justify-start gap-6 [--reveal-delay:180ms] sm:justify-center"
       data-reveal="up"
-      style="--reveal-delay: 180ms"
     >
       <SharedActionLink
-        label="Start a conversation"
-        href="mailto:m.loehden@proton.me"
-      />
-      <SharedActionLink
-        label="View university work"
-        symbol="→"
-        to="/academic"
-        variant="text"
+        v-for="action in content.actions"
+        :key="action.label"
+        v-bind="action"
       />
     </div>
   </section>
 </template>
-
-<style scoped>
-.work-close {
-  padding-block: clamp(7rem, 13vw, 12rem);
-}
-
-h2 {
-  max-width: 13ch;
-  margin-inline: auto;
-  font-size: clamp(3.8rem, 8vw, 7.5rem);
-}
-
-.closing-copy {
-  max-width: 38rem;
-  margin: 1.7rem auto 0;
-  color: var(--muted);
-  line-height: 1.7;
-}
-
-.close-actions {
-  gap: 1.5rem;
-  margin-top: 2.2rem;
-}
-
-@media (max-width: 620px) {
-  .work-close {
-    text-align: left;
-  }
-
-  h2,
-  .closing-copy {
-    margin-left: 0;
-  }
-}
-</style>

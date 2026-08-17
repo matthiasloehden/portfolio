@@ -82,14 +82,14 @@ const variantClasses = {
   left: -2px;
   width: 35%;
   height: calc(100% + 4px);
-  border-top: 1px solid var(--text);
-  border-left: 1px solid var(--text);
+  border-top: 1px solid var(--foreground);
+  border-left: 1px solid var(--foreground);
 }
 
 .action-link-primary::after {
   right: -2px;
   bottom: -2px;
-  border-right: 1px solid var(--text);
-  border-bottom: 1px solid var(--text);
+  border-right: 1px solid var(--foreground);
+  border-bottom: 1px solid var(--foreground);
 }
 </style>

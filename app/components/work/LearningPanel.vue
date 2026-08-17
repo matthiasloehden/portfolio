@@ -1,161 +1,67 @@
+<script setup lang="ts">
+import type { WorkLearningPanelContent } from '@/types/content';
+
+defineProps<{
+  content: WorkLearningPanelContent;
+}>();
+</script>
+
 <template>
   <SharedPanelFrame
-    class="work-panel content-panel"
-    title="content.library"
-    meta="access-aware publishing"
+    class="work-panel bg-raised/95"
+    v-bind="content.frame"
   >
-    <div class="content-preview grid">
+    <div class="grid grid-cols-1 gap-4 p-5 sm:grid-cols-[7rem_1fr] sm:p-6 md:p-8 xl:p-10">
       <div
-        class="content-nav grid"
+        class="grid grid-cols-4 content-start gap-[0.35rem] overflow-hidden border-b border-line pb-3 sm:grid-cols-1 sm:border-r sm:border-b-0 sm:pr-4 sm:pb-0"
         aria-hidden="true"
       >
-        <span class="is-active">Overview</span><span>Events</span><span>Media</span><span>Articles</span>
+        <span
+          v-for="(item, index) in content.navigation"
+          :key="item"
+          :class="[
+            'px-1 py-[0.55rem] text-center font-mono text-[0.55rem] sm:px-[0.55rem] sm:text-left',
+            index === 0 ? 'border-l border-primary bg-surface-hover text-foreground' : 'text-muted',
+          ]"
+        >
+          {{ item }}
+        </span>
       </div>
-      <div class="content-cards grid">
-        <div class="featured-content">
-          <i aria-hidden="true"></i>
-          <strong>Learning event</strong>
-          <small>Registration · badges · feedback</small>
+
+      <div class="content-cards grid grid-cols-1 gap-[0.65rem] sm:grid-cols-3">
+        <div
+          class="grid min-h-32 content-between border border-line bg-[linear-gradient(110deg,var(--surface-hover),transparent),repeating-linear-gradient(90deg,transparent,transparent_2rem,var(--line)_2rem,var(--line)_calc(2rem+1px))] p-3 sm:col-span-3"
+        >
+          <i
+            class="size-[0.4rem] rounded-full bg-[#3cdc94] shadow-[0_0_0.65rem_rgb(60_220_148/75%)]"
+            aria-hidden="true"
+          />
+          <strong class="font-display text-base uppercase">{{ content.featured.title }}</strong>
+          <small class="font-mono text-[0.54rem] leading-6 text-muted">{{ content.featured.description }}</small>
         </div>
 
-        <div>
-          <span aria-hidden="true">▶</span>
-          <strong>Video</strong>
-          <small>On demand</small>
-        </div>
-
-        <div>
-          <span aria-hidden="true">◉</span>
-          <strong>Podcast</strong>
-          <small>Audio series</small>
-        </div>
-
-        <div>
-          <span aria-hidden="true">¶</span>
-          <strong>Article</strong>
-          <small>Editorial</small>
+        <div
+          v-for="format in content.formats"
+          :key="format.title"
+          class="grid min-h-[6.3rem] content-between border border-line bg-surface p-3"
+        >
+          <span
+            class="font-mono text-[0.62rem] text-primary"
+            aria-hidden="true"
+            >{{ format.symbol }}</span
+          >
+          <strong class="font-display text-base uppercase">{{ format.title }}</strong>
+          <small class="font-mono text-[0.54rem] leading-6 text-muted">{{ format.description }}</small>
         </div>
       </div>
     </div>
-    <div class="panel-status flex items-center border-t border-line">
-      <i aria-hidden="true" /> Role-aware content delivery
+
+    <div class="flex items-center gap-[0.55rem] border-t border-line px-4 py-3 font-mono text-[0.58rem] text-muted">
+      <i
+        class="size-[0.4rem] rounded-full bg-[#3cdc94] shadow-[0_0_0.65rem_rgb(60_220_148/75%)]"
+        aria-hidden="true"
+      />
+      {{ content.status }}
     </div>
   </SharedPanelFrame>
 </template>
-
-<style scoped>
-.work-panel {
-  background: color-mix(in srgb, var(--background-raised) 94%, transparent);
-}
-
-.content-preview {
-  grid-template-columns: 7rem 1fr;
-  gap: 1rem;
-  padding: clamp(1.25rem, 4vw, 2.5rem);
-}
-
-.content-nav {
-  align-content: start;
-  gap: 0.35rem;
-  padding-right: 1rem;
-  border-right: 1px solid var(--border);
-}
-
-.content-nav span {
-  padding: 0.55rem;
-  color: var(--muted);
-  font-family: var(--mono-font);
-  font-size: 0.55rem;
-}
-
-.content-nav .is-active {
-  border-left: 1px solid var(--accent);
-  background: var(--surface-hover);
-  color: var(--text);
-}
-
-.content-cards {
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.65rem;
-}
-
-.content-cards > div {
-  display: grid;
-  min-height: 6.3rem;
-  align-content: space-between;
-  padding: 0.75rem;
-  border: 1px solid var(--border);
-  background: var(--surface);
-}
-
-.content-cards .featured-content {
-  grid-column: 1 / -1;
-  min-height: 8rem;
-  background:
-    linear-gradient(110deg, var(--surface-hover), transparent),
-    repeating-linear-gradient(90deg, transparent, transparent 2rem, var(--border) 2rem, var(--border) calc(2rem + 1px));
-}
-
-.content-cards i,
-.panel-status i {
-  width: 0.4rem;
-  aspect-ratio: 1;
-  border-radius: 50%;
-  background: #3cdc94;
-  box-shadow: 0 0 0.65rem rgba(60, 220, 148, 0.75);
-}
-
-.content-cards span {
-  color: var(--accent);
-  font-family: var(--mono-font);
-  font-size: 0.62rem;
-}
-
-.content-cards strong {
-  font-family: var(--display-font);
-  font-size: 1rem;
-  text-transform: uppercase;
-}
-
-.content-cards small {
-  color: var(--muted);
-  font-family: var(--mono-font);
-  font-size: 0.54rem;
-  line-height: 1.5;
-}
-
-.panel-status {
-  gap: 0.55rem;
-  padding: 0.75rem 1rem;
-  color: var(--muted);
-  font-family: var(--mono-font);
-  font-size: 0.58rem;
-}
-
-@media (max-width: 620px) {
-  .content-preview {
-    grid-template-columns: 1fr;
-  }
-
-  .content-nav {
-    grid-template-columns: repeat(4, 1fr);
-    padding: 0 0 0.75rem;
-    overflow: hidden;
-    border-right: 0;
-    border-bottom: 1px solid var(--border);
-  }
-
-  .content-nav span {
-    padding-inline: 0.25rem;
-    text-align: center;
-  }
-
-  .content-cards {
-    grid-template-columns: 1fr;
-  }
-
-  .content-cards .featured-content {
-    grid-column: auto;
-  }
-}
-</style>

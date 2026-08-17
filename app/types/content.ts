@@ -96,12 +96,112 @@ export interface WorkFact {
 export interface WorkCaseStudyContent {
   id: string;
   number: string;
+  listTitle: string;
+  listCategory: string;
   category: string;
   type: string;
   title: string;
   summary: string;
   paragraphs: string[];
   facts: WorkFact[];
+}
+
+export interface WorkHeroContent {
+  kickerPrefix: string;
+  kicker: string;
+  titleLines: string[];
+  titleAccent: string;
+  introduction: string;
+  facts: WorkFact[];
+  scrollLabel: string;
+  scrollHref: string;
+}
+
+export interface WorkOverviewContent {
+  id: string;
+  titleId: string;
+  label: string;
+  title: string;
+  items: CaseStudyListItem[];
+}
+
+export interface WorkContextContent {
+  kicker: string;
+  title: string;
+  stack: Record<string, string[]>;
+  highlightsLabel: string;
+  highlights: string[];
+}
+
+export interface WorkClosingContent {
+  kickerPrefix: string;
+  kicker: string;
+  title: string;
+  description: string;
+  actions: HomeAction[];
+}
+
+export interface PanelFrameContent {
+  title: string;
+  meta: string;
+}
+
+export interface WorkLearningPanelContent {
+  frame: PanelFrameContent;
+  navigation: string[];
+  featured: {
+    title: string;
+    description: string;
+  };
+  formats: Array<{
+    symbol: string;
+    title: string;
+    description: string;
+  }>;
+  status: string;
+}
+
+export interface WorkRetailPanelContent {
+  frame: PanelFrameContent;
+  code: string;
+  title: string;
+  status: string;
+  fields: Array<{
+    label: string;
+    value: string;
+  }>;
+  sync: {
+    label: string;
+    source: string;
+    target: string;
+  };
+}
+
+export interface WorkSignagePanelContent {
+  frame: PanelFrameContent;
+  remote: {
+    label: string;
+    title: string;
+  };
+  player: Array<{
+    label: string;
+    title: string;
+  }>;
+  outputs: Array<{
+    connection: string;
+    title: string;
+    description: string;
+  }>;
+}
+
+export interface WorkClientPanelContent {
+  frame: PanelFrameContent;
+  modules: Array<{
+    number: string;
+    title: string;
+    description: string;
+  }>;
+  audiences: string[];
 }
 
 export interface PersonalSectionContent {

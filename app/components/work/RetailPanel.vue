@@ -1,133 +1,57 @@
+<script setup lang="ts">
+import type { WorkRetailPanelContent } from '@/types/content';
+
+defineProps<{
+  content: WorkRetailPanelContent;
+}>();
+</script>
+
 <template>
   <SharedPanelFrame
-    class="work-panel shop-panel"
-    title="shop.record"
-    meta="operational source of truth"
+    class="work-panel bg-raised/95"
+    v-bind="content.frame"
   >
-    <div class="shop-preview">
-      <div class="shop-summary grid">
-        <span>SHOP / 042</span>
-        <strong>Location profile</strong>
-        <small><i aria-hidden="true" /> Record active</small>
+    <div class="p-5 sm:p-6 md:p-8 xl:p-10">
+      <div class="grid grid-cols-[1fr_auto] items-end gap-x-4 gap-y-[0.4rem] border-b border-line pb-4">
+        <span class="col-span-full font-mono text-[0.58rem] text-primary">{{ content.code }}</span>
+        <strong class="font-display text-base uppercase">{{ content.title }}</strong>
+        <small class="flex items-center gap-[0.4rem] font-mono text-[0.54rem] leading-6 text-muted">
+          <i
+            class="size-[0.38rem] rounded-full bg-[#3cdc94] shadow-[0_0_0.65rem_rgb(60_220_148/75%)]"
+            aria-hidden="true"
+          />
+          {{ content.status }}
+        </small>
       </div>
-      <div class="shop-fields grid border border-line">
-        <div><small>Opening hours</small><strong>Configured</strong></div>
-        <div><small>Floor layout</small><strong>Available</strong></div>
-        <div><small>Postal data</small><strong>Managed</strong></div>
-        <div><small>Tasks</small><strong>Assigned</strong></div>
+
+      <div class="shop-fields mt-4 grid grid-cols-1 border border-line xs:grid-cols-2">
+        <div
+          v-for="(field, index) in content.fields"
+          :key="field.label"
+          :class="[
+            'grid gap-[0.6rem] p-4',
+            index > 0 && 'border-t border-line',
+            index === 1 && 'xs:border-t-0 xs:border-l',
+            index === 3 && 'xs:border-l',
+          ]"
+        >
+          <small class="font-mono text-[0.54rem] leading-6 text-muted">{{ field.label }}</small>
+          <strong class="font-display text-base uppercase">{{ field.value }}</strong>
+        </div>
       </div>
+
       <div
-        class="sheet-sync grid items-center border border-line-strong text-center"
-        aria-label="Excel sheets could export data and synchronize uploaded changes"
+        class="mt-4 grid grid-cols-[1fr_auto_1fr] items-center gap-4 border border-line-strong p-[0.8rem] text-center font-mono text-[0.62rem] text-muted"
+        :aria-label="content.sync.label"
       >
-        <span>Database</span><i aria-hidden="true">⇄</i><strong>.XLSX</strong>
+        <span>{{ content.sync.source }}</span>
+        <i
+          class="text-base text-primary not-italic"
+          aria-hidden="true"
+          >⇄</i
+        >
+        <strong class="text-primary-bright">{{ content.sync.target }}</strong>
       </div>
     </div>
   </SharedPanelFrame>
 </template>
-
-<style scoped>
-.work-panel {
-  background: color-mix(in srgb, var(--background-raised) 94%, transparent);
-}
-
-.shop-preview {
-  padding: clamp(1.25rem, 4vw, 2.5rem);
-}
-
-.shop-summary {
-  grid-template-columns: 1fr auto;
-  align-items: end;
-  gap: 0.4rem 1rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid var(--border);
-}
-
-.shop-summary > span {
-  grid-column: 1 / -1;
-  color: var(--accent);
-  font-family: var(--mono-font);
-  font-size: 0.58rem;
-}
-
-.shop-summary small {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-}
-
-.shop-summary small i {
-  width: 0.38rem;
-  aspect-ratio: 1;
-  border-radius: 50%;
-  background: #3cdc94;
-  box-shadow: 0 0 0.65rem rgba(60, 220, 148, 0.75);
-}
-
-.shop-fields {
-  grid-template-columns: 1fr 1fr;
-  margin-top: 1rem;
-}
-
-.shop-fields div {
-  display: grid;
-  gap: 0.6rem;
-  padding: 1rem;
-}
-
-.shop-fields div:nth-child(even) {
-  border-left: 1px solid var(--border);
-}
-
-.shop-fields div:nth-child(n + 3) {
-  border-top: 1px solid var(--border);
-}
-
-.shop-summary strong,
-.shop-fields strong {
-  font-family: var(--display-font);
-  font-size: 1rem;
-  text-transform: uppercase;
-}
-
-.shop-preview small {
-  color: var(--muted);
-  font-family: var(--mono-font);
-  font-size: 0.54rem;
-  line-height: 1.5;
-}
-
-.sheet-sync {
-  grid-template-columns: 1fr auto 1fr;
-  gap: 1rem;
-  margin-top: 1rem;
-  padding: 0.8rem;
-  color: var(--muted);
-  font-family: var(--mono-font);
-  font-size: 0.62rem;
-}
-
-.sheet-sync i {
-  color: var(--accent);
-  font-size: 1rem;
-  font-style: normal;
-}
-
-.sheet-sync strong {
-  color: var(--accent-bright);
-}
-
-@media (max-width: 420px) {
-  .shop-fields {
-    grid-template-columns: 1fr;
-  }
-
-  .shop-fields div:nth-child(even) {
-    border-left: 0;
-  }
-
-  .shop-fields div + div {
-    border-top: 1px solid var(--border);
-  }
-}
-</style>

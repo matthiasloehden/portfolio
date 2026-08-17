@@ -1,137 +1,56 @@
 <script setup lang="ts">
 import {
   clientCase,
-  coreWorkStack,
+  clientPanel,
   learningCase,
+  learningPanel,
   retailCase,
+  retailPanel,
   signageCase,
-  workHighlights,
-  workList,
+  signagePanel,
+  workClosing,
+  workContext,
+  workHero,
+  workMeta,
+  workOverview,
 } from '@/data/work';
 
-useSeoMeta({
-  title: 'Professional Work — Matthias Löhden',
-  description:
-    'Professional software projects by Matthias Löhden at TopRed Media GmbH, including learning, shop management, digital signage, and communication platforms.',
-});
+useSeoMeta(workMeta);
 </script>
 
 <template>
-  <div class="work-shell relative isolate min-h-screen overflow-hidden">
+  <div class="relative isolate min-h-screen overflow-hidden">
     <main
       id="content"
       class="relative z-1 site-container"
     >
-      <WorkHero />
-      <SharedCaseStudyList
-        id="work-list"
-        title-id="work-list-title"
-        label="Selected professional work"
-        title="Platforms built around real operations."
-        :items="workList"
-      />
-
-      <section
-        class="grid grid-cols-1 gap-12 border-t border-line py-20 md:grid-cols-[minmax(15rem,0.65fr)_minmax(0,1.35fr)] md:gap-[6vw] md:py-[6vw]"
-        aria-labelledby="work-context-title"
-      >
-        <div
-          class="motion-hover"
-          data-reveal="left"
-        >
-          <SharedSectionKicker label="Core stack across these products" />
-          <h2
-            id="work-context-title"
-            class="work-title mt-6 max-w-[10ch]"
-          >
-            One foundation, different systems.
-          </h2>
-
-          <div class="mt-8 flex flex-col gap-2">
-            <ul
-              v-for="(items, category) in coreWorkStack"
-              :key="category"
-              class="flex list-none flex-wrap gap-[0.55rem] p-0"
-              :aria-label="category"
-            >
-              <li
-                v-for="item in items"
-                :key="item"
-                class="border border-line px-[0.7rem] py-2 font-mono text-[0.62rem] text-muted"
-              >
-                {{ item }}
-              </li>
-            </ul>
-          </div>
-        </div>
-
-        <div
-          class="self-end"
-          data-reveal="right"
-          style="--reveal-delay: 100ms"
-        >
-          <h3 class="highlight-h3">Highlights</h3>
-          <ul class="mt-4 list-none border-t border-line p-0">
-            <li
-              v-for="highlight in workHighlights"
-              :key="highlight"
-              class="motion-hover border-b border-line py-[0.8rem] leading-[1.55] text-muted"
-            >
-              {{ highlight }}
-            </li>
-          </ul>
-        </div>
-      </section>
+      <WorkHero :content="workHero" />
+      <SharedCaseStudyList v-bind="workOverview" />
+      <WorkContext :content="workContext" />
 
       <WorkCaseStudy v-bind="learningCase">
-        <WorkLearningPanel />
+        <WorkLearningPanel :content="learningPanel" />
       </WorkCaseStudy>
 
       <WorkCaseStudy
         v-bind="retailCase"
         reverse
       >
-        <WorkRetailPanel />
+        <WorkRetailPanel :content="retailPanel" />
       </WorkCaseStudy>
 
       <WorkCaseStudy v-bind="signageCase">
-        <WorkSignagePanel />
+        <WorkSignagePanel :content="signagePanel" />
       </WorkCaseStudy>
 
       <WorkCaseStudy
         v-bind="clientCase"
         reverse
       >
-        <WorkClientPlatformPanel />
+        <WorkClientPlatformPanel :content="clientPanel" />
       </WorkCaseStudy>
 
-      <WorkClosing />
+      <WorkClosing :content="workClosing" />
     </main>
   </div>
 </template>
-
-<style scoped>
-.highlight-h3 {
-  color: var(--accent-bright);
-  font-family: var(--mono-font);
-  font-size: 0.62rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.work-title {
-  margin-top: 1.5rem;
-  font-size: clamp(2.8rem, 5vw, 4.7rem);
-  line-height: 0.92;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .work-shell > main {
-    pointer-events: none;
-  }
-
-  .work-shell main :deep(:is(a, h1, h2, h3, p, dt, dd, li, figcaption, .work-panel, .work-context)) {
-    pointer-events: auto;
-  }
-}
-</style>

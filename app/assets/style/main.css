@@ -162,39 +162,41 @@ a {
   outline-offset: 4px;
 }
 
-h1,
-h2,
-h3 {
-  font-family: var(--display-font);
-}
+@layer base {
+  h1,
+  h2,
+  h3 {
+    font-family: var(--display-font);
+  }
 
-h1 {
-  max-width: 11ch;
-  margin-top: 1.5rem;
-  font-stretch: condensed;
-  font-weight: 700;
-  letter-spacing: -0.075em;
-  line-height: 0.82;
-  text-transform: uppercase;
-  text-wrap: balance;
-}
+  h1 {
+    max-width: 11ch;
+    margin-top: 1.5rem;
+    font-stretch: condensed;
+    font-weight: 700;
+    letter-spacing: -0.075em;
+    line-height: 0.82;
+    text-transform: uppercase;
+    text-wrap: balance;
+  }
 
-h1 em,
-h2 em {
-  color: var(--primary-bright);
-  font-style: normal;
-  text-shadow: 0 0 3rem color-mix(in srgb, var(--primary) 18%, transparent);
-}
+  h1 em,
+  h2 em {
+    color: var(--primary-bright);
+    font-style: normal;
+    text-shadow: 0 0 3rem color-mix(in srgb, var(--primary) 18%, transparent);
+  }
 
-h2 {
-  max-width: 16ch;
-  margin-top: 1.5rem;
-  font-stretch: condensed;
-  font-weight: 700;
-  letter-spacing: -0.065em;
-  line-height: 0.9;
-  text-transform: uppercase;
-  text-wrap: balance;
+  h2 {
+    max-width: 16ch;
+    margin-top: 1.5rem;
+    font-stretch: condensed;
+    font-weight: 700;
+    letter-spacing: -0.065em;
+    line-height: 0.9;
+    text-transform: uppercase;
+    text-wrap: balance;
+  }
 }
 
 /* Shared motion language --------------------------------------------------- */
@@ -290,7 +292,7 @@ h2 {
 
   .motion-panel.is-revealed:hover,
   .motion-panel.is-revealed:focus-within {
-    border-color: var(--accent-bright);
+    border-color: var(--primary-bright);
     box-shadow:
       1.75rem 1.75rem 0 rgb(50 132 255 / 5%),
       0 2rem 6rem rgb(0 0 0 / 24%);
@@ -335,7 +337,7 @@ h2 {
       .framework-map > div
     ):hover {
     z-index: 1;
-    border-color: var(--border-strong);
+    border-color: var(--line-strong);
     background-color: var(--surface-hover);
     transform: translateY(-0.16rem) scale(1.018);
   }

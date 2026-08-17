@@ -1,29 +1,21 @@
-import type { CaseStudyListItem, WorkCaseStudyContent } from '@/types/content';
-
-export const workList: CaseStudyListItem[] = [
-  { href: '#learning-platform', number: '01', title: 'Learning platform', category: 'Learning platform' },
-  { href: '#retail-operations', number: '02', title: 'Retail operations', category: 'Shop operations' },
-  { href: '#signage-control', number: '03', title: 'Signage control', category: 'Digital signage' },
-  { href: '#client-platform', number: '04', title: 'Client platform', category: 'CMS & communication' },
-];
-
-export const coreWorkStack = {
-  languages: ['PHP', 'SQL', 'JavaScript'],
-  backend: ['Laravel', 'MySQL', 'Redis', 'Meilisearch'],
-  frontend: ['Vue', 'Inertia.js', 'Tailwind CSS'],
-};
-
-export const workHighlights = [
-  'Backend architecture, data modeling, and application workflows',
-  'Single-page applications with Inertia.js',
-  'Caching and evaluating complex user permissions with Redis',
-  'Search and filtering of large datasets with Meilisearch',
-  'Integrating applications with external services and physical systems',
-];
+import { site } from '@/data/site';
+import type {
+  WorkCaseStudyContent,
+  WorkClientPanelContent,
+  WorkClosingContent,
+  WorkContextContent,
+  WorkHeroContent,
+  WorkLearningPanelContent,
+  WorkOverviewContent,
+  WorkRetailPanelContent,
+  WorkSignagePanelContent,
+} from '@/types/content';
 
 export const learningCase: WorkCaseStudyContent = {
   id: 'learning-platform',
   number: '01',
+  listTitle: 'Learning platform',
+  listCategory: 'Learning platform',
   category: 'Enterprise client',
   type: 'Learning & content',
   title: 'Enterprise learning platform',
@@ -42,6 +34,8 @@ export const learningCase: WorkCaseStudyContent = {
 export const retailCase: WorkCaseStudyContent = {
   id: 'retail-operations',
   number: '02',
+  listTitle: 'Retail operations',
+  listCategory: 'Shop operations',
   category: 'Enterprise client',
   type: 'Retail operations',
   title: 'Retail operations platform',
@@ -60,6 +54,8 @@ export const retailCase: WorkCaseStudyContent = {
 export const signageCase: WorkCaseStudyContent = {
   id: 'signage-control',
   number: '03',
+  listTitle: 'Signage control',
+  listCategory: 'Digital signage',
   category: 'Enterprise client',
   type: 'Digital signage',
   title: 'Digital signage control system',
@@ -78,6 +74,8 @@ export const signageCase: WorkCaseStudyContent = {
 export const clientCase: WorkCaseStudyContent = {
   id: 'client-platform',
   number: '04',
+  listTitle: 'Client platform',
+  listCategory: 'CMS & communication',
   category: 'TopRed Media',
   type: 'Internal product',
   title: 'One platform, different communities.',
@@ -91,4 +89,125 @@ export const clientCase: WorkCaseStudyContent = {
     { label: 'Modules', value: 'CMS, live chat, events, teams' },
     { label: 'Model', value: 'Configurable for client contexts' },
   ],
+};
+
+export const workCases = [learningCase, retailCase, signageCase, clientCase];
+
+export const workHero: WorkHeroContent = {
+  kickerPrefix: '[ 2019—2025 ]',
+  kicker: 'Client & product systems',
+  titleLines: ['Software for', 'work that'],
+  titleAccent: 'matters.',
+  introduction:
+    'At TopRed Media GmbH, I contributed across the full lifecycle of production enterprise applications, from initial development through years of feature development, refactoring, integrations, and maintenance. Working in a three-developer team, I contributed across the stack as requirements, workflows, and the products themselves continuously evolved.',
+  facts: [
+    { label: 'Company', value: 'TopRed Media GmbH' },
+    { label: 'Role', value: 'Apprentice → full-stack developer' },
+    { label: 'Systems', value: 'Four selected projects' },
+  ],
+  scrollLabel: 'Explore the systems',
+  scrollHref: '#work-list',
+};
+
+export const workOverview: WorkOverviewContent = {
+  id: 'work-list',
+  titleId: 'work-list-title',
+  label: 'Selected professional work',
+  title: 'Platforms built around real operations.',
+  items: workCases.map(({ id, number, listTitle, listCategory }) => ({
+    href: `#${id}`,
+    number,
+    title: listTitle,
+    category: listCategory,
+  })),
+};
+
+export const workContext: WorkContextContent = {
+  kicker: 'Core stack across these products',
+  title: 'One foundation, different systems.',
+  stack: {
+    languages: ['PHP', 'SQL', 'JavaScript'],
+    backend: ['Laravel', 'MySQL', 'Redis', 'Meilisearch'],
+    frontend: ['Vue', 'Inertia.js', 'Tailwind CSS'],
+  },
+  highlightsLabel: 'Highlights',
+  highlights: [
+    'Backend architecture, data modeling, and application workflows',
+    'Single-page applications with Inertia.js',
+    'Caching and evaluating complex user permissions with Redis',
+    'Search and filtering of large datasets with Meilisearch',
+    'Integrating applications with external services and physical systems',
+  ],
+};
+
+export const workClosing: WorkClosingContent = {
+  kickerPrefix: '/ CONTEXT',
+  kicker: 'A note on client work',
+  title: 'Built for the people operating it every day.',
+  description:
+    'These projects are described at a system level. The common thread is practical software that connects content, workflows, data, and physical operations.',
+  actions: [
+    { label: 'Start a conversation', href: `mailto:${site.email}` },
+    { label: 'View university work', symbol: '→', to: '/academic', variant: 'text' },
+  ],
+};
+
+export const learningPanel: WorkLearningPanelContent = {
+  frame: { title: 'content.library', meta: 'access-aware publishing' },
+  navigation: ['Overview', 'Events', 'Media', 'Articles'],
+  featured: { title: 'Learning event', description: 'Registration · badges · feedback' },
+  formats: [
+    { symbol: '▶', title: 'Video', description: 'On demand' },
+    { symbol: '◉', title: 'Podcast', description: 'Audio series' },
+    { symbol: '¶', title: 'Article', description: 'Editorial' },
+  ],
+  status: 'Role-aware content delivery',
+};
+
+export const retailPanel: WorkRetailPanelContent = {
+  frame: { title: 'shop.record', meta: 'operational source of truth' },
+  code: 'SHOP / 042',
+  title: 'Location profile',
+  status: 'Record active',
+  fields: [
+    { label: 'Opening hours', value: 'Configured' },
+    { label: 'Floor layout', value: 'Available' },
+    { label: 'Postal data', value: 'Managed' },
+    { label: 'Tasks', value: 'Assigned' },
+  ],
+  sync: {
+    label: 'Excel sheets could export data and synchronize uploaded changes',
+    source: 'Database',
+    target: '.XLSX',
+  },
+};
+
+export const signagePanel: WorkSignagePanelContent = {
+  frame: { title: 'display.control', meta: 'player online' },
+  remote: { label: 'REMOTE', title: 'Administration' },
+  player: [
+    { label: 'CONTROL UI', title: 'Electron' },
+    { label: 'SERVICE', title: 'Python' },
+  ],
+  outputs: [
+    { connection: 'RS-232 →', title: 'Display', description: 'Playback control' },
+    { connection: 'Status →', title: 'Operations', description: 'Analytics' },
+  ],
+};
+
+export const clientPanel: WorkClientPanelContent = {
+  frame: { title: 'platform.modules', meta: 'configured per client' },
+  modules: [
+    { number: '01', title: 'CMS', description: 'Publish content' },
+    { number: '02', title: 'Live chat', description: 'Stay connected' },
+    { number: '03', title: 'Events', description: 'Coordinate activity' },
+    { number: '04', title: 'Teams', description: 'Manage groups' },
+  ],
+  audiences: ['Personal training', 'Kindergarten'],
+};
+
+export const workMeta = {
+  title: 'Professional Work — Matthias Löhden',
+  description:
+    'Professional software projects by Matthias Löhden at TopRed Media GmbH, including learning, shop management, digital signage, and communication platforms.',
 };

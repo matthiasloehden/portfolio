@@ -8,12 +8,19 @@ defineProps<{
   title: string;
   items: CaseStudyListItem[];
 }>();
+
+const revealDelayClasses = [
+  '[--reveal-delay:0ms]',
+  '[--reveal-delay:75ms]',
+  '[--reveal-delay:150ms]',
+  '[--reveal-delay:225ms]',
+];
 </script>
 
 <template>
   <section
     :id="id"
-    class="case-study-list grid border-t border-line"
+    class="grid grid-cols-1 gap-12 border-t border-line py-24 sm:py-28 md:grid-cols-[minmax(15rem,0.65fr)_minmax(0,1.35fr)] md:gap-16 md:py-32 xl:gap-32 xl:py-36"
     :aria-labelledby="titleId"
   >
     <div
@@ -21,98 +28,34 @@ defineProps<{
       data-reveal="left"
     >
       <SharedSectionKicker :label="label" />
-      <h2 :id="titleId">{{ title }}</h2>
+      <SharedDisplayHeading
+        :id="titleId"
+        size="overview"
+      >
+        {{ title }}
+      </SharedDisplayHeading>
     </div>
-    <ol>
+    <ol class="m-0 list-none border-t border-line p-0">
       <li
         v-for="(item, index) in items"
         :key="item.href"
+        :class="revealDelayClasses[index]"
         data-reveal="right"
-        :style="`--reveal-delay: ${index * 75}ms`"
       >
-        <a :href="item.href">
-          <span>{{ item.number }}</span>
-          <strong>{{ item.title }}</strong>
-          <small>{{ item.category }}</small>
-          <i aria-hidden="true">↓</i>
+        <a
+          class="grid grid-cols-[2rem_1fr_auto] items-center gap-4 border-b border-line py-[1.3rem] transition-[color,padding] duration-[160ms] hover:pl-2.5 hover:text-primary-bright focus-visible:pl-2.5 focus-visible:text-primary-bright sm:grid-cols-[2.5rem_1fr_minmax(7rem,0.45fr)_auto]"
+          :href="item.href"
+        >
+          <span class="font-mono text-[0.6rem] text-primary">{{ item.number }}</span>
+          <strong class="font-display text-[1.3rem] tracking-[-0.02em] uppercase">{{ item.title }}</strong>
+          <small class="hidden font-mono text-[0.6rem] text-muted sm:block">{{ item.category }}</small>
+          <i
+            class="font-mono text-[0.6rem] text-primary not-italic"
+            aria-hidden="true"
+            >↓</i
+          >
         </a>
       </li>
     </ol>
   </section>
 </template>
-
-<style scoped>
-.case-study-list {
-  grid-template-columns: minmax(15rem, 0.65fr) minmax(0, 1.35fr);
-  gap: clamp(3rem, 8vw, 8rem);
-  padding-block: clamp(6rem, 10vw, 9rem);
-}
-
-h2 {
-  margin-top: 1.5rem;
-  font-size: clamp(2.8rem, 5vw, 4.7rem);
-  line-height: 0.92;
-}
-
-ol {
-  margin: 0;
-  padding: 0;
-  border-top: 1px solid var(--border);
-  list-style: none;
-}
-
-a {
-  display: grid;
-  grid-template-columns: 2.5rem 1fr minmax(7rem, 0.45fr) auto;
-  align-items: center;
-  gap: 1rem;
-  padding-block: 1.3rem;
-  border-bottom: 1px solid var(--border);
-  transition:
-    color 160ms ease,
-    padding 160ms ease;
-}
-
-a:hover,
-a:focus-visible {
-  padding-left: 0.6rem;
-  color: var(--accent-bright);
-}
-
-a > span,
-small,
-i {
-  color: var(--muted);
-  font-family: var(--mono-font);
-  font-size: 0.6rem;
-  font-style: normal;
-}
-
-a > span,
-i {
-  color: var(--accent);
-}
-
-strong {
-  font-family: var(--display-font);
-  font-size: 1.3rem;
-  letter-spacing: -0.02em;
-  text-transform: uppercase;
-}
-
-@media (max-width: 820px) {
-  .case-study-list {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 620px) {
-  a {
-    grid-template-columns: 2rem 1fr auto;
-  }
-
-  small {
-    display: none;
-  }
-}
-</style>

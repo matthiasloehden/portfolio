@@ -6,206 +6,87 @@ defineProps<
     reverse?: boolean;
   }
 >();
+
+const paragraphDelayClasses = ['[--reveal-delay:0ms]', '[--reveal-delay:70ms]'];
+const factDelayClasses = ['[--reveal-delay:0ms]', '[--reveal-delay:55ms]', '[--reveal-delay:110ms]'];
 </script>
 
 <template>
   <article
     :id="id"
-    class="work-case"
+    class="scroll-mt-4 border-t border-line py-24 sm:py-28 md:py-32 xl:py-40"
     :aria-labelledby="`${id}-title`"
   >
-    <header class="work-case-header">
+    <header
+      class="grid grid-cols-1 gap-6 sm:grid-cols-[4rem_minmax(0,1fr)] sm:gap-8 md:grid-cols-[6rem_minmax(0,1fr)] md:gap-12 xl:grid-cols-[7rem_minmax(0,1fr)] xl:gap-16"
+    >
       <span
+        class="font-display text-[2.8rem] leading-[0.8] font-bold text-primary [text-shadow:0_0_2rem_rgb(50_132_255/25%)] sm:text-5xl md:text-7xl xl:text-[5.5rem]"
         aria-hidden="true"
         data-reveal="left"
       >
         {{ number }}
       </span>
       <div
-        class="motion-hover"
+        class="motion-hover [--reveal-delay:80ms]"
         data-reveal="up"
-        style="--reveal-delay: 80ms"
       >
         <SharedSectionKicker
           :prefix="category"
           :label="type"
         />
-        <h2 :id="`${id}-title`">{{ title }}</h2>
-        <p>{{ summary }}</p>
+        <SharedDisplayHeading
+          :id="`${id}-title`"
+          size="case"
+        >
+          {{ title }}
+        </SharedDisplayHeading>
+        <p class="mt-5 max-w-2xl text-base leading-[1.7] text-muted xl:text-[1.12rem]">
+          {{ summary }}
+        </p>
       </div>
     </header>
 
-    <div :class="['work-case-layout', { reverse }]">
-      <div class="work-case-copy">
+    <div
+      :class="[
+        'mt-16 grid grid-cols-1 items-center gap-14 md:mt-20 md:gap-16 lg:gap-24 xl:mt-28 xl:gap-36',
+        reverse
+          ? 'md:grid-cols-[minmax(0,1.28fr)_minmax(18rem,0.72fr)]'
+          : 'md:grid-cols-[minmax(18rem,0.72fr)_minmax(0,1.28fr)]',
+      ]"
+    >
+      <div :class="['text-[0.95rem] leading-[1.8] text-muted', reverse && 'md:col-start-2']">
         <p
           v-for="(paragraph, index) in paragraphs"
           :key="paragraph"
-          class="motion-hover"
+          :class="[
+            'motion-hover',
+            paragraphDelayClasses[index],
+            index === 0 ? 'text-[1.12rem] leading-[1.6] text-foreground xl:text-[1.34rem]' : 'mt-[1.4rem]',
+          ]"
           data-reveal="up"
-          :style="`--reveal-delay: ${index * 70}ms`"
         >
           {{ paragraph }}
         </p>
-        <dl class="work-facts">
+        <dl class="mt-10 border-t border-line">
           <div
             v-for="(fact, index) in facts"
             :key="fact.label"
-            class="motion-hover"
+            :class="[
+              'motion-hover grid grid-cols-1 gap-1 border-b border-line py-3 font-mono text-[0.62rem] xs:grid-cols-[8.5rem_1fr] xs:gap-4',
+              factDelayClasses[index],
+            ]"
             data-reveal="up"
-            :style="`--reveal-delay: ${index * 55}ms`"
           >
-            <dt>{{ fact.label }}</dt>
-            <dd>{{ fact.value }}</dd>
+            <dt class="text-primary-bright uppercase">{{ fact.label }}</dt>
+            <dd class="m-0">{{ fact.value }}</dd>
           </div>
         </dl>
       </div>
 
-      <div class="work-panel-slot">
+      <div :class="reverse && 'md:col-start-1 md:row-start-1'">
         <slot />
       </div>
     </div>
   </article>
 </template>
-
-<style scoped>
-.work-case {
-  padding-block: clamp(6rem, 11vw, 10rem);
-  border-top: 1px solid var(--border);
-  scroll-margin-top: 1rem;
-}
-
-.work-case-header {
-  display: grid;
-  grid-template-columns: clamp(4rem, 8vw, 7rem) minmax(0, 1fr);
-  gap: clamp(1.5rem, 4vw, 4rem);
-}
-
-.work-case-header > span {
-  color: var(--accent);
-  font-family: var(--display-font);
-  font-size: clamp(3rem, 6vw, 5.5rem);
-  font-weight: 700;
-  line-height: 0.8;
-  text-shadow: 0 0 2rem rgba(50, 132, 255, 0.25);
-}
-
-.work-case-header h2 {
-  max-width: 17ch;
-  margin-top: 1rem;
-  font-size: clamp(3.3rem, 7vw, 6.8rem);
-}
-
-.work-case-header div > p:last-child {
-  max-width: 42rem;
-  margin-top: 1.25rem;
-  color: var(--muted);
-  font-size: clamp(1rem, 1.5vw, 1.12rem);
-  line-height: 1.7;
-}
-
-.work-case-layout {
-  display: grid;
-  grid-template-columns: minmax(18rem, 0.72fr) minmax(0, 1.28fr);
-  gap: clamp(3.5rem, 9vw, 9rem);
-  align-items: center;
-  margin-top: clamp(4rem, 8vw, 7rem);
-}
-
-.work-case-layout.reverse {
-  grid-template-columns: minmax(0, 1.28fr) minmax(18rem, 0.72fr);
-}
-
-.work-case-layout.reverse .work-case-copy {
-  grid-column: 2;
-}
-
-.work-case-layout.reverse .work-panel-slot {
-  grid-row: 1;
-  grid-column: 1;
-}
-
-.work-case-copy {
-  color: var(--muted);
-  font-size: 0.95rem;
-  line-height: 1.8;
-}
-
-.work-case-copy > p:first-child {
-  color: var(--text);
-  font-size: clamp(1.12rem, 1.8vw, 1.34rem);
-  line-height: 1.6;
-}
-
-.work-case-copy > p + p {
-  margin-top: 1.4rem;
-}
-
-.work-facts {
-  margin: 2.5rem 0 0;
-  border-top: 1px solid var(--border);
-}
-
-.work-facts div {
-  display: grid;
-  grid-template-columns: 8.5rem 1fr;
-  gap: 1rem;
-  padding-block: 0.75rem;
-  border-bottom: 1px solid var(--border);
-  font-family: var(--mono-font);
-  font-size: 0.62rem;
-}
-
-.work-facts dt {
-  color: var(--accent-bright);
-  text-transform: uppercase;
-}
-
-.work-facts dd {
-  margin: 0;
-}
-
-@media (max-width: 820px) {
-  .work-case-layout,
-  .work-case-layout.reverse {
-    grid-template-columns: 1fr;
-  }
-
-  .work-case-layout.reverse .work-case-copy {
-    grid-row: 1;
-    grid-column: 1;
-  }
-
-  .work-case-layout.reverse .work-panel-slot {
-    grid-row: 2;
-    grid-column: 1;
-  }
-}
-
-@media (max-width: 620px) {
-  .work-case-header {
-    grid-template-columns: 1fr;
-  }
-
-  .work-case-header > span {
-    font-size: 2.8rem;
-  }
-
-  .work-case-header h2 {
-    font-size: clamp(3rem, 14vw, 4.8rem);
-  }
-}
-
-@media (max-width: 420px) {
-  .work-facts div {
-    grid-template-columns: 1fr;
-    gap: 0.25rem;
-  }
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .work-case :is(h2, h3, p, dt, dd),
-  .work-panel-slot {
-    pointer-events: auto;
-  }
-}
-</style>

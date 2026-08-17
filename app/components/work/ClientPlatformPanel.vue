@@ -1,90 +1,43 @@
+<script setup lang="ts">
+import type { WorkClientPanelContent } from '@/types/content';
+
+defineProps<{
+  content: WorkClientPanelContent;
+}>();
+</script>
+
 <template>
   <SharedPanelFrame
-    class="work-panel module-panel"
-    title="platform.modules"
-    meta="configured per client"
+    class="work-panel bg-raised/95"
+    v-bind="content.frame"
   >
-    <div class="module-grid grid">
-      <div><span>01</span><strong>CMS</strong><small>Publish content</small></div>
-      <div><span>02</span><strong>Live chat</strong><small>Stay connected</small></div>
-      <div><span>03</span><strong>Events</strong><small>Coordinate activity</small></div>
-      <div><span>04</span><strong>Teams</strong><small>Manage groups</small></div>
+    <div class="module-grid grid grid-cols-1 gap-3 p-5 xs:grid-cols-2 sm:p-6 md:p-8 xl:p-10">
+      <div
+        v-for="module in content.modules"
+        :key="module.number"
+        class="grid min-h-32 content-between border border-line bg-[linear-gradient(135deg,var(--surface-hover),transparent)] p-4"
+      >
+        <span class="font-mono text-[0.62rem] text-primary">{{ module.number }}</span>
+        <strong class="font-display text-base uppercase">{{ module.title }}</strong>
+        <small class="font-mono text-[0.54rem] leading-6 text-muted">{{ module.description }}</small>
+      </div>
     </div>
-    <div class="audience-row grid items-center text-center">
-      <span>Personal training</span><i aria-hidden="true">+</i><span>Kindergarten</span>
+
+    <div
+      class="grid grid-cols-[1fr_auto_1fr] items-center gap-4 px-4 pb-4 text-center font-mono text-[0.58rem] text-muted"
+    >
+      <template
+        v-for="(audience, index) in content.audiences"
+        :key="audience"
+      >
+        <i
+          v-if="index > 0"
+          class="text-primary not-italic"
+          aria-hidden="true"
+          >+</i
+        >
+        <span class="border border-line p-[0.7rem]">{{ audience }}</span>
+      </template>
     </div>
   </SharedPanelFrame>
 </template>
-
-<style scoped>
-.work-panel {
-  background: color-mix(in srgb, var(--background-raised) 94%, transparent);
-}
-
-.module-grid {
-  grid-template-columns: 1fr 1fr;
-  gap: 0.75rem;
-  padding: clamp(1.25rem, 4vw, 2.5rem);
-}
-
-.module-grid > div {
-  display: grid;
-  min-height: 8rem;
-  align-content: space-between;
-  padding: 1rem;
-  border: 1px solid var(--border);
-  background: linear-gradient(135deg, var(--surface-hover), transparent);
-  transition:
-    border-color 160ms ease,
-    transform 160ms ease;
-}
-
-.module-grid > div:hover {
-  border-color: var(--border-strong);
-  transform: translateY(-0.2rem);
-}
-
-.module-grid span {
-  color: var(--accent);
-  font-family: var(--mono-font);
-  font-size: 0.62rem;
-}
-
-.module-grid strong {
-  font-family: var(--display-font);
-  font-size: 1rem;
-  text-transform: uppercase;
-}
-
-.module-grid small {
-  color: var(--muted);
-  font-family: var(--mono-font);
-  font-size: 0.54rem;
-  line-height: 1.5;
-}
-
-.audience-row {
-  grid-template-columns: 1fr auto 1fr;
-  gap: 1rem;
-  padding: 0 1rem 1rem;
-  color: var(--muted);
-  font-family: var(--mono-font);
-  font-size: 0.58rem;
-}
-
-.audience-row span {
-  padding: 0.7rem;
-  border: 1px solid var(--border);
-}
-
-.audience-row i {
-  color: var(--accent);
-  font-style: normal;
-}
-
-@media (max-width: 420px) {
-  .module-grid {
-    grid-template-columns: 1fr;
-  }
-}
-</style>
