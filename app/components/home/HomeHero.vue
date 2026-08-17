@@ -1,84 +1,60 @@
+<script setup lang="ts">
+import type { HomeHeroContent } from '@/types/content';
+
+defineProps<{
+  content: HomeHeroContent;
+}>();
+</script>
+
 <template>
   <section
-    class="hero"
+    class="pt-20 md:min-h-[min(54rem,calc(100svh-5.5rem))] md:pt-24 lg:pt-28 xl:pt-[8.5rem]"
     aria-labelledby="hero-title"
   >
-    <div class="hero-main grid items-center">
-      <div class="hero-copy-block motion-hover">
-        <p
-          class="eyebrow flex items-center"
-          data-reveal="up"
-        >
-          <span aria-hidden="true"></span> Based in Germany · Building software
-        </p>
-        <h1
+    <div
+      class="grid grid-cols-1 items-center gap-10 md:grid-cols-[minmax(0,1.35fr)_minmax(19rem,0.65fr)] lg:gap-16 xl:gap-32"
+    >
+      <div class="motion-hover">
+        <SharedSectionKicker
+          :label="content.kicker"
+          variant="status"
+        />
+        <SharedDisplayHeading
           id="hero-title"
+          level="h1"
+          size="hero"
+          class="[--reveal-delay:75ms]"
           data-reveal="up"
-          style="--reveal-delay: 80ms"
         >
-          I build <em>applications.</em>
-        </h1>
+          {{ content.title }}
+          <template #accent> {{ content.titleAccent }}</template>
+        </SharedDisplayHeading>
         <p
-          class="hero-copy"
+          class="mt-9 max-w-[38rem] text-base leading-7 text-muted [--reveal-delay:150ms] lg:text-[1.15rem] lg:leading-8"
           data-reveal="up"
-          style="--reveal-delay: 160ms"
         >
-          I’m Matthias, a software engineer focused on building reliable applications and the systems behind them, from
-          backend architecture and data to interfaces, integrations, and long-term maintainability.
+          {{ content.introduction }}
         </p>
         <div
-          class="hero-actions flex flex-wrap items-center"
+          class="mt-9 flex flex-col items-start gap-6 [--reveal-delay:200ms] xs:flex-row xs:flex-wrap xs:items-center"
           data-reveal="up"
-          style="--reveal-delay: 240ms"
         >
           <SharedActionLink
-            label="Start a conversation"
-            href="mailto:m.loehden@proton.me"
-          />
-          <SharedActionLink
-            label="Explore profile"
-            symbol="↓"
-            to="/#about"
-            variant="text"
+            v-for="action in content.actions"
+            :key="action.label"
+            v-bind="action"
           />
         </div>
       </div>
 
       <div
+        class="[--reveal-delay:200ms]"
         data-reveal="right"
-        style="--reveal-delay: 180ms"
       >
-        <HomeDeveloperProfileCard />
+        <HomeDeveloperProfileCard :profile="content.profile" />
       </div>
     </div>
 
-    <dl
-      class="highlights grid"
-      aria-label="Career highlights"
-    >
-      <div
-        class="motion-hover"
-        data-reveal="up"
-      >
-        <dt><span aria-hidden="true">01</span> Since 2019</dt>
-        <dd>Professional software development</dd>
-      </div>
-      <div
-        class="motion-hover"
-        data-reveal="up"
-        style="--reveal-delay: 70ms"
-      >
-        <dt><span aria-hidden="true">02</span> B.Sc. Informatics</dt>
-        <dd>Currently studying at IU</dd>
-      </div>
-      <div
-        class="motion-hover"
-        data-reveal="up"
-        style="--reveal-delay: 210ms"
-      >
-        <dt><span aria-hidden="true">03</span> From concept to maintenance</dt>
-        <dd>Design, delivery, evolution</dd>
-      </div>
-    </dl>
+    <HomeHighlights :items="content.highlights" />
   </section>
 </template>

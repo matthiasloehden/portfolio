@@ -1,58 +1,53 @@
 <script setup lang="ts">
-import type { Capability } from '@/types/content';
+import type { HomeCapabilitiesContent } from '@/types/content';
 
 defineProps<{
-  capabilities: Capability[];
+  content: HomeCapabilitiesContent;
 }>();
 
-const routeFor = (title: string) => {
-  if (title === 'Professional') return '/work';
-  if (title === 'Academic') return '/academic';
-  if (title === 'Personal') return '/personal';
-  return '/';
-};
+const revealDelayClasses = ['', '[--reveal-delay:75ms]', '[--reveal-delay:150ms]'];
 </script>
 
 <template>
   <section
     id="capabilities"
-    class="content-section"
+    class="border-t border-line py-24 sm:py-28 md:py-32 xl:py-40"
     aria-labelledby="capabilities-title"
   >
-    <p
-      class="section-index"
-      data-reveal="up"
-    >
-      <span>02</span> Capabilities
-    </p>
-    <div class="section-heading flex items-end justify-between">
-      <h2
+    <SharedSectionKicker
+      :prefix="content.number"
+      :label="content.label"
+      variant="line"
+    />
+    <div class="grid items-end gap-12 md:grid-cols-[minmax(0,1fr)_minmax(18rem,27rem)] md:justify-between">
+      <SharedDisplayHeading
         id="capabilities-title"
         class="motion-hover"
         data-reveal="left"
       >
-        Experience,<br /><em>in context.</em>
-      </h2>
+        {{ content.title }}<br />
+        <template #accent>{{ content.titleAccent }}</template>
+      </SharedDisplayHeading>
       <p
-        class="motion-hover"
+        class="motion-hover border-l border-primary pl-5 text-[0.88rem] leading-[1.7] text-muted [--reveal-delay:100ms]"
         data-reveal="right"
-        style="--reveal-delay: 100ms"
       >
-        Technologies grouped by where I have used them: in production, through academic work, and in projects I pursue
-        independently.
+        {{ content.introduction }}
       </p>
     </div>
 
-    <div class="capability-grid grid">
+    <div class="mt-16 grid grid-cols-1 border-y border-line md:grid-cols-3">
       <NuxtLink
-        v-for="(capability, index) in capabilities"
+        v-for="(capability, index) in content.items"
         :key="capability.title"
-        :to="routeFor(capability.title)"
-        class="capability-link"
+        :to="capability.to"
+        class="group border-t border-line first:border-t-0 md:border-t-0 md:border-l md:first:border-l-0"
         :aria-label="`View ${capability.title} section`"
-        :style="`--reveal-delay: ${index * 80}ms`"
       >
-        <HomeCapabilityCard v-bind="capability" />
+        <HomeCapabilityCard
+          v-bind="capability"
+          :class="revealDelayClasses[index]"
+        />
       </NuxtLink>
     </div>
   </section>
