@@ -1,12 +1,21 @@
 <script setup lang="ts">
-import { hardwareSection, homelabSection, learningSection, openSourceSection, personalList } from '@/data/personal';
+import {
+  contributionPanel,
+  coolingPanel,
+  hardwareSection,
+  homelabPanel,
+  homelabSection,
+  learningPanel,
+  learningSection,
+  openSourceSection,
+  personalClosing,
+  personalHero,
+  personalMeta,
+  personalOverview,
+} from '@/data/personal';
 import CoolingLoopPanel from '~/components/personal/cooling/CoolingLoopPanel.vue';
 
-useSeoMeta({
-  title: 'Personal Projects & Interests — Matthias Löhden',
-  description:
-    'Open-source contributions, self-hosted systems, local AI, favourite educational creators, and custom PC hardware by Matthias Löhden.',
-});
+useSeoMeta(personalMeta);
 </script>
 
 <template>
@@ -15,39 +24,32 @@ useSeoMeta({
       id="content"
       class="relative z-1 site-container"
     >
-      <PersonalHero />
-
-      <SharedCaseStudyList
-        id="personal-list"
-        title-id="personal-list-title"
-        label="Outside client & university work"
-        title="Four ways curiosity becomes practice."
-        :items="personalList"
-      />
+      <PersonalHero :content="personalHero" />
+      <SharedCaseStudyList v-bind="personalOverview" />
 
       <PersonalFeatureSection v-bind="openSourceSection">
-        <PersonalContributionPanel />
+        <PersonalContributionPanel :content="contributionPanel" />
       </PersonalFeatureSection>
 
       <PersonalFeatureSection
         v-bind="homelabSection"
         reverse
       >
-        <PersonalHomelabPanel />
+        <PersonalHomelabPanel :content="homelabPanel" />
       </PersonalFeatureSection>
 
       <PersonalFeatureSection v-bind="learningSection">
-        <PersonalLearningPanel />
+        <PersonalLearningPanel :content="learningPanel" />
       </PersonalFeatureSection>
 
       <PersonalFeatureSection
         v-bind="hardwareSection"
         reverse
       >
-        <CoolingLoopPanel />
+        <CoolingLoopPanel :content="coolingPanel" />
       </PersonalFeatureSection>
 
-      <PersonalClosing />
+      <PersonalClosing :content="personalClosing" />
     </main>
   </div>
 </template>

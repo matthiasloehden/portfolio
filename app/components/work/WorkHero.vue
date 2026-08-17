@@ -8,7 +8,7 @@ defineProps<{
 
 <template>
   <section
-    class="grid min-h-[calc(100svh-4.75rem)] grid-cols-1 items-start gap-y-12 pt-20 pb-8 md:min-h-[min(53rem,calc(100svh-5.5rem))] md:grid-cols-[minmax(0,1.2fr)_minmax(22rem,0.65fr)] md:grid-rows-[1fr_auto] md:items-end md:gap-x-16 md:pt-24 lg:gap-x-24 lg:pt-28 xl:gap-x-36 xl:pt-32"
+    class="grid min-h-[calc(100svh-4.75rem)] grid-cols-1 items-start gap-y-12 pb-8 md:min-h-[min(53rem,calc(100svh-5.5rem))] md:grid-cols-[minmax(0,1.2fr)_minmax(22rem,0.65fr)] md:grid-rows-[1fr_auto] md:items-end md:gap-x-16 md:pt-24 lg:gap-x-24 lg:pt-28 xl:gap-x-36 "
     aria-labelledby="work-title"
   >
     <div class="motion-hover">

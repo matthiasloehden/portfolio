@@ -35,12 +35,12 @@ withDefaults(
   width: 9cqw;
   aspect-ratio: 1;
   place-items: center;
-  border: 0.1cqw solid var(--border-strong);
+  border: 0.1cqw solid var(--line-strong);
   border-radius: 50%;
-  background: color-mix(in srgb, var(--background-raised) 95%, transparent);
+  background: color-mix(in srgb, var(--raised) 95%, transparent);
   box-shadow:
-    0 0 0 0.6cqw var(--background-raised),
-    0 0 0 0.7cqw var(--border);
+    0 0 0 0.6cqw var(--raised),
+    0 0 0 0.7cqw var(--line);
 }
 
 .pump-code {
@@ -48,7 +48,7 @@ withDefaults(
   top: 15%;
   left: 50%;
   transform: translateX(-50%);
-  color: var(--accent);
+  color: var(--primary);
   font-family: var(--mono-font);
   font-size: 0.8cqw;
   letter-spacing: 0.08em;
@@ -57,7 +57,7 @@ withDefaults(
 .pump-label {
   display: grid;
   place-items: center;
-  color: var(--accent);
+  color: var(--primary);
   font-family: var(--display-font);
   font-size: 1cqw;
   letter-spacing: 0.04em;
@@ -66,7 +66,7 @@ withDefaults(
 .pump i {
   position: absolute;
   inset: 0.9cqw;
-  border: 0.1cqw dashed var(--accent);
+  border: 0.1cqw dashed var(--primary);
   border-radius: inherit;
   opacity: 0.75;
   animation: pump-spin 8s linear infinite;

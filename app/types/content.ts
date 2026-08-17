@@ -263,6 +263,8 @@ export interface AcademicServicePanelContent {
 export interface PersonalSectionContent {
   id: string;
   number: string;
+  listTitle: string;
+  listCategory: string;
   category: string;
   type: string;
   title: string;
@@ -270,6 +272,19 @@ export interface PersonalSectionContent {
   paragraphs: string[];
   tags: string[];
 }
+
+export interface PersonalHeroContent {
+  kickerPrefix: string;
+  kicker: string;
+  title: string;
+  titleAccent: string;
+  introduction: string;
+  facts: LabeledValue[];
+  scrollLabel: string;
+  scrollHref: string;
+}
+
+export type PersonalOverviewContent = CaseStudyOverviewContent;
 
 export interface OpenSourceContribution {
   status: string;
@@ -287,4 +302,43 @@ export interface LearningGroup {
   category: string;
   description: string;
   sources: LearningSource[];
+}
+
+export interface PersonalContributionPanelContent {
+  frame: PanelFrameContent;
+  ariaLabel: string;
+  items: OpenSourceContribution[];
+}
+
+export interface PersonalHomelabPanelContent {
+  frame: PanelFrameContent;
+  ariaLabel: string;
+  host: {
+    code: string;
+    title: string;
+    description: string;
+  };
+  services: Array<{
+    type: string;
+    title: string;
+    description: string;
+  }>;
+  status: string;
+  process: string;
+}
+
+export interface PersonalLearningPanelContent {
+  frame: PanelFrameContent;
+  ariaLabel: string;
+  groups: LearningGroup[];
+}
+
+export interface PersonalCoolingPanelContent {
+  frame: PanelFrameContent;
+  ariaLabel: string;
+  status: {
+    label: string;
+    title: string;
+  };
+  facts: LabeledValue[];
 }

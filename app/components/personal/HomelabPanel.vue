@@ -1,180 +1,102 @@
+<script setup lang="ts">
+import type { PersonalHomelabPanelContent } from '@/types/content';
+
+defineProps<{
+  content: PersonalHomelabPanelContent;
+}>();
+
+const pulseDelayClasses = ['', '[animation-delay:-0.8s]', '[animation-delay:-1.6s]'];
+const nodeClasses = 'grid min-h-[7.5rem] content-between border border-line bg-surface p-[0.9rem]';
+</script>
+
 <template>
-  <SharedPanelFrame
-    class="homelab-panel"
-    title="home.systems"
-    meta="local infrastructure"
-  >
+  <SharedPanelFrame v-bind="content.frame">
     <div
-      class="system-map"
-      aria-label="A personal computer hosts Docker workloads, server services, and local large language models"
+      class="grid grid-cols-1 items-center p-5 sm:grid-cols-[minmax(8rem,0.55fr)_2.5rem_minmax(12rem,1fr)] sm:p-6 md:grid-cols-[minmax(8rem,0.55fr)_3.5rem_minmax(12rem,1fr)] md:p-8 xl:grid-cols-[minmax(8rem,0.55fr)_5rem_minmax(12rem,1fr)] xl:p-10"
+      :aria-label="content.ariaLabel"
     >
-      <div class="host-node">
-        <span>HOST / 01</span>
-        <strong>Personal PC</strong>
-        <small>Local hardware</small>
+      <div
+        :class="[
+          nodeClasses,
+          'min-h-[7.5rem] border-line-strong bg-[linear-gradient(145deg,rgb(50_132_255/12%),transparent_60%),var(--surface)] sm:min-h-56',
+        ]"
+      >
+        <span class="font-mono text-[0.55rem] text-primary">{{ content.host.code }}</span>
+        <strong class="font-display text-[1.15rem] uppercase sm:text-[1.35rem] md:text-[1.5rem] xl:text-[1.7rem]">
+          {{ content.host.title }}
+        </strong>
+        <small class="font-mono text-[0.55rem] text-muted">{{ content.host.description }}</small>
       </div>
 
       <div
-        class="data-line"
+        class="relative mx-auto h-10 w-px overflow-hidden bg-line-strong [--travel-distance:2.5rem] sm:mx-0 sm:h-px sm:w-auto md:[--travel-distance:3.5rem] xl:[--travel-distance:5rem]"
         aria-hidden="true"
       >
-        <i /><i /><i />
+        <i
+          v-for="(_, index) in 3"
+          :key="index"
+          :class="[
+            'data-pulse absolute top-[-0.35rem] left-[-0.15rem] size-[0.35rem] rounded-full bg-primary-bright shadow-[0_0_0.7rem_var(--primary)] sm:top-[-0.15rem] sm:left-[-0.35rem]',
+            pulseDelayClasses[index],
+          ]"
+        />
       </div>
 
-      <div class="service-grid">
-        <div>
-          <span>CONTAINER</span>
-          <strong>Docker</strong>
-          <small>Isolated workloads</small>
-        </div>
-        <div>
-          <span>SERVICE</span>
-          <strong>Hosting</strong>
-          <small>Server workloads</small>
-        </div>
-        <div>
-          <span>MODEL</span>
-          <strong>Local LLM</strong>
-          <small>AI on-device</small>
+      <div class="grid gap-[0.65rem]">
+        <div
+          v-for="service in content.services"
+          :key="service.title"
+          :class="nodeClasses"
+        >
+          <span class="font-mono text-[0.55rem] text-primary">{{ service.type }}</span>
+          <strong class="font-display text-[1.15rem] uppercase sm:text-[1.35rem] md:text-[1.5rem] xl:text-[1.7rem]">
+            {{ service.title }}
+          </strong>
+          <small class="font-mono text-[0.55rem] text-muted">{{ service.description }}</small>
         </div>
       </div>
     </div>
 
-    <div class="system-status flex flex-wrap justify-between gap-3 border-t border-line">
-      <span><i aria-hidden="true" /> Self-managed</span>
-      <span>Experiment → understand → improve</span>
+    <div
+      class="flex flex-wrap justify-between gap-3 border-t border-line px-4 py-[0.9rem] font-mono text-[0.55rem] text-muted"
+    >
+      <span class="inline-flex items-center gap-[0.45rem] text-foreground">
+        <i
+          class="size-[0.35rem] rounded-full bg-primary"
+          aria-hidden="true"
+        />
+        {{ content.status }}
+      </span>
+      <span>{{ content.process }}</span>
     </div>
   </SharedPanelFrame>
 </template>
 
 <style scoped>
-.system-map {
-  display: grid;
-  grid-template-columns: minmax(8rem, 0.55fr) clamp(2.5rem, 6vw, 5rem) minmax(12rem, 1fr);
-  align-items: center;
-  padding: clamp(1.2rem, 4vw, 2.5rem);
-}
-
-.host-node,
-.service-grid > div {
-  display: grid;
-  align-content: space-between;
-  min-height: 7.5rem;
-  padding: 0.9rem;
-  border: 1px solid var(--border);
-  background: var(--surface);
-}
-
-.host-node {
-  min-height: 14rem;
-  border-color: var(--border-strong);
-  background: linear-gradient(145deg, rgb(50 132 255 / 12%), transparent 60%), var(--surface);
-}
-
-.system-map span,
-.system-map small,
-.system-status {
-  color: var(--muted);
-  font-family: var(--mono-font);
-  font-size: 0.55rem;
-}
-
-.system-map span {
-  color: var(--accent);
-}
-
-.system-map strong {
-  font-family: var(--display-font);
-  font-size: clamp(1.15rem, 2.3vw, 1.7rem);
-  text-transform: uppercase;
-}
-
-.service-grid {
-  display: grid;
-  gap: 0.65rem;
-}
-
-.data-line {
-  position: relative;
-  height: 1px;
-  overflow: hidden;
-  background: var(--border-strong);
-}
-
-.data-line i {
-  position: absolute;
-  top: -0.15rem;
-  left: -0.35rem;
-  width: 0.35rem;
-  aspect-ratio: 1;
-  border-radius: 50%;
-  background: var(--accent-bright);
-  box-shadow: 0 0 0.7rem var(--accent);
-  animation: data-travel 2.4s linear infinite;
-}
-
-.data-line i:nth-child(2) {
-  animation-delay: -0.8s;
-}
-
-.data-line i:nth-child(3) {
-  animation-delay: -1.6s;
-}
-
-.system-status {
-  padding: 0.9rem 1rem;
-}
-
-.system-status span:first-child {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  color: var(--text);
-}
-
-.system-status i {
-  width: 0.35rem;
-  aspect-ratio: 1;
-  border-radius: 50%;
-  background: var(--accent);
-}
-
-@keyframes data-travel {
-  to {
-    transform: translateX(clamp(2.5rem, 6vw, 5rem));
-  }
-}
-
-@media (max-width: 620px) {
-  .system-map {
-    grid-template-columns: 1fr;
-  }
-
-  .host-node {
-    min-height: 7.5rem;
-  }
-
-  .data-line {
-    width: 1px;
-    height: 2.5rem;
-    margin-inline: auto;
-  }
-
-  .data-line i {
-    top: -0.35rem;
-    left: -0.15rem;
-    animation-name: data-travel-mobile;
-  }
+.data-pulse {
+  animation: data-travel-mobile 2.4s linear infinite;
 }
 
 @keyframes data-travel-mobile {
   to {
-    transform: translateY(2.5rem);
+    transform: translateY(var(--travel-distance));
+  }
+}
+
+@media (min-width: 38.75rem) {
+  .data-pulse {
+    animation-name: data-travel;
+  }
+
+  @keyframes data-travel {
+    to {
+      transform: translateX(var(--travel-distance));
+    }
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .data-line i {
+  .data-pulse {
     animation: none;
   }
 }

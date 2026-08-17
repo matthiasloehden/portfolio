@@ -1,6 +1,6 @@
 <script setup lang="ts">
 type HeadingLevel = 'h1' | 'h2' | 'h3';
-type HeadingSize = 'hero' | 'page' | 'overview' | 'section' | 'case' | 'closing' | 'card';
+type HeadingSize = 'hero' | 'page' | 'overview' | 'section' | 'case' | 'closing' | 'card' | 'panel' | 'label';
 
 withDefaults(
   defineProps<{
@@ -26,6 +26,9 @@ const sizeClasses: Record<HeadingSize, string> = {
   closing:
     'text-[3.8rem] leading-[0.9] tracking-[-0.065em] xs:text-[4.5rem] sm:text-[5.25rem] md:text-[6rem] lg:text-[6.75rem] xl:text-[7.2rem] 2xl:text-[7.5rem]',
   card: 'text-[1.8rem] leading-none tracking-[-0.045em] md:text-[2.2rem] xl:text-[2.7rem]',
+  panel: 'text-[1.45rem] leading-none tracking-[-0.035em] sm:text-[1.7rem] md:text-[1.9rem] xl:text-[2.15rem]',
+  label:
+    'max-w-[12ch] text-[1.15rem] leading-[0.95] tracking-[-0.03em] sm:text-[1.35rem] md:text-[1.5rem] xl:text-[1.65rem]',
 };
 </script>
 

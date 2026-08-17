@@ -224,15 +224,15 @@ onBeforeUnmount(() => {
 }
 
 .tube-base {
-  stroke: var(--border-strong);
+  stroke: var(--line-strong);
   stroke-width: 4;
 }
 
 .tube-flow {
-  stroke: var(--accent-bright);
+  stroke: var(--primary-bright);
   stroke-width: 2;
   stroke-dasharray: 1 7;
-  filter: drop-shadow(0 0 5px var(--accent));
+  filter: drop-shadow(0 0 5px var(--primary));
   animation: coolant-flow 4s linear infinite;
 }
 

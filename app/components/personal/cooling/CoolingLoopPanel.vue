@@ -7,6 +7,11 @@ import CoolingRadiator from './CoolingRadiator.vue';
 import CoolingTubing from './CoolingTubing.vue';
 
 import type { TubeConnection } from './cooling.types';
+import type { PersonalCoolingPanelContent } from '@/types/content';
+
+defineProps<{
+  content: PersonalCoolingPanelContent;
+}>();
 
 const diagram = ref<HTMLElement | null>(null);
 
@@ -67,14 +72,13 @@ const tubeConnections: TubeConnection[] = [
 <template>
   <SharedPanelFrame
     class="cooling-panel"
-    title="cooling.loop"
-    meta="4 radiators / 2 pumps"
+    v-bind="content.frame"
   >
     <div class="diagram-shell">
       <div
         ref="diagram"
         class="loop-diagram"
-        aria-label="Custom PC water-cooling system with four radiators, dual pumps, CPU, RAM and GPU water blocks"
+        :aria-label="content.ariaLabel"
       >
         <CoolingTubing
           :root="diagram"
@@ -206,26 +210,23 @@ const tubeConnections: TubeConnection[] = [
         />
 
         <div class="diagram-status">
-          <span>LIQUID COOLING</span>
-          <strong>Custom loop</strong>
+          <span>{{ content.status.label }}</span>
+          <strong>{{ content.status.title }}</strong>
         </div>
       </div>
     </div>
 
-    <div class="cooling-meta grid border-t border-line">
-      <div>
-        <span>Radiators</span>
-        <strong>04×</strong>
-      </div>
-
-      <div>
-        <span>Pumps</span>
-        <strong>02×</strong>
-      </div>
-
-      <div>
-        <span>Blocks</span>
-        <strong>CPU / RAM / GPU</strong>
+    <div class="grid grid-cols-1 border-t border-line min-[42.5rem]:grid-cols-3">
+      <div
+        v-for="(fact, index) in content.facts"
+        :key="fact.label"
+        :class="[
+          'flex items-center justify-between gap-3 px-[0.9rem] py-[0.9rem] font-mono text-[0.55rem]',
+          index > 0 && 'border-t border-line min-[42.5rem]:border-t-0 min-[42.5rem]:border-l',
+        ]"
+      >
+        <span class="text-muted">{{ fact.label }}</span>
+        <strong class="text-[inherit] text-primary-bright">{{ fact.value }}</strong>
       </div>
     </div>
   </SharedPanelFrame>
@@ -258,8 +259,8 @@ const tubeConnections: TubeConnection[] = [
 
   overflow: hidden;
   background:
-    linear-gradient(var(--border) 0.1cqw, transparent 0.1cqw),
-    linear-gradient(90deg, var(--border) 0.1cqw, transparent 0.1cqw);
+    linear-gradient(var(--line) 0.1cqw, transparent 0.1cqw),
+    linear-gradient(90deg, var(--line) 0.1cqw, transparent 0.1cqw);
   background-size: 3.2cqw 3.2cqw;
 }
 
@@ -322,16 +323,6 @@ const tubeConnections: TubeConnection[] = [
   left: 16.5cqw;
 }
 
-.side-label {
-  position: absolute;
-  right: 0;
-  bottom: -1.8cqw;
-  color: var(--muted);
-  font-family: var(--mono-font);
-  font-size: 0.8cqw;
-  letter-spacing: 0.08em;
-}
-
 /* Status */
 
 .diagram-status {
@@ -344,7 +335,7 @@ const tubeConnections: TubeConnection[] = [
 }
 
 .diagram-status span {
-  color: var(--accent);
+  color: var(--primary);
   font-family: var(--mono-font);
   font-size: 0.8cqw;
   letter-spacing: 0.08em;
@@ -355,49 +346,5 @@ const tubeConnections: TubeConnection[] = [
   font-size: 1cqw;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-}
-
-/* Footer */
-
-.cooling-meta {
-  grid-template-columns: repeat(3, 1fr);
-}
-
-.cooling-meta div {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  padding: 0.9rem;
-  font-family: var(--mono-font);
-  font-size: 0.55rem;
-}
-
-.cooling-meta div + div {
-  border-left: 1px solid var(--border);
-}
-
-.cooling-meta span {
-  color: var(--muted);
-}
-
-.cooling-meta strong {
-  color: var(--accent-bright);
-  font-size: inherit;
-}
-
-/*
- * Only the footer layout changes.
- * The diagram itself is never rearranged.
- */
-@media (max-width: 680px) {
-  .cooling-meta {
-    grid-template-columns: 1fr;
-  }
-
-  .cooling-meta div + div {
-    border-top: 1px solid var(--border);
-    border-left: 0;
-  }
 }
 </style>

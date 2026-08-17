@@ -53,12 +53,12 @@ const finCount = computed(() => (props.orientation === 'horizontal' ? 14 : 7));
   position: relative;
   z-index: 4;
   overflow: visible;
-  border: 0.1cqw solid var(--border-strong);
-  background: color-mix(in srgb, var(--background-raised) 95%, transparent);
+  border: 0.1cqw solid var(--line-strong);
+  background: color-mix(in srgb, var(--raised) 95%, transparent);
 }
 
 .radiator-label {
-  color: var(--accent);
+  color: var(--primary);
   position: absolute;
   z-index: 2;
   display: flex;
@@ -70,7 +70,7 @@ const finCount = computed(() => (props.orientation === 'horizontal' ? 14 : 7));
 }
 
 .radiator-label span {
-  color: var(--accent);
+  color: var(--primary);
   font-size: 0.8cqw;
 }
 
@@ -98,14 +98,14 @@ const finCount = computed(() => (props.orientation === 'horizontal' ? 14 : 7));
 }
 
 .radiator--horizontal .radiator-fins i {
-  border-right: 0.1cqw solid var(--border-strong);
-  border-left: 0.1cqw solid var(--border-strong);
+  border-right: 0.1cqw solid var(--line-strong);
+  border-left: 0.1cqw solid var(--line-strong);
   background: repeating-linear-gradient(
     180deg,
     transparent 0,
     transparent 0.4cqw,
-    var(--border) 0.4cqw,
-    var(--border) 0.5cqw
+    var(--line) 0.4cqw,
+    var(--line) 0.5cqw
   );
 }
 
@@ -130,7 +130,7 @@ const finCount = computed(() => (props.orientation === 'horizontal' ? 14 : 7));
 }
 
 .radiator--vertical .radiator-fins i {
-  border-top: 0.1cqw solid var(--border-strong);
-  border-bottom: 0.1cqw solid var(--border-strong);
+  border-top: 0.1cqw solid var(--line-strong);
+  border-bottom: 0.1cqw solid var(--line-strong);
 }
 </style>

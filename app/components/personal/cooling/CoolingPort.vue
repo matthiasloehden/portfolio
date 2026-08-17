@@ -27,12 +27,12 @@ const portStyle = computed(() => ({
   z-index: 20;
   width: 1cqw;
   aspect-ratio: 1;
-  border: 0.1cqw solid var(--accent-bright);
+  border: 0.1cqw solid var(--primary-bright);
   border-radius: 50%;
-  background: var(--background-raised);
+  background: var(--raised);
   box-shadow:
-    0 0 0 0.2cqw var(--background-raised),
-    0 0 0.8cqw color-mix(in srgb, var(--accent) 65%, transparent);
+    0 0 0 0.2cqw var(--raised),
+    0 0 0.8cqw color-mix(in srgb, var(--primary) 65%, transparent);
 }
 
 .component-port--top {

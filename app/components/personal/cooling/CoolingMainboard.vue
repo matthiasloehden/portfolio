@@ -123,8 +123,8 @@ import CoolingPort from './CoolingPort.vue';
   width: 52cqw;
   height: 41cqw;
   overflow: hidden;
-  border: 0.1cqw solid var(--border-strong);
-  background: color-mix(in srgb, var(--background-raised) 95%, transparent);
+  border: 0.1cqw solid var(--line-strong);
+  background: color-mix(in srgb, var(--raised) 95%, transparent);
 }
 
 .board-header {
@@ -146,8 +146,8 @@ import CoolingPort from './CoolingPort.vue';
   inset: 0;
   opacity: 0.34;
   background:
-    linear-gradient(90deg, transparent 49%, var(--border) 50%, transparent 51%),
-    linear-gradient(transparent 49%, var(--border) 50%, transparent 51%);
+    linear-gradient(90deg, transparent 49%, var(--line) 50%, transparent 51%),
+    linear-gradient(transparent 49%, var(--line) 50%, transparent 51%);
   background-size: 4cqw 4cqw;
 }
 
@@ -165,14 +165,13 @@ import CoolingPort from './CoolingPort.vue';
   width: 11cqw;
   aspect-ratio: 1;
   place-items: center;
-  border: 0.1cqw solid var(--accent);
+  border: 0.1cqw solid var(--primary);
   background:
-    radial-gradient(circle, color-mix(in srgb, var(--accent) 18%, transparent), transparent 68%),
-    var(--background-raised);
+    radial-gradient(circle, color-mix(in srgb, var(--primary) 18%, transparent), transparent 68%), var(--raised);
 }
 
 .cpu-block small {
-  color: var(--accent);
+  color: var(--primary);
   font-family: var(--mono-font);
   font-size: 0.8cqw;
   letter-spacing: 0.08em;
@@ -181,7 +180,7 @@ import CoolingPort from './CoolingPort.vue';
 .cpu-block i {
   position: absolute;
   inset: 0.9cqw;
-  border: 0.1cqw dashed var(--accent);
+  border: 0.1cqw dashed var(--primary);
   border-radius: 50%;
   opacity: 0.65;
 }
@@ -197,14 +196,13 @@ import CoolingPort from './CoolingPort.vue';
   align-items: center;
   gap: 1cqw;
   padding: 0.8cqw 1cqw;
-  border: 0.1cqw solid var(--border-strong);
+  border: 0.1cqw solid var(--line-strong);
   background:
-    linear-gradient(110deg, color-mix(in srgb, var(--accent) 9%, transparent), transparent 55%),
-    var(--background-raised);
+    linear-gradient(110deg, color-mix(in srgb, var(--primary) 9%, transparent), transparent 55%), var(--raised);
 }
 
 .ram-label {
-  color: var(--accent);
+  color: var(--primary);
   font-family: var(--mono-font);
   font-size: 0.8cqw;
   letter-spacing: 0.08em;
@@ -222,8 +220,8 @@ import CoolingPort from './CoolingPort.vue';
 }
 
 .ram-bank i {
-  border: 0.1cqw solid var(--border-strong);
-  background: linear-gradient(to bottom, var(--accent) 0 0.5cqw, transparent 0.5cqw), var(--background-raised);
+  border: 0.1cqw solid var(--line-strong);
+  background: linear-gradient(to bottom, var(--primary) 0 0.5cqw, transparent 0.5cqw), var(--raised);
 }
 
 /* GPU */
@@ -235,10 +233,9 @@ import CoolingPort from './CoolingPort.vue';
   display: grid;
   height: 13cqw;
   grid-template-columns: 5cqw 1fr;
-  border: 0.1cqw solid var(--border-strong);
+  border: 0.1cqw solid var(--line-strong);
   background:
-    linear-gradient(110deg, color-mix(in srgb, var(--accent) 9%, transparent), transparent 55%),
-    var(--background-raised);
+    linear-gradient(110deg, color-mix(in srgb, var(--primary) 9%, transparent), transparent 55%), var(--raised);
 }
 
 .gpu-edge {
@@ -247,14 +244,14 @@ import CoolingPort from './CoolingPort.vue';
   align-items: center;
   justify-content: space-between;
   padding: 1.2cqw 0.8cqw;
-  border-right: 0.1cqw solid var(--border);
+  border-right: 0.1cqw solid var(--line);
   font-family: var(--mono-font);
   font-size: 0.8cqw;
   letter-spacing: 0.08em;
 }
 
 .gpu-edge span {
-  color: var(--accent);
+  color: var(--primary);
 }
 
 .gpu-edge small {
@@ -297,7 +294,7 @@ import CoolingPort from './CoolingPort.vue';
 }
 
 .gpu-lines i {
-  border-top: 0.1cqw solid var(--accent);
+  border-top: 0.1cqw solid var(--primary);
   opacity: 0.4;
 }
 </style>
