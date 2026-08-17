@@ -1,11 +1,18 @@
 <script setup lang="ts">
-import { itsmCase, passkeysCase, academicList, streamingCase } from '@/data/academic';
+import {
+  academicClosing,
+  academicHero,
+  academicMeta,
+  academicOverview,
+  authenticationPanel,
+  itsmCase,
+  passkeysCase,
+  servicePanel,
+  streamingCase,
+  streamingPanel,
+} from '@/data/academic';
 
-useSeoMeta({
-  title: 'University Projects — Matthias Löhden',
-  description:
-    'Selected computer science work by Matthias Löhden across scalable event processing, FIDO2 authentication, service operations, and applied software design.',
-});
+useSeoMeta(academicMeta);
 </script>
 
 <template>
@@ -14,31 +21,25 @@ useSeoMeta({
       id="content"
       class="relative z-1 site-container"
     >
-      <AcademicHero />
-      <SharedCaseStudyList
-        id="academic-list"
-        title-id="academic-list-title"
-        label="Selected university projects"
-        title="Three perspectives on dependable digital systems."
-        :items="academicList"
-      />
+      <AcademicHero :content="academicHero" />
+      <SharedCaseStudyList v-bind="academicOverview" />
 
       <AcademicCaseStudy v-bind="streamingCase">
-        <AcademicStreamingPanel />
+        <AcademicStreamingPanel :content="streamingPanel" />
       </AcademicCaseStudy>
 
       <AcademicCaseStudy
         v-bind="passkeysCase"
         reverse
       >
-        <AcademicAuthenticationPanel />
+        <AcademicAuthenticationPanel :content="authenticationPanel" />
       </AcademicCaseStudy>
 
       <AcademicCaseStudy v-bind="itsmCase">
-        <AcademicServicePanel />
+        <AcademicServicePanel :content="servicePanel" />
       </AcademicCaseStudy>
 
-      <AcademicClosing />
+      <AcademicClosing :content="academicClosing" />
     </main>
   </div>
 </template>

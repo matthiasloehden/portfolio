@@ -13,6 +13,15 @@ export interface CaseStudyListItem {
   category: string;
 }
 
+export interface CaseStudyOverviewContent {
+  id: string;
+  titleId: string;
+  label: string;
+  title: string;
+  titleLines?: string[];
+  items: CaseStudyListItem[];
+}
+
 export interface Capability {
   number: string;
   layer: string;
@@ -80,6 +89,8 @@ export interface CaseNote {
 export interface AcademicCaseStudyContent {
   id: string;
   number: string;
+  listTitle: string;
+  listCategory: string;
   category: string;
   type: string;
   title: string;
@@ -88,10 +99,27 @@ export interface AcademicCaseStudyContent {
   notes: CaseNote[];
 }
 
-export interface WorkFact {
+export interface LabeledValue {
   label: string;
   value: string;
 }
+
+export interface AcademicHeroContent {
+  kickerPrefix: string;
+  kicker: string;
+  titleBeforeAccent: string;
+  titleAccent: string;
+  titleConnector: string;
+  titleAfterAccent: string;
+  introduction: string;
+  facts: LabeledValue[];
+  scrollLabel: string;
+  scrollHref: string;
+}
+
+export type AcademicOverviewContent = CaseStudyOverviewContent;
+
+export type WorkFact = LabeledValue;
 
 export interface WorkCaseStudyContent {
   id: string;
@@ -117,13 +145,7 @@ export interface WorkHeroContent {
   scrollHref: string;
 }
 
-export interface WorkOverviewContent {
-  id: string;
-  titleId: string;
-  label: string;
-  title: string;
-  items: CaseStudyListItem[];
-}
+export type WorkOverviewContent = CaseStudyOverviewContent;
 
 export interface WorkContextContent {
   kicker: string;
@@ -133,13 +155,15 @@ export interface WorkContextContent {
   highlights: string[];
 }
 
-export interface WorkClosingContent {
+export interface PageClosingContent {
   kickerPrefix: string;
   kicker: string;
   title: string;
   description: string;
   actions: HomeAction[];
 }
+
+export type WorkClosingContent = PageClosingContent;
 
 export interface PanelFrameContent {
   title: string;
@@ -202,6 +226,38 @@ export interface WorkClientPanelContent {
     description: string;
   }>;
   audiences: string[];
+}
+
+export interface AcademicStreamingPanelContent {
+  frame: PanelFrameContent;
+  ariaLabel: string;
+  nodes: Array<{
+    name: string;
+    description: string;
+  }>;
+}
+
+export interface AcademicAuthenticationPanelContent {
+  frame: PanelFrameContent;
+  steps: Array<{
+    number: string;
+    title: string;
+    description: string;
+  }>;
+  status: string;
+}
+
+export interface AcademicServicePanelContent {
+  frame: PanelFrameContent;
+  stages: Array<{
+    number: string;
+    title: string;
+    description: string;
+  }>;
+  frameworks: Array<{
+    name: string;
+    description: string;
+  }>;
 }
 
 export interface PersonalSectionContent {

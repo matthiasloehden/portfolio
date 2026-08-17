@@ -1,26 +1,19 @@
 <script setup lang="ts">
-type Node = { name: string; desc: string };
+import type { AcademicStreamingPanelContent } from '@/types/content';
 
-const nodes: Node[] = [
-  { name: 'Producers', desc: 'Event source' },
-  { name: 'Kafka', desc: 'Transport' },
-  { name: 'Flink', desc: 'Processing' },
-  { name: 'ClickHouse', desc: 'Analytics' },
-  { name: 'Grafana', desc: 'Visibility' },
-];
+defineProps<{
+  content: AcademicStreamingPanelContent;
+}>();
 </script>
 
 <template>
-  <SharedPanelFrame
-    title="pipeline.flow"
-    meta="event → insight"
-  >
+  <SharedPanelFrame v-bind="content.frame">
     <div
-      class="grid grid-cols-1 items-center gap-3 p-[clamp(1.25rem,4vw,2.5rem)] sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)_auto_minmax(0,1fr)]"
-      aria-label="Data flows from producers through Kafka and Flink into ClickHouse and Grafana"
+      class="pipeline grid grid-cols-1 items-center gap-3 p-5 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)_auto_minmax(0,1fr)] sm:p-6 md:p-8 xl:p-10"
+      :aria-label="content.ariaLabel"
     >
       <template
-        v-for="(node, index) in nodes"
+        v-for="(node, index) in content.nodes"
         :key="node.name"
       >
         <i
@@ -34,21 +27,18 @@ const nodes: Node[] = [
           <span class="font-mono text-[0.58rem] text-primary">
             {{ String(index + 1).padStart(2, '0') }}
           </span>
-          <strong class="font-display text-base font-bold uppercase">
-            {{ node.name }}
-          </strong>
-          <small class="font-mono text-[0.55rem] leading-[1.45] text-muted">
-            {{ node.desc }}
-          </small>
+          <strong class="font-display text-base font-bold uppercase">{{ node.name }}</strong>
+          <small class="font-mono text-[0.55rem] leading-[1.45] text-muted">{{ node.description }}</small>
         </div>
       </template>
     </div>
+
     <div
-      class="flex flex-wrap gap-[0.45rem] border-t border-line p-[0.9rem_1rem]"
+      class="flex flex-wrap gap-[0.45rem] border-t border-line px-4 py-[0.9rem]"
       aria-label="Technologies used"
     >
       <span
-        v-for="node in nodes"
+        v-for="node in content.nodes"
         :key="node.name"
         class="border border-line px-2 py-1 font-mono text-[0.55rem] text-muted"
       >

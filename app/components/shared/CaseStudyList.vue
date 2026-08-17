@@ -6,6 +6,7 @@ defineProps<{
   titleId: string;
   label: string;
   title: string;
+  titleLines?: string[];
   items: CaseStudyListItem[];
 }>();
 
@@ -32,7 +33,15 @@ const revealDelayClasses = [
         :id="titleId"
         size="overview"
       >
-        {{ title }}
+        <template v-if="titleLines">
+          <template
+            v-for="(line, index) in titleLines"
+            :key="line"
+          >
+            {{ line }}<br v-if="index < titleLines.length - 1" />
+          </template>
+        </template>
+        <template v-else>{{ title }}</template>
       </SharedDisplayHeading>
     </div>
     <ol class="m-0 list-none border-t border-line p-0">

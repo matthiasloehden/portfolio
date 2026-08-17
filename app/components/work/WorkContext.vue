@@ -18,6 +18,7 @@ defineProps<{
       <SharedSectionKicker :label="content.kicker" />
       <SharedDisplayHeading
         id="work-context-title"
+        class="max-w-[10ch]!"
         size="overview"
       >
         {{ content.title }}

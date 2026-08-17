@@ -22,7 +22,7 @@ const navigationItems = computed(() =>
         >/</span
       >
       <a
-        class="whitespace-nowrap text-primary transition-colors hover:text-foreground"
+        class="whitespace-nowrap text-muted transition-colors hover:text-foreground"
         href="https://github.com/matthiasloehden/portfolio"
         target="_blank"
         rel="noopener noreferrer"

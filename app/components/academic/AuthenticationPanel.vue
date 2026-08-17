@@ -1,94 +1,37 @@
+<script setup lang="ts">
+import type { AcademicAuthenticationPanelContent } from '@/types/content';
+
+defineProps<{
+  content: AcademicAuthenticationPanelContent;
+}>();
+</script>
+
 <template>
-  <SharedPanelFrame
-    class="authentication-panel"
-    title="authentication.ceremony"
-    meta="public-key flow"
-  >
-    <ol class="auth-flow m-0 list-none">
-      <li>
-        <span>01</span>
-        <div><strong>Request</strong><small>The server creates a fresh challenge.</small></div>
-      </li>
-      <li>
-        <span>02</span>
-        <div><strong>Verify locally</strong><small>The user unlocks a device-bound authenticator.</small></div>
-      </li>
-      <li>
-        <span>03</span>
-        <div>
-          <strong>Sign</strong><small>The private key signs the challenge without leaving the authenticator.</small>
+  <SharedPanelFrame v-bind="content.frame">
+    <ol class="auth-flow m-0 list-none p-5 sm:p-6 md:p-8 xl:p-10">
+      <li
+        v-for="(step, index) in content.steps"
+        :key="step.number"
+        :class="[
+          'grid grid-cols-[2.5rem_1fr] gap-4 border-b border-line py-4',
+          index === 0 && 'pt-0',
+          index === content.steps.length - 1 && 'border-b-0 pb-0',
+        ]"
+      >
+        <span class="font-mono text-[0.58rem] text-primary">{{ step.number }}</span>
+        <div class="grid gap-[0.3rem]">
+          <strong class="font-display text-base uppercase">{{ step.title }}</strong>
+          <small class="font-mono text-[0.55rem] leading-[1.45] text-muted">{{ step.description }}</small>
         </div>
       </li>
-      <li>
-        <span>04</span>
-        <div><strong>Validate</strong><small>The server verifies origin, challenge, and signature.</small></div>
-      </li>
     </ol>
-    <div class="security-signal flex items-center border-t border-line">
-      <i aria-hidden="true" /> No shared password transmitted
+
+    <div class="flex items-center gap-[0.6rem] border-t border-line px-4 py-3 font-mono text-[0.58rem] text-muted">
+      <i
+        class="size-[0.4rem] rounded-full bg-[#3cdc94] shadow-[0_0_0.7rem_rgb(60_220_148/70%)]"
+        aria-hidden="true"
+      />
+      {{ content.status }}
     </div>
   </SharedPanelFrame>
 </template>
-
-<style scoped>
-.auth-flow {
-  padding: clamp(1.25rem, 4vw, 2.5rem);
-}
-
-.auth-flow li {
-  display: grid;
-  grid-template-columns: 2.5rem 1fr;
-  gap: 1rem;
-  padding-block: 1rem;
-  border-bottom: 1px solid var(--border);
-}
-
-.auth-flow li:first-child {
-  padding-top: 0;
-}
-
-.auth-flow li:last-child {
-  padding-bottom: 0;
-  border-bottom: 0;
-}
-
-.auth-flow div {
-  display: grid;
-  gap: 0.3rem;
-}
-
-.auth-flow > li > span {
-  color: var(--accent);
-  font-family: var(--mono-font);
-  font-size: 0.58rem;
-}
-
-.auth-flow strong {
-  font-family: var(--display-font);
-  font-size: 1rem;
-  text-transform: uppercase;
-}
-
-.auth-flow small {
-  color: var(--muted);
-  font-family: var(--mono-font);
-  font-size: 0.55rem;
-  line-height: 1.45;
-}
-
-.security-signal {
-  gap: 0.6rem;
-  padding: 0.75rem 1rem;
-  color: var(--muted);
-  font-family: var(--mono-font);
-  font-size: 0.58rem;
-}
-
-.security-signal i {
-  width: 0.4rem;
-  aspect-ratio: 1;
-  border-radius: 50%;
-  background: #3cdc94;
-  box-shadow: 0 0 0.7rem rgba(60, 220, 148, 0.7);
-}
-</style>

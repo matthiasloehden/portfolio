@@ -17,7 +17,7 @@ const baseClasses =
   'action-link inline-flex items-center gap-2.5 font-mono text-[0.72rem] font-semibold transition duration-150 ease-out';
 const variantClasses = {
   primary:
-    'action-link-primary border border-primary bg-primary px-5 py-3.5 text-primary-foreground hover:-translate-y-0.5 hover:bg-primary-bright focus-visible:-translate-y-0.5 focus-visible:bg-primary-bright',
+    'action-link-primary border border-primary bg-primary px-5 py-3.5 text-foreground hover:-translate-y-0.5 hover:bg-primary-bright focus-visible:-translate-y-0.5 focus-visible:bg-primary-bright',
   text: 'text-muted hover:text-foreground focus-visible:text-foreground',
 };
 </script>
