@@ -1,3 +1,13 @@
+/**
+ * Chooses and monitors the quality level shared by all background scenes.
+ *
+ * Presets are ordered from highest to lowest quality. Auto mode starts from a
+ * coarse device estimate, ignores an initial warm-up period and only steps down
+ * after several consistently slow sample windows. Fixed modes bypass adaptation
+ * but still collect frame-time and FPS data for the diagnostics overlay.
+ * Scene-specific preset values remain outside this module; the manager only
+ * decides which typed preset is active.
+ */
 import type { BackgroundPerformanceMode, BackgroundQualityPreset } from '@/types/background';
 
 export interface AdaptivePerformanceManagerOptions {
@@ -16,10 +26,6 @@ export function chooseInitialBackgroundQuality(): number {
   return 0;
 }
 
-/**
- * Measures frame cadence and selects a quality preset without knowing how a
- * scene applies that preset. Presets must be ordered from highest to lowest.
- */
 export class AdaptivePerformanceManager<Preset extends BackgroundQualityPreset> {
   averageFrameTime = 0;
   fps = 0;

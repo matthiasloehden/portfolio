@@ -72,10 +72,10 @@ test('shows advanced settings only for the active background and restores defaul
   await waitForHydration(page);
   await page.getByRole('button', { name: 'Display settings' }).click();
 
-  await expect(page.getByText('Wave grid advanced settings')).toBeHidden();
+  await expect(page.getByText('Wave Grid advanced settings')).toBeHidden();
 
   await page.getByLabel('Background').selectOption('wave');
-  await expect(page.getByText('Wave grid advanced settings')).toBeVisible();
+  await expect(page.getByText('Wave Grid advanced settings')).toBeVisible();
 
   await page.getByLabel('Theme').selectOption('dark');
   await page.getByRole('checkbox', { name: 'Background idle animation' }).uncheck();
@@ -84,7 +84,7 @@ test('shows advanced settings only for the active background and restores defaul
   await expect(page.getByLabel('Theme')).toHaveValue('system');
   await expect(page.getByLabel('Background')).toHaveValue('auto');
   await expect(page.getByRole('checkbox', { name: 'Background idle animation' })).toBeChecked();
-  await expect(page.getByText('Wave grid advanced settings')).toBeHidden();
+  await expect(page.getByText('Wave Grid advanced settings')).toBeHidden();
 });
 
 test('uses a full-viewport triangle background on the work page', async ({ page }, testInfo) => {

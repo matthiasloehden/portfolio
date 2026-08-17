@@ -1,34 +1,46 @@
+/**
+ * GPU renderer for the Particles background.
+ *
+ * The renderer creates the Three.js scene, orthographic camera and particle
+ * simulation, then exposes the small lifecycle used by ParticleBackground:
+ * resize, render, theme/quality updates, diagnostics and disposal. Rebuilding
+ * the simulation is intentionally contained here because quality changes alter
+ * both its texture dimensions and its particle count.
+ *
+ * Browser events, Vue reactivity and frame scheduling do not belong in this
+ * class. Public lifecycle methods are grouped before the private rebuild helper,
+ * so the supported renderer API can be read from top to bottom before its
+ * implementation details.
+ */
 import * as THREE from 'three';
 
-import type { BackgroundAnimationSettings } from '@/types/background';
+import type { BackgroundAnimationSettings, BackgroundRendererContract, BackgroundTheme } from '@/types/background';
 
+import { ThreeBackgroundRenderer } from '../shared/ThreeBackgroundRenderer';
 import type { InteractionState } from './InteractionManager';
 import { ParticleSimulation } from './ParticleSimulation';
-import type { ParticleQuality } from './config';
+import { getParticleColor, type ParticleQualityPreset } from './config';
 import type { ParticleRendererStats } from './types';
 
-/** Owns the Three.js renderer, camera, scene and particle simulation. */
-export class ParticleRenderer {
-  private renderer: THREE.WebGLRenderer | null = null;
+export class ParticleRenderer implements BackgroundRendererContract<ParticleRendererStats> {
+  private renderer: ThreeBackgroundRenderer | null = null;
   private scene: THREE.Scene | null = null;
   private camera: THREE.OrthographicCamera | null = null;
   private simulation: ParticleSimulation | null = null;
-  private quality: ParticleQuality;
-
-  private readonly drawingBufferSize = new THREE.Vector2();
+  private quality: ParticleQualityPreset;
 
   private constructor(
     private readonly canvas: HTMLCanvasElement,
-    quality: ParticleQuality,
+    quality: ParticleQualityPreset,
   ) {
     this.quality = quality;
   }
 
-  static create(canvas: HTMLCanvasElement, quality: ParticleQuality, color: string): ParticleRenderer {
+  static create(canvas: HTMLCanvasElement, quality: ParticleQualityPreset, theme: BackgroundTheme): ParticleRenderer {
     const runtime = new ParticleRenderer(canvas, quality);
 
     try {
-      runtime.initialize(color);
+      runtime.initialize(theme);
       return runtime;
     } catch (error: unknown) {
       runtime.dispose(false);
@@ -36,31 +48,14 @@ export class ParticleRenderer {
     }
   }
 
-  private initialize(color: string): void {
-    const context = this.canvas.getContext('webgl2', {
-      alpha: true,
-      antialias: false,
-      depth: false,
-      stencil: false,
-      preserveDrawingBuffer: false,
-      powerPreference: 'high-performance',
-    });
-
-    if (!context) throw new Error('WebGL2 is unavailable');
-
-    this.renderer = new THREE.WebGLRenderer({
-      canvas: this.canvas,
-      context,
-      alpha: true,
-      antialias: false,
-    });
-    this.renderer.setClearColor(0x000000, 0);
+  private initialize(theme: BackgroundTheme): void {
+    this.renderer = ThreeBackgroundRenderer.create(this.canvas, { antialias: false });
 
     this.scene = new THREE.Scene();
     this.camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.01, 10);
     this.camera.position.z = 2;
 
-    this.rebuildSimulation(color);
+    this.rebuildSimulation(getParticleColor(theme));
   }
 
   resize(): void {
@@ -69,10 +64,9 @@ export class ParticleRenderer {
     const width = Math.max(this.canvas.clientWidth || window.innerWidth, 1);
     const height = Math.max(this.canvas.clientHeight || window.innerHeight, 1);
     const aspect = width / height;
-    const dpr = Math.min(window.devicePixelRatio, this.quality.dprCap);
+    const dpr = Math.min(window.devicePixelRatio, this.quality.pixelRatioCap);
 
-    this.renderer.setPixelRatio(dpr);
-    this.renderer.setSize(width, height, false);
+    this.renderer.resize(width, height, dpr);
 
     this.camera.left = -aspect;
     this.camera.right = aspect;
@@ -83,27 +77,27 @@ export class ParticleRenderer {
     this.simulation?.resize(aspect, dpr);
   }
 
-  setQuality(quality: ParticleQuality, color: string): void {
+  setQuality(quality: ParticleQualityPreset, theme: BackgroundTheme): void {
     if (quality.id === this.quality.id) return;
 
     this.quality = quality;
-    this.rebuildSimulation(color);
+    this.rebuildSimulation(getParticleColor(theme));
   }
 
-  setColor(color: string): void {
-    this.simulation?.setColor(color);
+  setTheme(theme: BackgroundTheme): void {
+    this.simulation?.setColor(getParticleColor(theme));
   }
 
   render(now: number, delta: number, interaction: InteractionState, animations: BackgroundAnimationSettings): void {
     if (!this.renderer || !this.scene || !this.camera || !this.simulation) return;
 
     this.simulation.update(now / 1_000, delta, interaction, animations);
-    this.renderer.render(this.scene, this.camera);
+    this.renderer.instance.render(this.scene, this.camera);
   }
 
   renderStatic(): void {
     if (!this.renderer || !this.scene || !this.camera) return;
-    this.renderer.render(this.scene, this.camera);
+    this.renderer.instance.render(this.scene, this.camera);
   }
 
   setAnimationLoop(callback: ((time: number) => void) | null): void {
@@ -115,19 +109,13 @@ export class ParticleRenderer {
       return { width: 0, height: 0, dpr: 1, particleCount: 0 };
     }
 
-    this.renderer.getDrawingBufferSize(this.drawingBufferSize);
-
     return {
-      width: Math.round(this.drawingBufferSize.x),
-      height: Math.round(this.drawingBufferSize.y),
-      dpr: this.renderer.getPixelRatio(),
+      ...this.renderer.getPerformanceStats(),
       particleCount: this.simulation?.particleCount ?? 0,
     };
   }
 
   dispose(forceContextLoss: boolean): void {
-    this.renderer?.setAnimationLoop(null);
-
     this.simulation?.dispose();
     this.simulation = null;
 
@@ -135,13 +123,7 @@ export class ParticleRenderer {
     this.scene = null;
     this.camera = null;
 
-    if (this.renderer) {
-      this.renderer.dispose();
-
-      if (forceContextLoss) {
-        this.renderer.forceContextLoss();
-      }
-    }
+    this.renderer?.dispose(forceContextLoss);
 
     this.renderer = null;
   }
@@ -153,8 +135,10 @@ export class ParticleRenderer {
       Math.max(this.canvas.clientWidth || window.innerWidth, 1) /
       Math.max(this.canvas.clientHeight || window.innerHeight, 1);
 
+    // Resolution is the GPGPU texture size, so a quality change requires a
+    // complete simulation rebuild rather than a uniform update.
     this.simulation?.dispose();
-    this.simulation = new ParticleSimulation(this.renderer, this.scene, this.quality, aspect, color);
+    this.simulation = new ParticleSimulation(this.renderer.instance, this.scene, this.quality, aspect, color);
     this.resize();
   }
 }

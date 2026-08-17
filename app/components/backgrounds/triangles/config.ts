@@ -1,10 +1,9 @@
-import type { BackgroundQualityPreset } from '@/types/background';
+import type { BackgroundQualityPreset, BackgroundTheme } from '@/types/background';
 
 import type { TrianglePalette } from './types';
 
 export interface TriangleQualityPreset extends BackgroundQualityPreset {
   densityScale: number;
-  pixelRatioCap: number;
 }
 
 export const TRIANGLE_QUALITY_PRESETS = [
@@ -43,7 +42,7 @@ export const TRIANGLE_CONFIG = {
   minimumRows: 5,
 } as const;
 
-export function getTrianglePalette(theme: string | undefined): TrianglePalette {
+export function getTrianglePalette(theme: BackgroundTheme): TrianglePalette {
   if (theme === 'light') {
     return {
       fill: '68, 96, 134',

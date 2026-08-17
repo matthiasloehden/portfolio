@@ -8,9 +8,9 @@ import type {
   BackgroundPerformanceMode,
   BackgroundPreference,
   ThemePreference,
-  WaveGridSetting,
-} from '@/composables/usePortfolioPreferences';
-import { WAVE_GRID_SETTING_CONTROLS } from '@/types/background';
+  WaveSetting,
+} from '@/composables/usePreferences';
+import { WAVE_SETTING_CONTROLS } from '@/types/background';
 import { BACKGROUND_OPTIONS, resolveBackground } from '@/config/backgrounds';
 
 const {
@@ -22,11 +22,11 @@ const {
   setThemePreference,
   setBackgroundPreference,
   setBackgroundAnimationEnabled,
-  setWaveGridSetting,
+  setWaveSetting,
   setBackgroundPerformanceMode,
   setBackgroundPerformanceStatsEnabled,
   restoreDefaultSettings,
-} = usePortfolioPreferences();
+} = usePreferences();
 
 const root = ref<HTMLElement | null>(null);
 const open = ref(false);
@@ -68,10 +68,10 @@ function onPerformanceStatsChange(event: Event): void {
   setBackgroundPerformanceStatsEnabled((event.target as HTMLInputElement).checked);
 }
 
-function onWaveGridSettingChange(setting: WaveGridSetting, event: Event): void {
+function onWaveSettingChange(setting: WaveSetting, event: Event): void {
   const value = Number((event.target as HTMLInputElement).value);
 
-  if (Number.isFinite(value)) setWaveGridSetting(setting, value);
+  if (Number.isFinite(value)) setWaveSetting(setting, value);
 }
 
 function onRestoreDefaults(): void {
@@ -269,13 +269,13 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onDocumentPoin
         v-if="activeBackground === 'wave'"
         class="advanced-settings mt-4 border-t border-line pt-4"
       >
-        <summary>Wave grid advanced settings</summary>
+        <summary>Wave Grid advanced settings</summary>
 
         <p>Visual density, ripple capacity and render resolution.</p>
 
         <div class="grid gap-3">
           <label
-            v-for="control in WAVE_GRID_SETTING_CONTROLS"
+            v-for="control in WAVE_SETTING_CONTROLS"
             :key="control.key"
             class="settings-field"
           >
@@ -290,7 +290,7 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onDocumentPoin
               :max="control.max"
               :step="control.step"
               :disabled="backgroundPreference === 'none'"
-              @change="onWaveGridSettingChange(control.key, $event)"
+              @change="onWaveSettingChange(control.key, $event)"
             />
           </label>
         </div>

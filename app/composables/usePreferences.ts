@@ -11,15 +11,15 @@ import {
   createDefaultBackgroundAdvancedSettings,
   createDefaultBackgroundAnimationSettings,
   createDefaultBackgroundPerformanceSettings,
-  createWaveGridSettings,
+  createWaveSettings,
   type BackgroundAnimation,
   type BackgroundAdvancedSettings,
   type BackgroundAnimationSettings,
   type BackgroundPerformanceMode,
   type BackgroundPerformanceSettings,
   type BackgroundPreference,
-  type WaveGridSetting,
-  type WaveGridSettings,
+  type WaveSetting,
+  type WaveSettings,
 } from '@/types/background';
 
 export type {
@@ -29,8 +29,8 @@ export type {
   BackgroundPerformanceMode,
   BackgroundPerformanceSettings,
   BackgroundPreference,
-  WaveGridSetting,
-  WaveGridSettings,
+  WaveSetting,
+  WaveSettings,
 } from '@/types/background';
 
 export type ThemePreference = 'system' | 'light' | 'dark';
@@ -96,7 +96,7 @@ function isLegacyBackgroundAnimationSettings(value: unknown): value is {
   );
 }
 
-function isWaveGridSettings(value: unknown): value is WaveGridSettings {
+function isWaveSettings(value: unknown): value is WaveSettings {
   if (typeof value !== 'object' || value === null) return false;
 
   const settings = value as Record<string, unknown>;
@@ -115,7 +115,7 @@ function isWaveGridSettings(value: unknown): value is WaveGridSettings {
 function isBackgroundAdvancedSettings(value: unknown): value is BackgroundAdvancedSettings {
   if (typeof value !== 'object' || value === null) return false;
 
-  return isWaveGridSettings((value as Record<string, unknown>).wave);
+  return isWaveSettings((value as Record<string, unknown>).wave);
 }
 
 function readStorage(key: string): string | null {
@@ -187,7 +187,7 @@ function readBackgroundAdvancedSettings(): BackgroundAdvancedSettings {
 
     if (isBackgroundAdvancedSettings(parsedSettings)) {
       return {
-        wave: createWaveGridSettings(parsedSettings.wave),
+        wave: createWaveSettings(parsedSettings.wave),
       };
     }
   } catch {
@@ -213,7 +213,7 @@ function readBackgroundPerformanceSettings(): BackgroundPerformanceSettings {
   return createDefaultBackgroundPerformanceSettings();
 }
 
-export function usePortfolioPreferences() {
+export function usePreferences() {
   const themePreference = useState<ThemePreference>('portfolio-theme-preference', () => 'system');
 
   const backgroundPreference = useState<BackgroundPreference>('portfolio-background-preference', () => 'auto');
@@ -286,10 +286,10 @@ export function usePortfolioPreferences() {
     writeStorage(BACKGROUND_ANIMATIONS_STORAGE_KEY, JSON.stringify(backgroundAnimations.value));
   }
 
-  function setWaveGridSetting(setting: WaveGridSetting, value: number): void {
+  function setWaveSetting(setting: WaveSetting, value: number): void {
     backgroundAdvancedSettings.value = {
       ...backgroundAdvancedSettings.value,
-      wave: createWaveGridSettings({
+      wave: createWaveSettings({
         ...backgroundAdvancedSettings.value.wave,
         [setting]: value,
       }),
@@ -390,7 +390,7 @@ export function usePortfolioPreferences() {
     setThemePreference,
     setBackgroundPreference,
     setBackgroundAnimationEnabled,
-    setWaveGridSetting,
+    setWaveSetting,
     setBackgroundPerformanceMode,
     setBackgroundPerformanceStatsEnabled,
     restoreDefaultSettings,

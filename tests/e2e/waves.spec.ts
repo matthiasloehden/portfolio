@@ -9,16 +9,16 @@ function captureRuntimeErrors(page: Page): string[] {
   return errors;
 }
 
-test('renders the home triangle background and responds to pointer and wheel input', async ({ page }, testInfo) => {
+test('renders the home wave background and responds to pointer and wheel input', async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== 'desktop-chromium', 'Desktop interaction test');
   const runtimeErrors = captureRuntimeErrors(page);
 
   await page.goto('/');
   await expect(page.getByRole('heading', { name: 'I build applications.' })).toBeVisible();
 
-  // The home page renders its own WebGL wave-grid component (`.wave-grid-background`),
+  // The home page renders its own WebGL waves component (`.wave-background`),
   // not the shared Canvas2D `.triangle-background` used on other routes.
-  const background = page.locator('.wave-grid-background');
+  const background = page.locator('.wave-background');
   const canvas = background.locator('canvas');
   await expect(background).not.toHaveClass(/is-fallback/);
   await expect(canvas).toBeVisible();
@@ -45,7 +45,7 @@ test('keeps a static grid when reduced motion is requested', async ({ page }, te
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/');
 
-  await expect(page.locator('.wave-grid-background canvas')).toBeVisible();
+  await expect(page.locator('.wave-background canvas')).toBeVisible();
   await expect(page.getByRole('heading', { name: 'I build applications.' })).toBeVisible();
   expect(runtimeErrors).toEqual([]);
 });
@@ -56,7 +56,7 @@ test('creates touch ripples without blocking mobile scrolling', async ({ page, c
   const session = await context.newCDPSession(page);
 
   await page.goto('/');
-  await expect(page.locator('.wave-grid-background canvas')).toBeVisible();
+  await expect(page.locator('.wave-background canvas')).toBeVisible();
 
   const touch = async (type: 'touchStart' | 'touchMove' | 'touchEnd', x: number, y: number): Promise<void> => {
     await session.send('Input.dispatchTouchEvent', {
@@ -73,6 +73,6 @@ test('creates touch ripples without blocking mobile scrolling', async ({ page, c
   await page.waitForTimeout(500);
 
   expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
-  await expect(page.locator('.wave-grid-background')).toHaveCSS('position', 'fixed');
+  await expect(page.locator('.wave-background')).toHaveCSS('position', 'fixed');
   expect(runtimeErrors).toEqual([]);
 });

@@ -11,7 +11,7 @@ const {
   backgroundPerformance,
   initializePreferences,
   disposePreferences,
-} = usePortfolioPreferences();
+} = usePreferences();
 
 onMounted(initializePreferences);
 onBeforeUnmount(disposePreferences);

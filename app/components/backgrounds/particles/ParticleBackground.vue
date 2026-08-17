@@ -1,22 +1,36 @@
 <script setup lang="ts">
 /**
- * Coordinates the particle renderer, interaction state and browser lifecycle.
- * Three.js resources stay inside ParticleRenderer and adaptive performance is
- * handled through the same typed contract as every other background scene.
+ * Vue controller for the Particles background.
+ *
+ * This component connects reactive scene settings to the imperative rendering
+ * code. It owns browser listeners, mount/unmount cleanup, resize handling and
+ * the decision whether another animation frame is needed. InteractionManager
+ * converts pointer, click and scroll input into renderer-neutral simulation
+ * state; ParticleRenderer consumes that state and owns the GPU resources.
+ *
+ * The file follows the runtime flow: component state and shared services first,
+ * then frame/resize control, lifecycle callbacks, reactive watchers and finally
+ * the canvas markup. Keeping that boundary here prevents Vue and DOM concerns
+ * from leaking into the particle simulation.
  */
 
-import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { onBeforeUnmount, onMounted, watch } from 'vue';
 
 import {
   createDefaultBackgroundAnimationSettings,
   createDefaultBackgroundPerformanceSettings,
   type BackgroundSceneEmits,
   type BackgroundSceneProps,
+  type BackgroundTheme,
 } from '@/types/background';
 
 import { BackgroundEnvironment } from '../shared/BackgroundEnvironment';
 import { BackgroundPerformanceRuntime } from '../shared/BackgroundPerformanceRuntime';
-import { PARTICLE_CONFIG, PARTICLE_QUALITY } from './config';
+import { BackgroundResizeController } from '../shared/BackgroundResizeController';
+import { useBackgroundCanvas } from '../shared/useBackgroundCanvas';
+import { useBackgroundPerformanceSettings } from '../shared/useBackgroundPerformanceSettings';
+import { WebGLContextLifecycle } from '../shared/WebGLContextLifecycle';
+import { PARTICLE_CONFIG, PARTICLE_QUALITY_PRESETS } from './config';
 import { InteractionManager } from './InteractionManager';
 import { ParticleRenderer } from './ParticleRenderer';
 
@@ -27,21 +41,16 @@ const props = withDefaults(defineProps<BackgroundSceneProps>(), {
 });
 const emit = defineEmits<BackgroundSceneEmits>();
 
-const canvas = ref<HTMLCanvasElement | null>(null);
-const failed = ref(false);
-const failureReason = ref<string | null>(null);
+const { canvas, failed, failureReason, clearFailure, setFailure } = useBackgroundCanvas();
 
 let runtime: ParticleRenderer | null = null;
 let interaction: InteractionManager | null = null;
-let performanceRuntime: BackgroundPerformanceRuntime<(typeof PARTICLE_QUALITY)[number]> | null = null;
+let performanceRuntime: BackgroundPerformanceRuntime<(typeof PARTICLE_QUALITY_PRESETS)[number]> | null = null;
 
 let previousTime = 0;
 let environment: BackgroundEnvironment | null = null;
-let contextLost = false;
-
-function getParticleColor(): string {
-  return document.documentElement.dataset.theme === 'light' ? PARTICLE_CONFIG.lightColor : PARTICLE_CONFIG.darkColor;
-}
+let resizeController: BackgroundResizeController | null = null;
+let webglContext: WebGLContextLifecycle | null = null;
 
 function resize(): void {
   runtime?.resize();
@@ -50,7 +59,7 @@ function resize(): void {
 }
 
 function renderFrame(now: number): void {
-  if (!runtime || !interaction || contextLost) return;
+  if (!runtime || !interaction || webglContext?.lost) return;
 
   const delta = previousTime === 0 ? 1 / 60 : Math.min((now - previousTime) / 1_000, 0.05);
   previousTime = now;
@@ -62,7 +71,7 @@ function renderFrame(now: number): void {
   const qualityChange = performanceRuntime?.recordFrame(now);
 
   if (qualityChange) {
-    runtime.setQuality(qualityChange, getParticleColor());
+    runtime.setQuality(qualityChange, environment?.theme ?? 'dark');
     resize();
     updatePerformanceStats(now, true);
   }
@@ -81,13 +90,13 @@ function setAnimationState(): void {
     props.active &&
     environment?.documentVisible !== false &&
     !environment?.prefersReducedMotion &&
-    !contextLost &&
+    !webglContext?.lost &&
     (props.animations.idle || interaction?.hasActiveAnimation() === true);
 
   previousTime = 0;
   runtime.setAnimationLoop(shouldAnimate ? renderFrame : null);
 
-  if (!shouldAnimate && !contextLost) {
+  if (!shouldAnimate && !webglContext?.lost) {
     runtime.renderStatic();
   }
 }
@@ -97,22 +106,15 @@ function updatePerformanceStats(now: number, force = false): void {
 
   const rendererStats = runtime.getPerformanceStats();
 
-  emit('performanceStats', {
-    name: 'Particle field',
-    renderer: 'WebGL2 / GPGPU',
-    mode: props.performance.mode,
-    preset: performanceRuntime.currentPreset.id,
-    fps: performanceRuntime.fps,
-    frameTime: performanceRuntime.averageFrameTime,
-    resolution: `${rendererStats.width} × ${rendererStats.height}`,
-    dpr: rendererStats.dpr,
-    details: {
+  emit(
+    'performanceStats',
+    performanceRuntime.createStats({ name: 'Particle field', renderer: 'WebGL2 / GPGPU' }, rendererStats, {
       Particles: rendererStats.particleCount,
       'Pointer speed': interaction.state.pointerSpeed.toFixed(2),
       'Click pull': interaction.state.clickInfluence.toFixed(2),
       'Scroll velocity': interaction.state.scrollVelocity.toFixed(2),
-    },
-  });
+    }),
+  );
 }
 
 function applyPerformanceMode(): void {
@@ -120,7 +122,7 @@ function applyPerformanceMode(): void {
 
   const quality = performanceRuntime.setMode(props.performance.mode);
 
-  runtime?.setQuality(quality, getParticleColor());
+  runtime?.setQuality(quality, environment?.theme ?? 'dark');
   resize();
   updatePerformanceStats(performance.now(), true);
 }
@@ -132,18 +134,16 @@ function initialize(): void {
   if (!element || !quality) return;
 
   try {
-    runtime = ParticleRenderer.create(element, quality, getParticleColor());
+    runtime = ParticleRenderer.create(element, quality, environment?.theme ?? 'dark');
     interaction = new InteractionManager(props.animations, setAnimationState);
 
-    failed.value = false;
-    failureReason.value = null;
+    clearFailure();
 
     resize();
     setAnimationState();
     updatePerformanceStats(performance.now(), true);
   } catch (error: unknown) {
-    failed.value = true;
-    failureReason.value = error instanceof Error ? error.message : 'Initialization failed';
+    setFailure(error);
     cleanup(false);
   }
 }
@@ -164,22 +164,17 @@ function onMotionPreferenceChange(): void {
   setAnimationState();
 }
 
-function onColorSchemeChange(): void {
-  runtime?.setColor(getParticleColor());
+function onThemeChange(theme: BackgroundTheme): void {
+  runtime?.setTheme(theme);
   runtime?.renderStatic();
 }
 
-function onContextLost(event: Event): void {
-  event.preventDefault();
-
-  contextLost = true;
-  failed.value = true;
-  failureReason.value = 'WebGL context lost';
+function onContextLost(): void {
+  setFailure('WebGL context lost');
   runtime?.setAnimationLoop(null);
 }
 
 function onContextRestored(): void {
-  contextLost = false;
   cleanup(false);
   initialize();
 }
@@ -204,17 +199,13 @@ watch(
   { flush: 'post' },
 );
 
-watch(() => props.performance.mode, applyPerformanceMode, { flush: 'post' });
-watch(
-  () => props.performance.showStats,
-  (showStats) => {
-    if (showStats) updatePerformanceStats(performance.now(), true);
-  },
-  { flush: 'post' },
-);
+useBackgroundPerformanceSettings(() => props.performance, {
+  onModeChange: applyPerformanceMode,
+  onStatsRequested: () => updatePerformanceStats(performance.now(), true),
+});
 
 onMounted(() => {
-  performanceRuntime = new BackgroundPerformanceRuntime(PARTICLE_QUALITY, props.performance.mode, {
+  performanceRuntime = new BackgroundPerformanceRuntime(PARTICLE_QUALITY_PRESETS, props.performance.mode, {
     warmupFrames: PARTICLE_CONFIG.performanceWarmupFrames,
     sampleFrames: PARTICLE_CONFIG.performanceSampleFrames,
     poorPerformanceWindows: PARTICLE_CONFIG.poorPerformanceWindows,
@@ -222,22 +213,27 @@ onMounted(() => {
 
   environment = new BackgroundEnvironment({
     onMotionPreferenceChange,
-    onThemeChange: onColorSchemeChange,
+    onThemeChange,
     onVisibilityChange,
   });
 
-  canvas.value?.addEventListener('webglcontextlost', onContextLost);
-  canvas.value?.addEventListener('webglcontextrestored', onContextRestored);
-  window.addEventListener('resize', resize, { passive: true });
-  window.addEventListener('orientationchange', resize, { passive: true });
+  resizeController = new BackgroundResizeController(resize, [canvas.value]);
+
+  if (canvas.value) {
+    webglContext = new WebGLContextLifecycle(canvas.value, {
+      onLost: onContextLost,
+      onRestored: onContextRestored,
+    });
+  }
+
   initialize();
 });
 
 onBeforeUnmount(() => {
-  canvas.value?.removeEventListener('webglcontextlost', onContextLost);
-  canvas.value?.removeEventListener('webglcontextrestored', onContextRestored);
-  window.removeEventListener('resize', resize);
-  window.removeEventListener('orientationchange', resize);
+  webglContext?.dispose();
+  webglContext = null;
+  resizeController?.dispose();
+  resizeController = null;
   environment?.dispose();
   environment = null;
 

@@ -1,22 +1,36 @@
 <script setup lang="ts">
 /**
- * Coordinates TriangleMeshRenderer with browser lifecycle, input channels and
- * the shared background performance contract.
+ * Vue controller for the Living Mesh background.
+ *
+ * This component bridges Vue props and browser state with the imperative mesh
+ * renderer. It observes resize, visibility, pointer and scroll changes, applies
+ * performance presets and requests frames only while motion or an interaction
+ * transition still needs rendering. Inactive backgrounds remain mounted for a
+ * flash-free scene transition, but their animation work is paused.
+ *
+ * Runtime state and shared services come first, followed by frame scheduling,
+ * browser handlers, renderer setup/teardown and watchers. MeshRenderer therefore
+ * stays focused on geometry, animation and Canvas2D drawing.
  */
 
-import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { onBeforeUnmount, onMounted, watch } from 'vue';
 
 import {
   createDefaultBackgroundAnimationSettings,
   createDefaultBackgroundPerformanceSettings,
   type BackgroundSceneEmits,
   type BackgroundSceneProps,
+  type BackgroundTheme,
 } from '@/types/background';
 
+import { AnimationFrameScheduler } from '../shared/AnimationFrameScheduler';
 import { BackgroundEnvironment } from '../shared/BackgroundEnvironment';
 import { BackgroundPerformanceRuntime } from '../shared/BackgroundPerformanceRuntime';
-import { TRIANGLE_MESH_QUALITY_PRESETS } from './config';
-import { TriangleMeshRenderer } from './TriangleMeshRenderer';
+import { BackgroundResizeController } from '../shared/BackgroundResizeController';
+import { useBackgroundCanvas } from '../shared/useBackgroundCanvas';
+import { useBackgroundPerformanceSettings } from '../shared/useBackgroundPerformanceSettings';
+import { MESH_QUALITY_PRESETS } from './config';
+import { MeshRenderer } from './MeshRenderer';
 
 const props = withDefaults(defineProps<BackgroundSceneProps>(), {
   active: true,
@@ -25,23 +39,15 @@ const props = withDefaults(defineProps<BackgroundSceneProps>(), {
 });
 const emit = defineEmits<BackgroundSceneEmits>();
 
-const canvas = ref<HTMLCanvasElement | null>(null);
-const failed = ref(false);
-const failureReason = ref<string | null>(null);
+const { canvas, failed, failureReason, clearFailure, setFailure } = useBackgroundCanvas();
 
-let runtime: TriangleMeshRenderer | null = null;
-let animationFrame: number | null = null;
-let resizeObserver: ResizeObserver | null = null;
+let runtime: MeshRenderer | null = null;
+let frameScheduler: AnimationFrameScheduler | null = null;
+let resizeController: BackgroundResizeController | null = null;
 let environment: BackgroundEnvironment | null = null;
-let performanceRuntime: BackgroundPerformanceRuntime<(typeof TRIANGLE_MESH_QUALITY_PRESETS)[number]> | null = null;
-
-function getTheme(): string | undefined {
-  return document.documentElement.dataset.theme;
-}
+let performanceRuntime: BackgroundPerformanceRuntime<(typeof MESH_QUALITY_PRESETS)[number]> | null = null;
 
 function renderFrame(now: number): void {
-  animationFrame = null;
-
   if (!runtime) return;
 
   const motionAllowed = props.active && !environment?.prefersReducedMotion;
@@ -62,15 +68,14 @@ function renderFrame(now: number): void {
   if (props.active) updatePerformanceStats(now);
 
   if (environment?.documentVisible !== false && (advanceIdle || needsPointerTransition)) {
-    animationFrame = window.requestAnimationFrame(renderFrame);
+    frameScheduler?.request();
   }
 }
 
 function requestRender(): void {
-  if (animationFrame !== null || environment?.documentVisible === false || !runtime) return;
+  if (environment?.documentVisible === false || !runtime) return;
 
-  runtime.resetFrameTime();
-  animationFrame = window.requestAnimationFrame(renderFrame);
+  if (frameScheduler?.request()) runtime.resetFrameTime();
 }
 
 function resize(): void {
@@ -126,12 +131,8 @@ function handleScroll(): void {
 }
 
 function handleVisibilityChange(visible: boolean): void {
-  if (!visible && animationFrame !== null) {
-    window.cancelAnimationFrame(animationFrame);
-    animationFrame = null;
-  }
-
-  if (visible) requestRender();
+  if (!visible) frameScheduler?.cancel();
+  else requestRender();
 }
 
 function handleMotionPreferenceChange(): void {
@@ -140,8 +141,8 @@ function handleMotionPreferenceChange(): void {
   requestRender();
 }
 
-function handleThemeChange(): void {
-  runtime?.setTheme(getTheme());
+function handleThemeChange(theme: BackgroundTheme): void {
+  runtime?.setTheme(theme);
   requestRender();
 }
 
@@ -150,23 +151,16 @@ function updatePerformanceStats(now: number, force = false): void {
 
   const rendererStats = runtime.getPerformanceStats();
 
-  emit('performanceStats', {
-    name: 'Living mesh',
-    renderer: 'Canvas2D',
-    mode: props.performance.mode,
-    preset: performanceRuntime.currentPreset.id,
-    fps: performanceRuntime.fps,
-    frameTime: performanceRuntime.averageFrameTime,
-    resolution: `${rendererStats.width} × ${rendererStats.height}`,
-    dpr: rendererStats.dpr,
-    details: {
+  emit(
+    'performanceStats',
+    performanceRuntime.createStats({ name: 'Living Mesh', renderer: 'Canvas2D' }, rendererStats, {
       Points: rendererStats.pointCount,
       Triangles: rendererStats.triangleCount,
       Edges: rendererStats.edgeCount,
       'Buffered rows': rendererStats.rowCount,
       'Pointer wake': rendererStats.pointerStrength.toFixed(2),
-    },
-  });
+    }),
+  );
 }
 
 function applyPerformanceMode(): void {
@@ -187,26 +181,21 @@ function initialize(): void {
   if (!element || !quality) return;
 
   try {
-    runtime = TriangleMeshRenderer.create(element, quality, getTheme());
+    runtime = MeshRenderer.create(element, quality, environment?.theme ?? 'dark');
     runtime.resize();
     runtime.setScrollOffset(window.scrollY, false);
 
-    failed.value = false;
-    failureReason.value = null;
+    clearFailure();
     requestRender();
     updatePerformanceStats(performance.now(), true);
   } catch (error: unknown) {
-    failed.value = true;
-    failureReason.value = error instanceof Error ? error.message : 'Initialization failed';
+    setFailure(error);
     cleanup();
   }
 }
 
 function cleanup(): void {
-  if (animationFrame !== null) {
-    window.cancelAnimationFrame(animationFrame);
-    animationFrame = null;
-  }
+  frameScheduler?.cancel();
 
   runtime?.dispose();
   runtime = null;
@@ -235,17 +224,14 @@ watch(
   { flush: 'post' },
 );
 
-watch(() => props.performance.mode, applyPerformanceMode, { flush: 'post' });
-watch(
-  () => props.performance.showStats,
-  (showStats) => {
-    if (showStats) updatePerformanceStats(performance.now(), true);
-  },
-  { flush: 'post' },
-);
+useBackgroundPerformanceSettings(() => props.performance, {
+  onModeChange: applyPerformanceMode,
+  onStatsRequested: () => updatePerformanceStats(performance.now(), true),
+});
 
 onMounted(() => {
-  performanceRuntime = new BackgroundPerformanceRuntime(TRIANGLE_MESH_QUALITY_PRESETS, props.performance.mode);
+  frameScheduler = new AnimationFrameScheduler(renderFrame);
+  performanceRuntime = new BackgroundPerformanceRuntime(MESH_QUALITY_PRESETS, props.performance.mode);
   environment = new BackgroundEnvironment({
     onMotionPreferenceChange: handleMotionPreferenceChange,
     onThemeChange: handleThemeChange,
@@ -254,15 +240,7 @@ onMounted(() => {
 
   initialize();
 
-  resizeObserver = new ResizeObserver(resize);
-
-  if (canvas.value) {
-    resizeObserver.observe(canvas.value);
-
-    if (canvas.value.parentElement?.parentElement) {
-      resizeObserver.observe(canvas.value.parentElement.parentElement);
-    }
-  }
+  resizeController = new BackgroundResizeController(resize, [canvas.value, canvas.value?.parentElement?.parentElement]);
 
   window.addEventListener('pointermove', handlePointerMove, { passive: true });
   window.addEventListener('pointerout', handlePointerOut, { passive: true });
@@ -273,8 +251,8 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
-  resizeObserver?.disconnect();
-  resizeObserver = null;
+  resizeController?.dispose();
+  resizeController = null;
 
   window.removeEventListener('pointermove', handlePointerMove);
   window.removeEventListener('pointerout', handlePointerOut);
@@ -286,13 +264,15 @@ onBeforeUnmount(() => {
   environment?.dispose();
   environment = null;
   cleanup();
+  frameScheduler?.dispose();
+  frameScheduler = null;
   performanceRuntime = null;
 });
 </script>
 
 <template>
   <div
-    class="triangle-mesh-background"
+    class="mesh-background"
     :class="{ 'is-fallback': failed }"
     :data-mesh-error="failed ? (failureReason ?? 'Unknown Canvas2D failure') : undefined"
     aria-hidden="true"
@@ -304,7 +284,7 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
-.triangle-mesh-background {
+.mesh-background {
   position: fixed;
   z-index: 0;
   inset: 0;
@@ -320,7 +300,7 @@ onBeforeUnmount(() => {
   isolation: isolate;
 }
 
-.triangle-mesh-background::before {
+.mesh-background::before {
   position: absolute;
   inset: 0;
 
@@ -335,7 +315,7 @@ onBeforeUnmount(() => {
   pointer-events: none;
 }
 
-.triangle-mesh-background canvas {
+.mesh-background canvas {
   position: absolute;
   inset: 0;
 
@@ -347,7 +327,7 @@ onBeforeUnmount(() => {
   pointer-events: none;
 }
 
-.triangle-mesh-background.is-fallback canvas {
+.mesh-background.is-fallback canvas {
   display: none;
 }
 
@@ -366,7 +346,7 @@ onBeforeUnmount(() => {
 }
 
 @media (max-width: 620px) {
-  .triangle-mesh-background {
+  .mesh-background {
     opacity: 0.76;
   }
 }

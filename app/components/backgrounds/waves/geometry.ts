@@ -6,7 +6,7 @@
 
 import * as THREE from 'three';
 
-import type { WaveGridSettings } from '@/types/background';
+import type { WaveSettings } from '@/types/background';
 
 function appendSegment(
   positions: number[],
@@ -19,7 +19,7 @@ function appendSegment(
   strengths.push(strength, strength);
 }
 
-export function createWaveGridGeometry(settings: WaveGridSettings): THREE.BufferGeometry {
+export function createWaveGeometry(settings: WaveSettings): THREE.BufferGeometry {
   const positions: number[] = [];
   const strengths: number[] = [];
 

@@ -1,16 +1,14 @@
-import type { BackgroundQualityPreset } from '@/types/background';
+import type { BackgroundQualityPreset, BackgroundTheme } from '@/types/background';
 
-export interface ParticleQuality extends BackgroundQualityPreset {
+export interface ParticleQualityPreset extends BackgroundQualityPreset {
   resolution: number;
-  dprCap: number;
-  slowFrameThreshold: number;
 }
 
-export const PARTICLE_QUALITY = [
-  { id: 'high', resolution: 224, dprCap: 1.5, slowFrameThreshold: 22 },
-  { id: 'medium', resolution: 160, dprCap: 1.25, slowFrameThreshold: 25 },
-  { id: 'low', resolution: 112, dprCap: 1, slowFrameThreshold: 30 },
-] as const satisfies readonly ParticleQuality[];
+export const PARTICLE_QUALITY_PRESETS = [
+  { id: 'high', resolution: 224, pixelRatioCap: 1.5, slowFrameThreshold: 22 },
+  { id: 'medium', resolution: 160, pixelRatioCap: 1.25, slowFrameThreshold: 25 },
+  { id: 'low', resolution: 112, pixelRatioCap: 1, slowFrameThreshold: 30 },
+] as const satisfies readonly ParticleQualityPreset[];
 
 export const PARTICLE_CONFIG = {
   particleSize: 1.35,
@@ -47,6 +45,6 @@ export const PARTICLE_CONFIG = {
   poorPerformanceWindows: 2,
 } as const;
 
-export function getParticleQuality(index: number): ParticleQuality {
-  return PARTICLE_QUALITY[index] ?? PARTICLE_QUALITY[2];
+export function getParticleColor(theme: BackgroundTheme): string {
+  return theme === 'light' ? PARTICLE_CONFIG.lightColor : PARTICLE_CONFIG.darkColor;
 }

@@ -43,7 +43,8 @@ labels, and sentence case for body copy.
 
 ## Shared interface components
 
-- The default Nuxt layout owns the skip link, header, and footer. Pages only render their background and main content.
+- The default Nuxt layout owns the skip link, header, footer, and `BackgroundOrchestrator`; pages render only their main
+  content and metadata.
 - `LayoutSiteHeader`: one central page list with active-page state, responsive menu, and theme control
 - `LayoutSiteFooter`: shared site navigation and contact action
 - `SharedActionLink`: primary and text call-to-action variants

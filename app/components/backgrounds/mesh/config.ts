@@ -1,19 +1,18 @@
-import type { BackgroundQualityPreset } from '@/types/background';
+import type { BackgroundQualityPreset, BackgroundTheme } from '@/types/background';
 
-import type { TriangleMeshPalette } from './types';
+import type { MeshPalette } from './types';
 
-export interface TriangleMeshQualityPreset extends BackgroundQualityPreset {
+export interface MeshQualityPreset extends BackgroundQualityPreset {
   spacingScale: number;
-  pixelRatioCap: number;
 }
 
-export const TRIANGLE_MESH_QUALITY_PRESETS = [
+export const MESH_QUALITY_PRESETS = [
   { id: 'high', slowFrameThreshold: 22, spacingScale: 0.85, pixelRatioCap: 1.5 },
   { id: 'medium', slowFrameThreshold: 27, spacingScale: 1, pixelRatioCap: 1.25 },
   { id: 'low', slowFrameThreshold: 34, spacingScale: 1.3, pixelRatioCap: 1 },
-] as const satisfies readonly TriangleMeshQualityPreset[];
+] as const satisfies readonly MeshQualityPreset[];
 
-export const TRIANGLE_MESH_CONFIG = {
+export const MESH_CONFIG = {
   pointerWakeDuration: 3_200,
   pointerWakeAttackRate: 7.5,
   pointerActivityHold: 160,
@@ -36,7 +35,7 @@ export const TRIANGLE_MESH_CONFIG = {
   },
 } as const;
 
-export function getTriangleMeshPalette(theme: string | undefined): TriangleMeshPalette {
+export function getMeshPalette(theme: BackgroundTheme): MeshPalette {
   if (theme === 'light') {
     return {
       line: '#4a6f9e',

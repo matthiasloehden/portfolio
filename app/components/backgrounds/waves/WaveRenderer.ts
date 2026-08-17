@@ -1,19 +1,28 @@
+/**
+ * GPU renderer for the Wave Grid background.
+ *
+ * The renderer owns the Three.js scene, perspective camera, line geometry and
+ * shader material. Each frame it encodes the current interaction trail into a
+ * compact texture that the vertex shader uses to displace the grid. It also
+ * projects screen coordinates onto the grid plane, but it never decides which
+ * browser events should create a wave.
+ *
+ * Construction and public lifecycle methods appear first, followed by pointer
+ * projection, diagnostics/disposal and the private trail-texture update. Vue
+ * reactivity, event listeners and frame scheduling stay in WaveBackground.
+ */
 import * as THREE from 'three';
 
-import type { WaveGridSettings } from '@/types/background';
+import type { BackgroundRendererContract, BackgroundTheme, WaveSettings } from '@/types/background';
 
-import { createWaveGridGeometry } from './geometry';
-import { createWaveGridVertexShader, waveGridFragmentShader } from './shaders';
-import type { GridPosition, TrailPoint, WaveGridPalette, WaveGridRendererStats } from './types';
+import { ThreeBackgroundRenderer } from '../shared/ThreeBackgroundRenderer';
+import { getWavePalette } from './config';
+import { createWaveGeometry } from './geometry';
+import { createWaveVertexShader, waveFragmentShader } from './shaders';
+import type { WavePosition, TrailPoint, WaveRendererStats } from './types';
 
-/**
- * Owns all Three.js resources used by the Wave Grid scene.
- *
- * Browser events and Vue reactivity deliberately stay in the component. This
- * class only translates typed scene state into GPU resources and draw calls.
- */
-export class WaveGridRenderer {
-  private renderer: THREE.WebGLRenderer | null = null;
+export class WaveRenderer implements BackgroundRendererContract<WaveRendererStats> {
+  private renderer: ThreeBackgroundRenderer | null = null;
   private scene: THREE.Scene | null = null;
   private camera: THREE.PerspectiveCamera | null = null;
   private material: THREE.ShaderMaterial | null = null;
@@ -25,8 +34,6 @@ export class WaveGridRenderer {
   private readonly pointer = new THREE.Vector2();
   private readonly groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
   private readonly intersection = new THREE.Vector3();
-  private readonly drawingBufferSize = new THREE.Vector2();
-
   private constructor(
     private readonly canvas: HTMLCanvasElement,
     private readonly maxTrailPoints: number,
@@ -37,13 +44,13 @@ export class WaveGridRenderer {
   static create(
     canvas: HTMLCanvasElement,
     maxTrailPoints: number,
-    settings: WaveGridSettings,
-    palette: WaveGridPalette,
-  ): WaveGridRenderer {
-    const runtime = new WaveGridRenderer(canvas, maxTrailPoints);
+    settings: WaveSettings,
+    theme: BackgroundTheme,
+  ): WaveRenderer {
+    const runtime = new WaveRenderer(canvas, maxTrailPoints);
 
     try {
-      runtime.initialize(settings, palette);
+      runtime.initialize(settings, theme);
       return runtime;
     } catch (error: unknown) {
       runtime.dispose(false);
@@ -51,26 +58,9 @@ export class WaveGridRenderer {
     }
   }
 
-  private initialize(settings: WaveGridSettings, palette: WaveGridPalette): void {
-    const context = this.canvas.getContext('webgl2', {
-      alpha: true,
-      antialias: true,
-      depth: false,
-      stencil: false,
-      powerPreference: 'high-performance',
-    });
-
-    if (!context) {
-      throw new Error('WebGL2 is unavailable');
-    }
-
-    this.renderer = new THREE.WebGLRenderer({
-      canvas: this.canvas,
-      context,
-      alpha: true,
-      antialias: true,
-    });
-    this.renderer.setClearColor(0x000000, 0);
+  private initialize(settings: WaveSettings, theme: BackgroundTheme): void {
+    this.renderer = ThreeBackgroundRenderer.create(this.canvas, { antialias: true });
+    const palette = getWavePalette(theme);
 
     this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera(42, 1, 0.1, 80);
@@ -99,27 +89,26 @@ export class WaveGridRenderer {
         uWaveColor: { value: new THREE.Color(palette.waveColor) },
         uOpacity: { value: palette.opacity },
       },
-      vertexShader: createWaveGridVertexShader(this.maxTrailPoints),
-      fragmentShader: waveGridFragmentShader,
+      vertexShader: createWaveVertexShader(this.maxTrailPoints),
+      fragmentShader: waveFragmentShader,
       transparent: true,
       depthTest: false,
       depthWrite: false,
       blending: THREE.NormalBlending,
     });
 
-    this.grid = new THREE.LineSegments(createWaveGridGeometry(settings), this.material);
+    this.grid = new THREE.LineSegments(createWaveGeometry(settings), this.material);
     this.scene.add(this.grid);
   }
 
-  resize(settings: WaveGridSettings): void {
+  resize(settings: WaveSettings): void {
     if (!this.renderer || !this.camera) return;
 
     const width = Math.max(this.canvas.clientWidth, 1);
     const height = Math.max(this.canvas.clientHeight, 1);
     const isMobile = width < 720;
 
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, settings.pixelRatioCap));
-    this.renderer.setSize(width, height, false);
+    this.renderer.resize(width, height, Math.min(window.devicePixelRatio, settings.pixelRatioCap));
 
     this.camera.aspect = width / height;
     this.camera.fov = isMobile ? 52 : 42;
@@ -128,10 +117,10 @@ export class WaveGridRenderer {
     this.camera.updateProjectionMatrix();
   }
 
-  applySettings(settings: WaveGridSettings): void {
+  applySettings(settings: WaveSettings): void {
     if (!this.grid || !this.material) return;
 
-    const nextGeometry = createWaveGridGeometry(settings);
+    const nextGeometry = createWaveGeometry(settings);
 
     this.grid.geometry.dispose();
     this.grid.geometry = nextGeometry;
@@ -143,9 +132,10 @@ export class WaveGridRenderer {
     }
   }
 
-  applyPalette(palette: WaveGridPalette): void {
+  setTheme(theme: BackgroundTheme): void {
     if (!this.material) return;
 
+    const palette = getWavePalette(theme);
     const color = this.material.uniforms.uColor?.value;
     const waveColor = this.material.uniforms.uWaveColor?.value;
 
@@ -170,7 +160,7 @@ export class WaveGridRenderer {
     this.renderer?.setAnimationLoop(callback);
   }
 
-  render(now: number, trail: readonly TrailPoint[], settings: WaveGridSettings): void {
+  render(now: number, trail: readonly TrailPoint[], settings: WaveSettings): void {
     if (!this.renderer || !this.scene || !this.camera || !this.material || !this.trailTexture) return;
 
     this.updateTrailTexture(now, trail, settings);
@@ -179,10 +169,10 @@ export class WaveGridRenderer {
       this.material.uniforms.uTime.value = now / 1_000;
     }
 
-    this.renderer.render(this.scene, this.camera);
+    this.renderer.instance.render(this.scene, this.camera);
   }
 
-  projectPointer(clientX: number, clientY: number, settings: WaveGridSettings): GridPosition | null {
+  projectPointer(clientX: number, clientY: number, settings: WaveSettings): WavePosition | null {
     if (!this.camera) return null;
 
     const rect = this.canvas.getBoundingClientRect();
@@ -211,35 +201,21 @@ export class WaveGridRenderer {
     };
   }
 
-  getPerformanceStats(): WaveGridRendererStats {
+  getPerformanceStats(): WaveRendererStats {
     if (!this.renderer) {
       return { width: 0, height: 0, dpr: 1 };
     }
 
-    this.renderer.getDrawingBufferSize(this.drawingBufferSize);
-
-    return {
-      width: Math.round(this.drawingBufferSize.x),
-      height: Math.round(this.drawingBufferSize.y),
-      dpr: this.renderer.getPixelRatio(),
-    };
+    return this.renderer.getPerformanceStats();
   }
 
   dispose(forceContextLoss: boolean): void {
-    this.renderer?.setAnimationLoop(null);
-
     this.grid?.geometry.dispose();
     this.material?.dispose();
     this.trailTexture?.dispose();
     this.scene?.clear();
 
-    if (this.renderer) {
-      this.renderer.dispose();
-
-      if (forceContextLoss) {
-        this.renderer.forceContextLoss();
-      }
-    }
+    this.renderer?.dispose(forceContextLoss);
 
     this.renderer = null;
     this.scene = null;
@@ -249,11 +225,13 @@ export class WaveGridRenderer {
     this.trailTexture = null;
   }
 
-  private updateTrailTexture(now: number, trail: readonly TrailPoint[], settings: WaveGridSettings): void {
+  private updateTrailTexture(now: number, trail: readonly TrailPoint[], settings: WaveSettings): void {
     if (!this.material || !this.trailTexture) return;
 
     this.trailData.fill(0);
 
+    // Each RGBA texel stores world X, world Z, normalized age and velocity.
+    // Encoding to bytes avoids a larger floating-point upload every frame.
     const trailStart = Math.max(0, trail.length - this.maxTrailPoints);
     const trailCount = trail.length - trailStart;
 

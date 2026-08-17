@@ -1,3 +1,18 @@
+/**
+ * Canvas2D renderer for the Triangles background.
+ *
+ * The scene is defined in document space, but only rows intersecting the
+ * viewport plus a small buffer are generated and drawn. Seeded tile properties
+ * make those temporary rows deterministic, so scrolling away and back produces
+ * the same pattern without retaining a document-sized grid in memory.
+ *
+ * Local data shapes are declared before the renderer state. The public lifecycle
+ * and interaction API follows, while coordinate conversion, visible-row
+ * generation and drawing helpers are kept near the bottom. Browser events and
+ * frame scheduling remain in TriangleBackground.
+ */
+import type { BackgroundRendererContract, BackgroundTheme } from '@/types/background';
+
 import { getTrianglePalette, TRIANGLE_CONFIG, type TriangleQualityPreset } from './config';
 import type { TrianglePalette, TrianglePosition, TriangleRendererStats } from './types';
 import { seededRandom, smoothstep } from '../shared/math';
@@ -35,11 +50,7 @@ interface VisibleWorldBounds {
   bottom: number;
 }
 
-/**
- * Owns Triangle Canvas2D geometry, drawing resources and interaction trails.
- * Browser events and animation scheduling deliberately remain in Vue.
- */
-export class TriangleRenderer {
+export class TriangleRenderer implements BackgroundRendererContract<TriangleRendererStats> {
   private context: CanvasRenderingContext2D | null;
   private quality: TriangleQualityPreset;
 
@@ -68,7 +79,7 @@ export class TriangleRenderer {
   private constructor(
     private readonly canvas: HTMLCanvasElement,
     quality: TriangleQualityPreset,
-    theme: string | undefined,
+    theme: BackgroundTheme,
   ) {
     this.quality = quality;
     this.palette = getTrianglePalette(theme);
@@ -82,11 +93,7 @@ export class TriangleRenderer {
     }
   }
 
-  static create(
-    canvas: HTMLCanvasElement,
-    quality: TriangleQualityPreset,
-    theme: string | undefined,
-  ): TriangleRenderer {
+  static create(canvas: HTMLCanvasElement, quality: TriangleQualityPreset, theme: BackgroundTheme): TriangleRenderer {
     return new TriangleRenderer(canvas, quality, theme);
   }
 
@@ -120,7 +127,7 @@ export class TriangleRenderer {
     this.resize(quality);
   }
 
-  setTheme(theme: string | undefined): void {
+  setTheme(theme: BackgroundTheme): void {
     this.palette = getTrianglePalette(theme);
     this.ambientGradient = null;
   }
@@ -212,6 +219,8 @@ export class TriangleRenderer {
     context.fillRect(0, 0, this.width, this.height);
 
     context.save();
+    // Scroll is a vertical screen-space movement. Applying it before rotation
+    // prevents the page from drifting diagonally through the transformed grid.
     context.translate(0, -this.scrollOffset);
     context.translate(this.width * 0.5, this.height * 0.5);
     context.rotate(TRIANGLE_CONFIG.rotationRadians);
@@ -302,6 +311,8 @@ export class TriangleRenderer {
   private syncGridForViewport(): void {
     if (this.tileRows.length > 0 && this.syncedScrollOffset === this.scrollOffset) return;
 
+    // The screen corners are inverse-projected because a rotated rectangle
+    // needs more source cells than its unrotated width and height suggest.
     const bounds = this.getVisibleWorldBounds();
     const cellWidth = Math.max(this.metrics.cellWidth, 1);
     const cellHeight = Math.max(this.metrics.cellHeight, 1);
@@ -365,6 +376,7 @@ export class TriangleRenderer {
 
       for (let columnOffset = 0; columnOffset < columnCount; columnOffset += 1) {
         const column = startColumnIndex + columnOffset;
+        // Global row/column seeds make a tile identical after window rebuilds.
         const seed = rowIndex * 149 + column * 43 + 1;
 
         rowTiles.push({

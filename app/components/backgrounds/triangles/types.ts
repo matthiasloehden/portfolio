@@ -1,12 +1,11 @@
+import type { BackgroundRendererStats } from '@/types/background';
+
 export interface TrianglePosition {
   x: number;
   worldY: number;
 }
 
-export interface TriangleRendererStats {
-  width: number;
-  height: number;
-  dpr: number;
+export interface TriangleRendererStats extends BackgroundRendererStats {
   triangleCount: number;
   trailPointCount: number;
   rotationDegrees: number;

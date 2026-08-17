@@ -1,21 +1,34 @@
 <script setup lang="ts">
 /**
- * Coordinates TriangleRenderer with browser lifecycle, input channels and the
- * shared background performance contract. Canvas geometry and drawing state
- * remain isolated from Vue so this component only owns orchestration.
+ * Vue controller for the Triangles background.
+ *
+ * This component owns browser input, document visibility, resize observation,
+ * adaptive quality and on-demand frame scheduling. Pointer and scroll events
+ * are converted into document-space positions before they are passed to the
+ * renderer, which keeps the interaction stable while the page moves.
+ *
+ * State and shared services are declared first; frame control and input handlers
+ * follow; setup, teardown and reactive watchers come last. TriangleRenderer is
+ * deliberately isolated from Vue and browser listeners and only receives the
+ * state required to draw the current frame.
  */
 
-import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { onBeforeUnmount, onMounted, watch } from 'vue';
 
 import {
   createDefaultBackgroundAnimationSettings,
   createDefaultBackgroundPerformanceSettings,
   type BackgroundSceneEmits,
   type BackgroundSceneProps,
+  type BackgroundTheme,
 } from '@/types/background';
 
+import { AnimationFrameScheduler } from '../shared/AnimationFrameScheduler';
 import { BackgroundEnvironment } from '../shared/BackgroundEnvironment';
 import { BackgroundPerformanceRuntime } from '../shared/BackgroundPerformanceRuntime';
+import { BackgroundResizeController } from '../shared/BackgroundResizeController';
+import { useBackgroundCanvas } from '../shared/useBackgroundCanvas';
+import { useBackgroundPerformanceSettings } from '../shared/useBackgroundPerformanceSettings';
 import { TRIANGLE_CONFIG, TRIANGLE_QUALITY_PRESETS } from './config';
 import { TriangleRenderer } from './TriangleRenderer';
 import type { TrianglePosition } from './types';
@@ -27,16 +40,14 @@ const props = withDefaults(defineProps<BackgroundSceneProps>(), {
 });
 const emit = defineEmits<BackgroundSceneEmits>();
 
-const canvas = ref<HTMLCanvasElement | null>(null);
-const failed = ref(false);
-const failureReason = ref<string | null>(null);
+const { canvas, failed, failureReason, clearFailure, setFailure } = useBackgroundCanvas();
 
 let runtime: TriangleRenderer | null = null;
 let environment: BackgroundEnvironment | null = null;
-let resizeObserver: ResizeObserver | null = null;
+let resizeController: BackgroundResizeController | null = null;
 let performanceRuntime: BackgroundPerformanceRuntime<(typeof TRIANGLE_QUALITY_PRESETS)[number]> | null = null;
+let frameScheduler: AnimationFrameScheduler | null = null;
 
-let animationFrame: number | null = null;
 let lastFrameTime = 0;
 let elapsedTime = 0;
 
@@ -47,19 +58,11 @@ let lastPointerPosition: TrianglePosition | null = null;
 let lastPointerPointTime = 0;
 let previousScrollOffset = 0;
 
-function getTheme(): string | undefined {
-  return document.documentElement.dataset.theme;
-}
-
 function scheduleFrame(): void {
-  if (animationFrame !== null) return;
-
-  animationFrame = window.requestAnimationFrame(renderFrame);
+  frameScheduler?.request();
 }
 
 function renderFrame(now: number): void {
-  animationFrame = null;
-
   if (!runtime) return;
 
   const documentVisible = environment?.documentVisible !== false;
@@ -80,7 +83,7 @@ function renderFrame(now: number): void {
 
   runtime.render(now, elapsedTime, idleMotionEnabled);
 
-  const qualityChange = performanceRuntime?.recordFrame(now);
+  const qualityChange = props.active ? performanceRuntime?.recordFrame(now) : null;
 
   if (qualityChange) {
     runtime.setQuality(qualityChange);
@@ -88,7 +91,7 @@ function renderFrame(now: number): void {
     updatePerformanceStats(now, true);
   }
 
-  updatePerformanceStats(now);
+  if (props.active) updatePerformanceStats(now);
 
   if (shouldContinue) scheduleFrame();
 }
@@ -163,7 +166,13 @@ function handleScroll(): void {
   previousScrollOffset = nextScrollOffset;
   runtime?.setScrollOffset(nextScrollOffset);
 
-  if (!runtime || !props.active) return;
+  if (!runtime) return;
+
+  if (!props.active) {
+    // Keep the mounted canvas synchronized for a flash-free crossfade.
+    scheduleFrame();
+    return;
+  }
 
   if (
     !props.animations.scroll ||
@@ -193,11 +202,12 @@ function clearPointer(): void {
 function handleVisibilityChange(visible: boolean): void {
   lastFrameTime = 0;
 
-  if (visible && props.active) scheduleFrame();
+  if (!visible) frameScheduler?.cancel();
+  else if (props.active) scheduleFrame();
 }
 
-function handleThemeChange(): void {
-  runtime?.setTheme(getTheme());
+function handleThemeChange(theme: BackgroundTheme): void {
+  runtime?.setTheme(theme);
   lastFrameTime = 0;
   scheduleFrame();
 }
@@ -214,21 +224,14 @@ function updatePerformanceStats(now: number, force = false): void {
 
   const rendererStats = runtime.getPerformanceStats();
 
-  emit('performanceStats', {
-    name: 'Triangle field',
-    renderer: 'Canvas2D',
-    mode: props.performance.mode,
-    preset: performanceRuntime.currentPreset.id,
-    fps: performanceRuntime.fps,
-    frameTime: performanceRuntime.averageFrameTime,
-    resolution: `${rendererStats.width} × ${rendererStats.height}`,
-    dpr: rendererStats.dpr,
-    details: {
+  emit(
+    'performanceStats',
+    performanceRuntime.createStats({ name: 'Triangle field', renderer: 'Canvas2D' }, rendererStats, {
       Triangles: rendererStats.triangleCount,
       'Trail points': rendererStats.trailPointCount,
       Rotation: `${rendererStats.rotationDegrees}°`,
-    },
-  });
+    }),
+  );
 }
 
 function applyPerformanceMode(): void {
@@ -250,28 +253,23 @@ function initialize(): void {
   if (!element || !quality) return;
 
   try {
-    runtime = TriangleRenderer.create(element, quality, getTheme());
+    runtime = TriangleRenderer.create(element, quality, environment?.theme ?? 'dark');
     runtime.setScrollOffset(window.scrollY);
     previousScrollOffset = window.scrollY;
     runtime.resize();
 
-    failed.value = false;
-    failureReason.value = null;
+    clearFailure();
     lastFrameTime = 0;
     scheduleFrame();
     updatePerformanceStats(performance.now(), true);
   } catch (error: unknown) {
-    failed.value = true;
-    failureReason.value = error instanceof Error ? error.message : 'Initialization failed';
+    setFailure(error);
     cleanup();
   }
 }
 
 function cleanup(): void {
-  if (animationFrame !== null) {
-    window.cancelAnimationFrame(animationFrame);
-    animationFrame = null;
-  }
+  frameScheduler?.cancel();
 
   runtime?.dispose();
   runtime = null;
@@ -298,28 +296,20 @@ watch(
   { flush: 'post' },
 );
 
-watch(() => props.performance.mode, applyPerformanceMode, { flush: 'post' });
-watch(
-  () => props.performance.showStats,
-  (showStats) => {
-    if (showStats) updatePerformanceStats(performance.now(), true);
-  },
-  { flush: 'post' },
-);
+useBackgroundPerformanceSettings(() => props.performance, {
+  onModeChange: applyPerformanceMode,
+  onStatsRequested: () => updatePerformanceStats(performance.now(), true),
+});
 
 onMounted(() => {
+  frameScheduler = new AnimationFrameScheduler(renderFrame);
   performanceRuntime = new BackgroundPerformanceRuntime(TRIANGLE_QUALITY_PRESETS, props.performance.mode);
   environment = new BackgroundEnvironment({
     onMotionPreferenceChange: handleMotionPreferenceChange,
     onThemeChange: handleThemeChange,
     onVisibilityChange: handleVisibilityChange,
   });
-  resizeObserver = new ResizeObserver(resize);
-
-  if (canvas.value) resizeObserver.observe(canvas.value);
-
-  window.addEventListener('resize', resize, { passive: true });
-  window.addEventListener('orientationchange', resize, { passive: true });
+  resizeController = new BackgroundResizeController(resize, [canvas.value]);
   window.addEventListener('scroll', handleScroll, { passive: true });
   window.addEventListener('pointermove', handlePointerMove, { passive: true });
   window.addEventListener('pointerdown', handlePointerDown, { passive: true });
@@ -330,11 +320,9 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
-  resizeObserver?.disconnect();
-  resizeObserver = null;
+  resizeController?.dispose();
+  resizeController = null;
 
-  window.removeEventListener('resize', resize);
-  window.removeEventListener('orientationchange', resize);
   window.removeEventListener('scroll', handleScroll);
   window.removeEventListener('pointermove', handlePointerMove);
   window.removeEventListener('pointerdown', handlePointerDown);
@@ -344,6 +332,8 @@ onBeforeUnmount(() => {
   environment?.dispose();
   environment = null;
   cleanup();
+  frameScheduler?.dispose();
+  frameScheduler = null;
   performanceRuntime = null;
 });
 </script>

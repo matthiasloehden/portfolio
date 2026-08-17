@@ -1,6 +1,5 @@
-export interface ParticleRendererStats {
-  width: number;
-  height: number;
-  dpr: number;
+import type { BackgroundRendererStats } from '@/types/background';
+
+export interface ParticleRendererStats extends BackgroundRendererStats {
   particleCount: number;
 }

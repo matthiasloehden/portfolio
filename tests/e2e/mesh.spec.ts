@@ -9,14 +9,14 @@ function captureRuntimeErrors(page: Page): string[] {
   return errors;
 }
 
-test('uses the living triangle mesh on the personal page', async ({ page }, testInfo) => {
+test('uses the Living Mesh on the personal page', async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== 'desktop-chromium', 'Desktop interaction test');
   const runtimeErrors = captureRuntimeErrors(page);
 
   await page.goto('/personal');
   await expect(page.getByRole('heading', { name: 'Built from curiosity.' })).toBeVisible();
 
-  const background = page.locator('.triangle-mesh-background');
+  const background = page.locator('.mesh-background');
   const canvas = background.locator('canvas');
   await expect(background).toHaveClass(/background-scene-active/);
   await expect(background).toHaveCSS('position', 'fixed');
@@ -52,7 +52,7 @@ test('keeps a static mesh when reduced motion is requested', async ({ page }, te
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/personal');
 
-  await expect(page.locator('.triangle-mesh-background canvas')).toBeVisible();
+  await expect(page.locator('.mesh-background canvas')).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Built from curiosity.' })).toBeVisible();
   expect(runtimeErrors).toEqual([]);
 });
@@ -63,7 +63,7 @@ test('does not block native touch scrolling', async ({ page, context }, testInfo
   const session = await context.newCDPSession(page);
 
   await page.goto('/personal');
-  await expect(page.locator('.triangle-mesh-background canvas')).toBeVisible();
+  await expect(page.locator('.mesh-background canvas')).toBeVisible();
 
   await session.send('Input.dispatchTouchEvent', {
     type: 'touchStart',

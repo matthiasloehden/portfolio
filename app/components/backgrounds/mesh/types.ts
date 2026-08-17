@@ -1,4 +1,6 @@
-export interface TriangleMeshPalette {
+import type { BackgroundRendererStats } from '@/types/background';
+
+export interface MeshPalette {
   line: string;
   glow: string;
   node: string;
@@ -7,16 +9,13 @@ export interface TriangleMeshPalette {
   baseFillAlpha: number;
 }
 
-export interface TriangleMeshRenderState {
+export interface MeshRenderState {
   active: boolean;
   advanceIdle: boolean;
   motionAllowed: boolean;
 }
 
-export interface TriangleMeshRendererStats {
-  width: number;
-  height: number;
-  dpr: number;
+export interface MeshRendererStats extends BackgroundRendererStats {
   pointCount: number;
   triangleCount: number;
   edgeCount: number;

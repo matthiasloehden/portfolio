@@ -4,7 +4,7 @@
  * WebGL constant; all visual behaviour otherwise remains runtime-configured.
  */
 
-export function createWaveGridVertexShader(maxTrailPoints: number): string {
+export function createWaveVertexShader(maxTrailPoints: number): string {
   return /* glsl */ `
     #define TRAIL_LENGTH ${maxTrailPoints}
 
@@ -170,7 +170,7 @@ export function createWaveGridVertexShader(maxTrailPoints: number): string {
   `;
 }
 
-export const waveGridFragmentShader = /* glsl */ `
+export const waveFragmentShader = /* glsl */ `
   uniform vec3 uColor;
   uniform vec3 uWaveColor;
   uniform float uOpacity;

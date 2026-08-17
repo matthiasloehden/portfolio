@@ -1,18 +1,17 @@
-import type { BackgroundQualityPreset } from '@/types/background';
+import type { BackgroundQualityPreset, BackgroundTheme } from '@/types/background';
 
-import type { WaveGridPalette } from './types';
+import type { WavePalette } from './types';
 
-export interface WaveGridQualityPreset extends BackgroundQualityPreset {
-  pixelRatioCap: number;
+export interface WaveQualityPreset extends BackgroundQualityPreset {
   vertexStepScale: number;
   trailLengthCap: number;
 }
 
-export const WAVE_GRID_QUALITY_PRESETS = [
+export const WAVE_QUALITY_PRESETS = [
   { id: 'high', slowFrameThreshold: 22, pixelRatioCap: 2, vertexStepScale: 1, trailLengthCap: 48 },
   { id: 'medium', slowFrameThreshold: 26, pixelRatioCap: 1.5, vertexStepScale: 1.25, trailLengthCap: 36 },
   { id: 'low', slowFrameThreshold: 32, pixelRatioCap: 1, vertexStepScale: 1.75, trailLengthCap: 20 },
-] as const satisfies readonly WaveGridQualityPreset[];
+] as const satisfies readonly WaveQualityPreset[];
 
 /** Minimum time between scroll-generated ripples. */
 export const SCROLL_RIPPLE_THROTTLE = 80;
@@ -29,7 +28,7 @@ export const CLICK_RIPPLE_LAYERS = 3;
 /** Number of points used for passive scroll and touch ripples. */
 export const DEFAULT_RIPPLE_LAYERS = 2;
 
-export function getWaveGridPalette(theme: string | undefined): WaveGridPalette {
+export function getWavePalette(theme: BackgroundTheme): WavePalette {
   if (theme === 'light') {
     return {
       color: '#37628f',

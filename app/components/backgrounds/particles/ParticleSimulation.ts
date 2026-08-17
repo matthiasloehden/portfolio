@@ -9,7 +9,7 @@ import { GPUComputationRenderer, type Variable } from 'three/addons/misc/GPUComp
 
 import type { BackgroundAnimationSettings } from '@/types/background';
 
-import { PARTICLE_CONFIG, type ParticleQuality } from './config';
+import { PARTICLE_CONFIG, type ParticleQualityPreset } from './config';
 import type { InteractionState } from './InteractionManager';
 import { particleFragmentShader, particleVertexShader, positionShader, velocityShader } from './shaders';
 
@@ -28,7 +28,7 @@ export class ParticleSimulation {
   constructor(
     private readonly renderer: THREE.WebGLRenderer,
     private readonly scene: THREE.Scene,
-    private readonly quality: ParticleQuality,
+    private readonly quality: ParticleQualityPreset,
     aspect: number,
     color: string,
   ) {
@@ -88,7 +88,7 @@ export class ParticleSimulation {
         uPositionTexture: { value: this.compute.getCurrentRenderTarget(this.positionVariable).texture },
         uVelocityTexture: { value: this.compute.getCurrentRenderTarget(this.velocityVariable).texture },
         uPointSize: { value: PARTICLE_CONFIG.particleSize },
-        uDpr: { value: Math.min(window.devicePixelRatio, quality.dprCap) },
+        uDpr: { value: Math.min(window.devicePixelRatio, quality.pixelRatioCap) },
         uColor: { value: new THREE.Color(color) },
         uOpacity: { value: PARTICLE_CONFIG.particleOpacity },
       },
@@ -143,7 +143,7 @@ export class ParticleSimulation {
   resize(aspect: number, dpr: number): void {
     this.getUniform(this.velocityVariable.material.uniforms, 'uAspect').value = aspect;
     this.getUniform(this.positionVariable.material.uniforms, 'uAspect').value = aspect;
-    this.getUniform(this.material.uniforms, 'uDpr').value = Math.min(dpr, this.quality.dprCap);
+    this.getUniform(this.material.uniforms, 'uDpr').value = Math.min(dpr, this.quality.pixelRatioCap);
   }
 
   setColor(color: string): void {

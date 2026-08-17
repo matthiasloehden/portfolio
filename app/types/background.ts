@@ -22,6 +22,8 @@ export interface BackgroundAnimationSettings {
 
 export type BackgroundQualityId = 'high' | 'medium' | 'low';
 
+export type BackgroundTheme = 'dark' | 'light';
+
 export const BACKGROUND_PERFORMANCE_MODES = ['auto', 'high', 'medium', 'low'] as const;
 
 export type BackgroundPerformanceMode = (typeof BACKGROUND_PERFORMANCE_MODES)[number];
@@ -34,6 +36,25 @@ export interface BackgroundPerformanceSettings {
 export interface BackgroundQualityPreset {
   id: BackgroundQualityId;
   slowFrameThreshold: number;
+  pixelRatioCap: number;
+}
+
+/** Resolution data every background renderer exposes to diagnostics. */
+export interface BackgroundRendererStats {
+  width: number;
+  height: number;
+  dpr: number;
+}
+
+/** Minimum renderer API shared by every background implementation. */
+export interface BackgroundRendererContract<Stats extends BackgroundRendererStats = BackgroundRendererStats> {
+  setTheme(theme: BackgroundTheme): void;
+  getPerformanceStats(): Stats;
+}
+
+export interface BackgroundPerformanceDescriptor {
+  name: string;
+  renderer: string;
 }
 
 export interface BackgroundPerformanceStats {
@@ -58,7 +79,7 @@ export interface BackgroundSceneProps {
   performance?: BackgroundPerformanceSettings;
 }
 
-export interface WaveGridSettings {
+export interface WaveSettings {
   gridWidth: number;
   gridDepth: number;
   gridSpacing: number;
@@ -68,15 +89,15 @@ export interface WaveGridSettings {
   pixelRatioCap: number;
 }
 
-export interface WaveGridBackgroundProps extends BackgroundSceneProps {
-  settings?: WaveGridSettings;
+export interface WaveBackgroundProps extends BackgroundSceneProps {
+  settings?: WaveSettings;
 }
 
 export interface BackgroundAdvancedSettings {
-  wave: WaveGridSettings;
+  wave: WaveSettings;
 }
 
-export type WaveGridSetting = keyof WaveGridSettings;
+export type WaveSetting = keyof WaveSettings;
 
 export interface NumericSettingControl<Key extends string = string> {
   key: Key;
@@ -88,9 +109,9 @@ export interface NumericSettingControl<Key extends string = string> {
 }
 
 /** Texture capacity used by the Wave Grid shader; trailLength is capped here. */
-export const WAVE_GRID_MAX_TRAIL_POINTS = 48;
+export const WAVE_MAX_TRAIL_POINTS = 48;
 
-export const WAVE_GRID_SETTING_CONTROLS = [
+export const WAVE_SETTING_CONTROLS = [
   {
     key: 'gridWidth',
     label: 'Grid width',
@@ -128,7 +149,7 @@ export const WAVE_GRID_SETTING_CONTROLS = [
     label: 'Trail points',
     description: 'Maximum simultaneous pointer and ripple points.',
     min: 8,
-    max: WAVE_GRID_MAX_TRAIL_POINTS,
+    max: WAVE_MAX_TRAIL_POINTS,
     step: 1,
   },
   {
@@ -147,9 +168,9 @@ export const WAVE_GRID_SETTING_CONTROLS = [
     max: 2,
     step: 0.25,
   },
-] as const satisfies readonly NumericSettingControl<WaveGridSetting>[];
+] as const satisfies readonly NumericSettingControl<WaveSetting>[];
 
-const WAVE_GRID_DEFAULTS: WaveGridSettings = {
+const WAVE_DEFAULTS: WaveSettings = {
   gridWidth: 34,
   gridDepth: 32,
   gridSpacing: 0.8,
@@ -192,24 +213,24 @@ export function createBackgroundAnimationSettings(
   };
 }
 
-export function createWaveGridSettings(settings: Partial<WaveGridSettings> = {}): WaveGridSettings {
+export function createWaveSettings(settings: Partial<WaveSettings> = {}): WaveSettings {
   const candidate = {
-    ...WAVE_GRID_DEFAULTS,
+    ...WAVE_DEFAULTS,
     ...settings,
   };
 
-  return WAVE_GRID_SETTING_CONTROLS.reduce<WaveGridSettings>((normalized, control) => {
+  return WAVE_SETTING_CONTROLS.reduce<WaveSettings>((normalized, control) => {
     normalized[control.key] = clampSettingValue(candidate[control.key], control);
     return normalized;
-  }, {} as WaveGridSettings);
+  }, {} as WaveSettings);
 }
 
-export function createDefaultWaveGridSettings(): WaveGridSettings {
-  return createWaveGridSettings();
+export function createDefaultWaveSettings(): WaveSettings {
+  return createWaveSettings();
 }
 
 export function createDefaultBackgroundAdvancedSettings(): BackgroundAdvancedSettings {
   return {
-    wave: createDefaultWaveGridSettings(),
+    wave: createDefaultWaveSettings(),
   };
 }

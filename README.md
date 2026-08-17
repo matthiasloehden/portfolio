@@ -10,11 +10,11 @@ Live site: [matthiasloehden.github.io/portfolio](https://matthiasloehden.github.
 
 | Area | What to inspect |
 | --- | --- |
-| background orchestration | [`app/components/layout/BackgroundOrchestrator.vue`](app/components/layout/BackgroundOrchestrator.vue) selects the ambient scene per route and passes independent animation channels to each scene, while [`app/composables/usePortfolioPreferences.ts`](app/composables/usePortfolioPreferences.ts) persists theme and display preferences. |
-| wave grid background | [`app/components/backgrounds/wave-grid/WaveGridBackground.vue`](app/components/backgrounds/wave-grid/WaveGridBackground.vue) renders a Three.js shader scene with pointer, touch, scroll, reduced-motion, and inactive-tab handling. |
-| triangle background | [`app/components/backgrounds/triangles/TriangleBackground.vue`](app/components/backgrounds/triangles/TriangleBackground.vue) uses lightweight CSS geometry and pointer sampling instead of a heavy animation runtime. |
-| particle background | [`app/components/backgrounds/particles/ParticleBackground.vue`](app/components/backgrounds/particles/ParticleBackground.vue) implements a responsive GPU-accelerated particle simulation that reacts to mouse movement and scrolling. |
-| mesh background | [`app/components/backgrounds/triangle-mesh/TriangleMeshBackground.vue`](app/components/backgrounds/triangle-mesh/TriangleMeshBackground.vue) renders a viewport-synchronized 2D canvas mesh with procedural vertex animation and pointer-aware deformation. |
+| background orchestration | [`app/components/layout/BackgroundOrchestrator.vue`](app/components/layout/BackgroundOrchestrator.vue) selects the active scene and provides smooth transitions between backgrounds. |
+| Wave Grid | [`app/components/backgrounds/waves/WaveRenderer.ts`](app/components/backgrounds/waves/WaveRenderer.ts) renders an interactive, GPU-accelerated line grid. |
+| Triangles | [`app/components/backgrounds/triangles/TriangleRenderer.ts`](app/components/backgrounds/triangles/TriangleRenderer.ts) renders an animated geometric Canvas2D background. |
+| Particles | [`app/components/backgrounds/particles/ParticleRenderer.ts`](app/components/backgrounds/particles/ParticleRenderer.ts) renders a GPU-accelerated particle field with cursor, click, and scroll interaction. |
+| Living Mesh | [`app/components/backgrounds/mesh/MeshRenderer.ts`](app/components/backgrounds/mesh/MeshRenderer.ts) renders an animated, pointer-reactive Canvas2D mesh. |
 | cooling loop diagram | [`app/components/personal/cooling/CoolingLoopPanel.vue`](app/components/personal/cooling/CoolingLoopPanel.vue) composes typed SVG components with procedural animation to visualize a custom liquid cooling system. |
 
 ## Stack
@@ -32,7 +32,7 @@ performance fallbacks, and automated quality gates.
 | Vite | Fast development server and build pipeline, including Tailwind's Vite integration. |
 | `vue-tsc` | Static quality management for Vue and TypeScript correctness. |
 | `oxlint`/`oxfmt` | Static quality management for linting and formatting. |
-| Playwright | Dynamic quality management for browser behavior |
+| Playwright | Dynamic quality management for browser behavior. |
 | GitHub Actions | CI/CD pipeline that automates type checking, linting, formatting validation, static generation, browser tests, and automatic deployment to GitHub Pages on successful builds. |
 
 ## My Open Source Contributions 

@@ -1,6 +1,22 @@
+/**
+ * Canvas2D renderer for the Living Mesh background.
+ *
+ * The renderer builds a moving triangular mesh in document coordinates and
+ * draws only the viewport plus a buffer. Its points keep deterministic motion
+ * parameters while pointer influence is cached separately, allowing the mesh to
+ * preserve its visual identity without updating off-screen geometry every frame.
+ * Theme, quality, scrolling and interaction enter through explicit methods.
+ *
+ * Internal point/triangle/edge shapes are defined first, then renderer state and
+ * the public lifecycle. Geometry creation, viewport synchronization, influence
+ * calculation and drawing helpers follow below. DOM events and scheduling stay
+ * in MeshBackground.
+ */
+import type { BackgroundRendererContract, BackgroundTheme } from '@/types/background';
+
 import { seededRandom, smoothstep } from '../shared/math';
-import { getTriangleMeshPalette, TRIANGLE_MESH_CONFIG, type TriangleMeshQualityPreset } from './config';
-import type { TriangleMeshPalette, TriangleMeshRendererStats, TriangleMeshRenderState } from './types';
+import { getMeshPalette, MESH_CONFIG, type MeshQualityPreset } from './config';
+import type { MeshPalette, MeshRendererStats, MeshRenderState } from './types';
 
 interface MeshPoint {
   baseX: number;
@@ -29,11 +45,10 @@ interface MeshEdge {
   tone: number;
 }
 
-/** Owns Canvas2D resources, mesh geometry and pointer-wake simulation. */
-export class TriangleMeshRenderer {
+export class MeshRenderer implements BackgroundRendererContract<MeshRendererStats> {
   private context: CanvasRenderingContext2D | null;
-  private quality: TriangleMeshQualityPreset;
-  private palette: TriangleMeshPalette;
+  private quality: MeshQualityPreset;
+  private palette: MeshPalette;
 
   private readonly points: MeshPoint[] = [];
   private readonly triangles: MeshTriangle[] = [];
@@ -61,21 +76,21 @@ export class TriangleMeshRenderer {
   private pointerY = 0;
   private pointerClientY = 0;
   private pointerStrength = 0;
-  private pointerRadius: number = TRIANGLE_MESH_CONFIG.pointerWakeMinRadius;
+  private pointerRadius: number = MESH_CONFIG.pointerWakeMinRadius;
   private pointerPresent = false;
   private lastPointerActivity = Number.NEGATIVE_INFINITY;
   private activityWasFresh = false;
   private releaseStartedAt = Number.NEGATIVE_INFINITY;
   private releaseStartStrength = 0;
-  private releaseStartRadius: number = TRIANGLE_MESH_CONFIG.pointerWakeMinRadius;
+  private releaseStartRadius: number = MESH_CONFIG.pointerWakeMinRadius;
 
   private constructor(
     private readonly canvas: HTMLCanvasElement,
-    quality: TriangleMeshQualityPreset,
-    theme: string | undefined,
+    quality: MeshQualityPreset,
+    theme: BackgroundTheme,
   ) {
     this.quality = quality;
-    this.palette = getTriangleMeshPalette(theme);
+    this.palette = getMeshPalette(theme);
     this.context = canvas.getContext('2d', {
       alpha: true,
       desynchronized: true,
@@ -84,15 +99,11 @@ export class TriangleMeshRenderer {
     if (!this.context) throw new Error('Canvas2D is unavailable');
   }
 
-  static create(
-    canvas: HTMLCanvasElement,
-    quality: TriangleMeshQualityPreset,
-    theme: string | undefined,
-  ): TriangleMeshRenderer {
-    return new TriangleMeshRenderer(canvas, quality, theme);
+  static create(canvas: HTMLCanvasElement, quality: MeshQualityPreset, theme: BackgroundTheme): MeshRenderer {
+    return new MeshRenderer(canvas, quality, theme);
   }
 
-  resize(quality: TriangleMeshQualityPreset = this.quality): void {
+  resize(quality: MeshQualityPreset = this.quality): void {
     const context = this.context;
 
     if (!context) return;
@@ -116,12 +127,12 @@ export class TriangleMeshRenderer {
     this.resetFrameTime();
   }
 
-  setQuality(quality: TriangleMeshQualityPreset): void {
+  setQuality(quality: MeshQualityPreset): void {
     this.resize(quality);
   }
 
-  setTheme(theme: string | undefined): void {
-    this.palette = getTriangleMeshPalette(theme);
+  setTheme(theme: BackgroundTheme): void {
+    this.palette = getMeshPalette(theme);
   }
 
   setPointer(clientX: number, clientY: number, now = performance.now()): void {
@@ -146,13 +157,13 @@ export class TriangleMeshRenderer {
 
   resetInteractions(): void {
     this.pointerStrength = 0;
-    this.pointerRadius = TRIANGLE_MESH_CONFIG.pointerWakeMinRadius;
+    this.pointerRadius = MESH_CONFIG.pointerWakeMinRadius;
     this.pointerPresent = false;
     this.lastPointerActivity = Number.NEGATIVE_INFINITY;
     this.activityWasFresh = false;
     this.releaseStartedAt = Number.NEGATIVE_INFINITY;
     this.releaseStartStrength = 0;
-    this.releaseStartRadius = TRIANGLE_MESH_CONFIG.pointerWakeMinRadius;
+    this.releaseStartRadius = MESH_CONFIG.pointerWakeMinRadius;
   }
 
   resetMotion(): void {
@@ -164,7 +175,7 @@ export class TriangleMeshRenderer {
     this.lastFrameTime = 0;
   }
 
-  render(now: number, state: TriangleMeshRenderState): boolean {
+  render(now: number, state: MeshRenderState): boolean {
     if (!this.context) return false;
 
     const delta = this.lastFrameTime === 0 ? 0 : Math.min((now - this.lastFrameTime) / 1_000, 0.05);
@@ -175,7 +186,7 @@ export class TriangleMeshRenderer {
 
     this.syncMeshWindow();
 
-    const activityIsFresh = state.active && now - this.lastPointerActivity < TRIANGLE_MESH_CONFIG.pointerActivityHold;
+    const activityIsFresh = state.active && now - this.lastPointerActivity < MESH_CONFIG.pointerActivityHold;
 
     this.updatePointerTransition(now, delta, state.active, activityIsFresh);
     this.updatePointPositions(state.motionAllowed);
@@ -184,7 +195,7 @@ export class TriangleMeshRenderer {
     return activityIsFresh || this.pointerStrength > 0.002;
   }
 
-  getPerformanceStats(): TriangleMeshRendererStats {
+  getPerformanceStats(): MeshRendererStats {
     return {
       width: Math.round(this.width * this.dpr),
       height: Math.round(this.height * this.dpr),
@@ -209,8 +220,8 @@ export class TriangleMeshRenderer {
   }
 
   private configureMeshGrid(): void {
-    const spacingConfig = TRIANGLE_MESH_CONFIG.spacing;
-    const breakpoints = TRIANGLE_MESH_CONFIG.viewportBreakpoints;
+    const spacingConfig = MESH_CONFIG.spacing;
+    const breakpoints = MESH_CONFIG.viewportBreakpoints;
     const baseSpacing =
       this.width < breakpoints.mobile
         ? spacingConfig.mobile
@@ -227,8 +238,10 @@ export class TriangleMeshRenderer {
   }
 
   private syncMeshWindow(force = false): void {
-    const config = TRIANGLE_MESH_CONFIG;
+    const config = MESH_CONFIG;
     const rowOriginY = -this.rowSpacing;
+    // Rows are exchanged outside the visible viewport. The configured buffer
+    // covers both pointer glow range and the maximum animated vertex drift.
     const visibleTop = this.scrollOffset - config.viewportBuffer;
     const visibleBottom = this.scrollOffset + this.height + config.viewportBuffer;
     const startRow = Math.max(0, Math.floor((visibleTop - rowOriginY) / this.rowSpacing) - 1);
@@ -257,6 +270,8 @@ export class TriangleMeshRenderer {
       const globalRow = startRow + localRow;
 
       for (let column = 0; column < this.columnCount; column += 1) {
+        // Use document-level indices rather than local array positions so a
+        // row keeps its geometry and motion phase after the window shifts.
         const seed = globalRow * 101 + column * 37 + 1;
         const offsetX = globalRow % 2 === 0 ? 0 : this.spacing * 0.5;
         const jitterX = (seededRandom(seed) - 0.5) * this.spacing * 0.26;
@@ -324,7 +339,7 @@ export class TriangleMeshRenderer {
   }
 
   private updatePointerTransition(now: number, delta: number, active: boolean, activityIsFresh: boolean): void {
-    const config = TRIANGLE_MESH_CONFIG;
+    const config = MESH_CONFIG;
 
     if (activityIsFresh) {
       const fadeIn = 1 - Math.exp(-delta * config.pointerWakeAttackRate);
@@ -333,6 +348,8 @@ export class TriangleMeshRenderer {
       this.pointerRadius += (config.pointerWakeRadius - this.pointerRadius) * fadeIn;
     } else {
       if (this.activityWasFresh) {
+        // Snapshot the current attack state once; subsequent frames interpolate
+        // from this point instead of restarting the release on every frame.
         this.releaseStartedAt = now;
         this.releaseStartStrength = this.pointerStrength;
         this.releaseStartRadius = this.pointerRadius;
@@ -387,6 +404,8 @@ export class TriangleMeshRenderer {
       return;
     }
 
+    // Edges and nodes reuse these values, avoiding repeated distance checks for
+    // every primitive sharing the same vertex.
     for (let index = 0; index < this.points.length; index += 1) {
       const point = this.points[index];
 
@@ -400,7 +419,7 @@ export class TriangleMeshRenderer {
   private getWakeInfluenceAt(x: number, y: number, radius: number): number {
     if (this.pointerStrength <= 0.001) return 0;
 
-    const config = TRIANGLE_MESH_CONFIG;
+    const config = MESH_CONFIG;
     const dynamicRadius = Math.max(
       config.pointerWakeMinRadius,
       radius * (this.pointerRadius / config.pointerWakeRadius),
@@ -422,7 +441,7 @@ export class TriangleMeshRenderer {
     const dx = x - this.pointerX;
     const dy = y - this.pointerY;
     const distanceSquared = dx * dx + dy * dy;
-    const radius = TRIANGLE_MESH_CONFIG.pointerCoreRadius;
+    const radius = MESH_CONFIG.pointerCoreRadius;
 
     if (distanceSquared >= radius * radius) return 0;
 
@@ -480,7 +499,7 @@ export class TriangleMeshRenderer {
 
     if (!active || !this.pointerPresent) return;
 
-    const radius = TRIANGLE_MESH_CONFIG.pointerCoreRadius;
+    const radius = MESH_CONFIG.pointerCoreRadius;
     const coreGlow = context.createRadialGradient(
       this.pointerX,
       pointerScreenY,
@@ -507,7 +526,7 @@ export class TriangleMeshRenderer {
 
     const minY = Math.min(a.y, b.y, c.y);
     const maxY = Math.max(a.y, b.y, c.y);
-    const margin = TRIANGLE_MESH_CONFIG.renderMargin;
+    const margin = MESH_CONFIG.renderMargin;
 
     if (maxY - this.scrollOffset < -margin || minY - this.scrollOffset > this.height + margin) return;
 

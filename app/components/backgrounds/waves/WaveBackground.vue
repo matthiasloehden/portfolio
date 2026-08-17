@@ -1,57 +1,65 @@
 <script setup lang="ts">
 /**
- * Interactive WebGL background with independent idle, cursor-movement,
- * cursor-click and scroll channels.
+ * Vue controller for the Wave Grid background.
  *
- * Vue owns browser input and lifecycle orchestration. WaveGridRenderer owns the
- * Three.js scene and GPU resources. Rendering pauses while inactive, hidden or
- * static, and WebGL failure falls back to CSS.
+ * This component translates pointer, touch, click and scroll events into a
+ * short-lived trail of wave points. It also owns reactive advanced settings,
+ * resize/context recovery, adaptive quality and the animation-frame lifecycle.
+ * WaveRenderer receives already-normalized settings and trail data and remains
+ * responsible only for the Three.js scene and GPU resources.
+ *
+ * The file is organized in execution order: state, trail creation, event
+ * handlers, render control, runtime setup/teardown and prop watchers. This keeps
+ * the interaction policy visible in one place while the shader implementation
+ * stays independent from Vue and browser listeners.
  */
 
-import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { onBeforeUnmount, onMounted, watch } from 'vue';
 
 import {
   createDefaultBackgroundAnimationSettings,
   createDefaultBackgroundPerformanceSettings,
-  createDefaultWaveGridSettings,
-  WAVE_GRID_MAX_TRAIL_POINTS,
+  createDefaultWaveSettings,
+  WAVE_MAX_TRAIL_POINTS,
   type BackgroundSceneEmits,
-  type WaveGridBackgroundProps,
-  type WaveGridSettings,
+  type BackgroundTheme,
+  type WaveBackgroundProps,
+  type WaveSettings,
 } from '@/types/background';
 
 import { BackgroundEnvironment } from '../shared/BackgroundEnvironment';
 import { BackgroundPerformanceRuntime } from '../shared/BackgroundPerformanceRuntime';
+import { BackgroundResizeController } from '../shared/BackgroundResizeController';
+import { useBackgroundCanvas } from '../shared/useBackgroundCanvas';
+import { useBackgroundPerformanceSettings } from '../shared/useBackgroundPerformanceSettings';
+import { WebGLContextLifecycle } from '../shared/WebGLContextLifecycle';
 import {
   CLICK_RIPPLE_LAYERS,
   DEFAULT_RIPPLE_LAYERS,
-  getWaveGridPalette,
   RIPPLE_LAYER_OFFSET,
   SCROLL_RIPPLE_THROTTLE,
   TOUCH_RIPPLE_THROTTLE,
-  WAVE_GRID_QUALITY_PRESETS,
+  WAVE_QUALITY_PRESETS,
 } from './config';
-import type { GridPosition, TrailPoint } from './types';
-import { WaveGridRenderer } from './WaveGridRenderer';
+import type { WavePosition, TrailPoint } from './types';
+import { WaveRenderer } from './WaveRenderer';
 
-const props = withDefaults(defineProps<WaveGridBackgroundProps>(), {
+const props = withDefaults(defineProps<WaveBackgroundProps>(), {
   active: true,
   animations: createDefaultBackgroundAnimationSettings,
   performance: createDefaultBackgroundPerformanceSettings,
-  settings: createDefaultWaveGridSettings,
+  settings: createDefaultWaveSettings,
 });
 const emit = defineEmits<BackgroundSceneEmits>();
 
-const canvas = ref<HTMLCanvasElement | null>(null);
-const failed = ref(false);
-const failureReason = ref<string | null>(null);
+const { canvas, failed, failureReason, clearFailure, setFailure } = useBackgroundCanvas();
 
-let runtime: WaveGridRenderer | null = null;
-let performanceRuntime: BackgroundPerformanceRuntime<(typeof WAVE_GRID_QUALITY_PRESETS)[number]> | null = null;
-let runtimeSettings: WaveGridSettings = props.settings;
+let runtime: WaveRenderer | null = null;
+let performanceRuntime: BackgroundPerformanceRuntime<(typeof WAVE_QUALITY_PRESETS)[number]> | null = null;
+let runtimeSettings: WaveSettings = props.settings;
 let environment: BackgroundEnvironment | null = null;
-let resizeObserver: ResizeObserver | null = null;
-let contextLost = false;
+let resizeController: BackgroundResizeController | null = null;
+let webglContext: WebGLContextLifecycle | null = null;
 
 const trail: TrailPoint[] = [];
 
@@ -59,7 +67,7 @@ let lastPoint: TrailPoint | null = null;
 let lastWheelEmission = 0;
 let lastTouchEmission = 0;
 let lastScrollOffset = 0;
-let lastPointerPosition: GridPosition | null = null;
+let lastPointerPosition: WavePosition | null = null;
 
 let lastTouchSample: {
   x: number;
@@ -67,15 +75,15 @@ let lastTouchSample: {
   time: number;
 } | null = null;
 
-function applyPalette(): void {
+function applyTheme(theme: BackgroundTheme): void {
   if (!runtime) return;
 
-  runtime.applyPalette(getWaveGridPalette(document.documentElement.dataset.theme));
+  runtime.setTheme(theme);
   runtime.render(performance.now(), trail, runtimeSettings);
 }
 
 function syncRuntimeSettings(): void {
-  const quality = performanceRuntime?.currentPreset ?? WAVE_GRID_QUALITY_PRESETS[0];
+  const quality = performanceRuntime?.currentPreset ?? WAVE_QUALITY_PRESETS[0];
 
   runtimeSettings = {
     ...props.settings,
@@ -85,7 +93,7 @@ function syncRuntimeSettings(): void {
   };
 }
 
-function addRipple(position: GridPosition, now: number, velocity: number, layers: number): void {
+function addRipple(position: WavePosition, now: number, velocity: number, layers: number): void {
   for (let layer = layers - 1; layer >= 0; layer -= 1) {
     trail.push({
       ...position,
@@ -127,7 +135,7 @@ function resetInteractions(): void {
 }
 
 function renderFrame(now: number): void {
-  if (!runtime || contextLost) return;
+  if (!runtime || webglContext?.lost) return;
 
   removeExpiredTrailPoints(now);
   runtime.render(now, trail, runtimeSettings);
@@ -135,7 +143,7 @@ function renderFrame(now: number): void {
   const qualityChange = performanceRuntime?.recordFrame(now);
 
   if (qualityChange) {
-    applyWaveGridSettings();
+    applyWaveSettings();
     updatePerformanceStats(now, true);
   }
 
@@ -153,7 +161,7 @@ function resize(): void {
   runtime.render(performance.now(), trail, runtimeSettings);
 }
 
-function applyWaveGridSettings(): void {
+function applyWaveSettings(): void {
   syncRuntimeSettings();
 
   if (!runtime) return;
@@ -164,7 +172,7 @@ function applyWaveGridSettings(): void {
   setAnimationState();
 }
 
-function updatePointerPosition(clientX: number, clientY: number): GridPosition | null {
+function updatePointerPosition(clientX: number, clientY: number): WavePosition | null {
   const position = runtime?.projectPointer(clientX, clientY, runtimeSettings) ?? null;
 
   if (position) {
@@ -220,7 +228,7 @@ function addPointerRipple(event: PointerEvent): void {
   setAnimationState();
 }
 
-function emitScrollRipple(position: GridPosition, distance: number, now: number): void {
+function emitScrollRipple(position: WavePosition, distance: number, now: number): void {
   if (now - lastWheelEmission < SCROLL_RIPPLE_THROTTLE) return;
 
   const velocity = Math.min(1, Math.max(0.72, distance / 65));
@@ -325,13 +333,14 @@ function setAnimationState(): void {
   if (!runtime) return;
 
   const now = performance.now();
-  const motionAllowed = environment?.documentVisible !== false && !environment?.prefersReducedMotion && !contextLost;
+  const motionAllowed =
+    environment?.documentVisible !== false && !environment?.prefersReducedMotion && !webglContext?.lost;
   const shouldAnimate = props.active && motionAllowed && (props.animations.idle || hasActiveTrail(now));
 
   runtime.setMotion(props.active && motionAllowed && props.animations.idle, props.active && motionAllowed);
   runtime.setAnimationLoop(shouldAnimate ? renderFrame : null);
 
-  if (!shouldAnimate && !contextLost) {
+  if (!shouldAnimate && !webglContext?.lost) {
     runtime.render(now, trail, runtimeSettings);
   }
 }
@@ -341,27 +350,20 @@ function updatePerformanceStats(now: number, force = false): void {
 
   const rendererStats = runtime.getPerformanceStats();
 
-  emit('performanceStats', {
-    name: 'Wave grid',
-    renderer: 'WebGL2 / lines',
-    mode: props.performance.mode,
-    preset: performanceRuntime.currentPreset.id,
-    fps: performanceRuntime.fps,
-    frameTime: performanceRuntime.averageFrameTime,
-    resolution: `${rendererStats.width} × ${rendererStats.height}`,
-    dpr: rendererStats.dpr,
-    details: {
+  emit(
+    'performanceStats',
+    performanceRuntime.createStats({ name: 'Wave Grid', renderer: 'WebGL2 / lines' }, rendererStats, {
       'Trail points': trail.length,
       'Vertex step': runtimeSettings.vertexStep.toFixed(2),
-    },
-  });
+    }),
+  );
 }
 
 function applyPerformanceMode(): void {
   if (!performanceRuntime) return;
 
   performanceRuntime.setMode(props.performance.mode);
-  applyWaveGridSettings();
+  applyWaveSettings();
   updatePerformanceStats(performance.now(), true);
 }
 
@@ -371,22 +373,15 @@ function initialize(): void {
   if (!element) return;
 
   try {
-    runtime = WaveGridRenderer.create(
-      element,
-      WAVE_GRID_MAX_TRAIL_POINTS,
-      runtimeSettings,
-      getWaveGridPalette(document.documentElement.dataset.theme),
-    );
+    runtime = WaveRenderer.create(element, WAVE_MAX_TRAIL_POINTS, runtimeSettings, environment?.theme ?? 'dark');
 
-    failed.value = false;
-    failureReason.value = null;
+    clearFailure();
 
     resize();
     setAnimationState();
     updatePerformanceStats(performance.now(), true);
   } catch (error: unknown) {
-    failed.value = true;
-    failureReason.value = error instanceof Error ? error.message : 'Initialization failed';
+    setFailure(error);
     cleanup(false);
   }
 }
@@ -401,18 +396,13 @@ function onMotionPreferenceChange(): void {
   setAnimationState();
 }
 
-function onContextLost(event: Event): void {
-  event.preventDefault();
-
-  contextLost = true;
-  failed.value = true;
-  failureReason.value = 'WebGL context lost';
+function onContextLost(): void {
+  setFailure('WebGL context lost');
 
   runtime?.setAnimationLoop(null);
 }
 
 function onContextRestored(): void {
-  contextLost = false;
   cleanup(false);
   initialize();
 }
@@ -440,14 +430,10 @@ watch(
   { flush: 'post' },
 );
 
-watch(() => props.performance.mode, applyPerformanceMode, { flush: 'post' });
-watch(
-  () => props.performance.showStats,
-  (showStats) => {
-    if (showStats) updatePerformanceStats(performance.now(), true);
-  },
-  { flush: 'post' },
-);
+useBackgroundPerformanceSettings(() => props.performance, {
+  onModeChange: applyPerformanceMode,
+  onStatsRequested: () => updatePerformanceStats(performance.now(), true),
+});
 
 watch(
   () => [
@@ -459,24 +445,20 @@ watch(
     props.settings.trailLifetime,
     props.settings.pixelRatioCap,
   ],
-  applyWaveGridSettings,
+  applyWaveSettings,
   { flush: 'post' },
 );
 
 onMounted(() => {
-  performanceRuntime = new BackgroundPerformanceRuntime(WAVE_GRID_QUALITY_PRESETS, props.performance.mode);
+  performanceRuntime = new BackgroundPerformanceRuntime(WAVE_QUALITY_PRESETS, props.performance.mode);
   syncRuntimeSettings();
 
   environment = new BackgroundEnvironment({
     onMotionPreferenceChange,
-    onThemeChange: applyPalette,
+    onThemeChange: applyTheme,
     onVisibilityChange: setAnimationState,
   });
-  resizeObserver = new ResizeObserver(resize);
-
-  if (canvas.value) {
-    resizeObserver.observe(canvas.value);
-  }
+  resizeController = new BackgroundResizeController(resize, [canvas.value]);
 
   window.addEventListener('pointermove', handlePointerMove, { passive: true });
   window.addEventListener('pointerdown', addPointerRipple, { passive: true });
@@ -488,8 +470,12 @@ onMounted(() => {
   window.addEventListener('touchcancel', endTouchRipple, { passive: true });
   lastScrollOffset = window.scrollY;
 
-  canvas.value?.addEventListener('webglcontextlost', onContextLost);
-  canvas.value?.addEventListener('webglcontextrestored', onContextRestored);
+  if (canvas.value) {
+    webglContext = new WebGLContextLifecycle(canvas.value, {
+      onLost: onContextLost,
+      onRestored: onContextRestored,
+    });
+  }
 
   initialize();
 });
@@ -503,10 +489,10 @@ onBeforeUnmount(() => {
   window.removeEventListener('touchmove', addTouchRipple);
   window.removeEventListener('touchend', endTouchRipple);
   window.removeEventListener('touchcancel', endTouchRipple);
-  canvas.value?.removeEventListener('webglcontextlost', onContextLost);
-  canvas.value?.removeEventListener('webglcontextrestored', onContextRestored);
-
-  resizeObserver?.disconnect();
+  webglContext?.dispose();
+  webglContext = null;
+  resizeController?.dispose();
+  resizeController = null;
   environment?.dispose();
   environment = null;
   resetInteractions();
@@ -517,7 +503,7 @@ onBeforeUnmount(() => {
 
 <template>
   <div
-    class="wave-grid-background"
+    class="wave-background"
     :class="{ 'is-fallback': failed }"
     :data-wave-error="failed ? (failureReason ?? 'Unknown WebGL failure') : undefined"
     aria-hidden="true"
@@ -527,7 +513,7 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
-.wave-grid-background {
+.wave-background {
   position: fixed;
   z-index: -1;
   inset: 0;
@@ -544,7 +530,7 @@ onBeforeUnmount(() => {
   pointer-events: none;
 }
 
-.wave-grid-background::before {
+.wave-background::before {
   position: absolute;
   z-index: 1;
   inset: 0;
@@ -589,13 +575,13 @@ canvas {
 }
 
 @media (max-width: 720px) {
-  .wave-grid-background {
+  .wave-background {
     opacity: 0.82;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .wave-grid-background {
+  .wave-background {
     opacity: 0.72;
   }
 }

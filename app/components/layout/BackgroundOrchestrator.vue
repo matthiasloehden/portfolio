@@ -14,9 +14,9 @@ import type {
 } from '@/types/background';
 import { resolveBackground } from '@/config/backgrounds';
 import ParticleBackground from '@/components/backgrounds/particles/ParticleBackground.vue';
-import TriangleMeshBackground from '@/components/backgrounds/triangle-mesh/TriangleMeshBackground.vue';
+import MeshBackground from '@/components/backgrounds/mesh/MeshBackground.vue';
 import TriangleBackground from '@/components/backgrounds/triangles/TriangleBackground.vue';
-import WaveGridBackground from '@/components/backgrounds/wave-grid/WaveGridBackground.vue';
+import WaveBackground from '@/components/backgrounds/waves/WaveBackground.vue';
 import PerformanceStatsOverlay from '@/components/backgrounds/shared/PerformanceStatsOverlay.vue';
 
 const props = defineProps<{
@@ -47,7 +47,7 @@ watch(selectedBackground, () => {
 </script>
 
 <template>
-  <WaveGridBackground
+  <WaveBackground
     class="background-scene"
     :class="{ 'background-scene-active': isSceneActive('wave') }"
     :active="isSceneActive('wave')"
@@ -75,7 +75,7 @@ watch(selectedBackground, () => {
     @performance-stats="setPerformanceStats('particles', $event)"
   />
 
-  <TriangleMeshBackground
+  <MeshBackground
     class="background-scene"
     :class="{ 'background-scene-active': isSceneActive('mesh') }"
     :active="isSceneActive('mesh')"

@@ -1,4 +1,19 @@
-import type { BackgroundPerformanceMode, BackgroundQualityPreset } from '@/types/background';
+/**
+ * Coordinates quality selection and diagnostics for one background scene.
+ *
+ * The runtime wraps AdaptivePerformanceManager with the behavior shared by the
+ * Vue controllers: mode changes, preset lookup, frame sampling and throttled
+ * overlay updates. Renderers still apply their own preset values and report
+ * scene-specific resource statistics. This keeps performance policy consistent
+ * without forcing unrelated Canvas2D and WebGL renderers into one base class.
+ */
+import type {
+  BackgroundPerformanceDescriptor,
+  BackgroundPerformanceMode,
+  BackgroundPerformanceStats,
+  BackgroundQualityPreset,
+  BackgroundRendererStats,
+} from '@/types/background';
 
 import {
   AdaptivePerformanceManager,
@@ -10,21 +25,18 @@ export interface BackgroundPerformanceRuntimeOptions extends AdaptivePerformance
   statsUpdateInterval?: number;
 }
 
-/**
- * Shared per-scene performance lifecycle. Renderers remain responsible for
- * applying their own presets, while this runtime owns device selection,
- * adaptive measurements, mode changes and diagnostics throttling.
- */
 export class BackgroundPerformanceRuntime<Preset extends BackgroundQualityPreset> {
   private readonly manager: AdaptivePerformanceManager<Preset>;
   private readonly statsUpdateInterval: number;
   private lastStatsUpdate = Number.NEGATIVE_INFINITY;
+  private selectedMode: BackgroundPerformanceMode;
 
   constructor(
     presets: readonly Preset[],
     mode: BackgroundPerformanceMode,
     options: BackgroundPerformanceRuntimeOptions = {},
   ) {
+    this.selectedMode = mode;
     this.manager = new AdaptivePerformanceManager(presets, mode, chooseInitialBackgroundQuality(), options);
     this.statsUpdateInterval = options.statsUpdateInterval ?? 250;
   }
@@ -41,11 +53,16 @@ export class BackgroundPerformanceRuntime<Preset extends BackgroundQualityPreset
     return this.manager.fps;
   }
 
+  get mode(): BackgroundPerformanceMode {
+    return this.selectedMode;
+  }
+
   recordFrame(now: number): Preset | null {
     return this.manager.recordFrame(now);
   }
 
   setMode(mode: BackgroundPerformanceMode): Preset {
+    this.selectedMode = mode;
     this.lastStatsUpdate = Number.NEGATIVE_INFINITY;
     return this.manager.setMode(mode, chooseInitialBackgroundQuality());
   }
@@ -60,5 +77,22 @@ export class BackgroundPerformanceRuntime<Preset extends BackgroundQualityPreset
 
     this.lastStatsUpdate = now;
     return true;
+  }
+
+  createStats(
+    descriptor: BackgroundPerformanceDescriptor,
+    renderer: BackgroundRendererStats,
+    details?: BackgroundPerformanceStats['details'],
+  ): BackgroundPerformanceStats {
+    return {
+      ...descriptor,
+      mode: this.mode,
+      preset: this.currentPreset.id,
+      fps: this.fps,
+      frameTime: this.averageFrameTime,
+      resolution: `${renderer.width} × ${renderer.height}`,
+      dpr: renderer.dpr,
+      details,
+    };
   }
 }

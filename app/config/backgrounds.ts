@@ -2,10 +2,10 @@ import type { BackgroundId, BackgroundPreference } from '@/types/background';
 
 export const BACKGROUND_OPTIONS = [
   { value: 'auto', label: 'Automatic per page' },
-  { value: 'wave', label: 'Wave grid' },
+  { value: 'wave', label: 'Wave Grid' },
   { value: 'particles', label: 'Particles' },
   { value: 'triangles', label: 'Triangles' },
-  { value: 'mesh', label: 'Living mesh' },
+  { value: 'mesh', label: 'Living Mesh' },
   { value: 'none', label: 'None' },
 ] as const satisfies readonly { value: BackgroundPreference; label: string }[];
 
