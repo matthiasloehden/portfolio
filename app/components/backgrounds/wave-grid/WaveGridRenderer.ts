@@ -4,7 +4,7 @@ import type { WaveGridSettings } from '@/types/background';
 
 import { createWaveGridGeometry } from './geometry';
 import { createWaveGridVertexShader, waveGridFragmentShader } from './shaders';
-import type { GridPosition, TrailPoint, WaveGridPalette } from './types';
+import type { GridPosition, TrailPoint, WaveGridPalette, WaveGridRendererStats } from './types';
 
 /**
  * Owns all Three.js resources used by the Wave Grid scene.
@@ -25,6 +25,7 @@ export class WaveGridRenderer {
   private readonly pointer = new THREE.Vector2();
   private readonly groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
   private readonly intersection = new THREE.Vector3();
+  private readonly drawingBufferSize = new THREE.Vector2();
 
   private constructor(
     private readonly canvas: HTMLCanvasElement,
@@ -197,10 +198,7 @@ export class WaveGridRenderer {
       return null;
     }
 
-    this.pointer.set(
-      ((clientX - rect.left) / rect.width) * 2 - 1,
-      -(((clientY - rect.top) / rect.height) * 2 - 1),
-    );
+    this.pointer.set(((clientX - rect.left) / rect.width) * 2 - 1, -(((clientY - rect.top) / rect.height) * 2 - 1));
     this.raycaster.setFromCamera(this.pointer, this.camera);
 
     if (!this.raycaster.ray.intersectPlane(this.groundPlane, this.intersection)) {
@@ -210,6 +208,20 @@ export class WaveGridRenderer {
     return {
       x: THREE.MathUtils.clamp(this.intersection.x, -settings.gridWidth / 2, settings.gridWidth / 2),
       z: THREE.MathUtils.clamp(this.intersection.z, -settings.gridDepth / 2, settings.gridDepth / 2),
+    };
+  }
+
+  getPerformanceStats(): WaveGridRendererStats {
+    if (!this.renderer) {
+      return { width: 0, height: 0, dpr: 1 };
+    }
+
+    this.renderer.getDrawingBufferSize(this.drawingBufferSize);
+
+    return {
+      width: Math.round(this.drawingBufferSize.x),
+      height: Math.round(this.drawingBufferSize.y),
+      dpr: this.renderer.getPixelRatio(),
     };
   }
 
@@ -254,9 +266,7 @@ export class WaveGridRenderer {
       const offset = targetIndex * 4;
 
       this.trailData[offset] = Math.round(THREE.MathUtils.clamp(point.x / settings.gridWidth + 0.5, 0, 1) * 255);
-      this.trailData[offset + 1] = Math.round(
-        THREE.MathUtils.clamp(point.z / settings.gridDepth + 0.5, 0, 1) * 255,
-      );
+      this.trailData[offset + 1] = Math.round(THREE.MathUtils.clamp(point.z / settings.gridDepth + 0.5, 0, 1) * 255);
       this.trailData[offset + 2] = Math.round(
         THREE.MathUtils.clamp((now - point.createdAt) / settings.trailLifetime, 0, 1) * 255,
       );

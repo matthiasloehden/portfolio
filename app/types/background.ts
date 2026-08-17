@@ -5,7 +5,11 @@
  * validated configuration without widening every component's API.
  */
 
-export type BackgroundPreference = 'auto' | 'wave' | 'particles' | 'triangles' | 'mesh' | 'none';
+export const BACKGROUND_IDS = ['wave', 'particles', 'triangles', 'mesh'] as const;
+
+export type BackgroundId = (typeof BACKGROUND_IDS)[number];
+
+export type BackgroundPreference = 'auto' | BackgroundId | 'none';
 
 export type BackgroundAnimation = 'idle' | 'cursorMovement' | 'cursorClick' | 'scroll';
 
@@ -13,14 +17,45 @@ export interface BackgroundAnimationSettings {
   idle: boolean;
   cursorMovement: boolean;
   cursorClick: boolean;
-  /** Combined cursor state for scenes that have not split their input yet. */
-  cursor: boolean;
   scroll: boolean;
 }
+
+export type BackgroundQualityId = 'high' | 'medium' | 'low';
+
+export const BACKGROUND_PERFORMANCE_MODES = ['auto', 'high', 'medium', 'low'] as const;
+
+export type BackgroundPerformanceMode = (typeof BACKGROUND_PERFORMANCE_MODES)[number];
+
+export interface BackgroundPerformanceSettings {
+  mode: BackgroundPerformanceMode;
+  showStats: boolean;
+}
+
+export interface BackgroundQualityPreset {
+  id: BackgroundQualityId;
+  slowFrameThreshold: number;
+}
+
+export interface BackgroundPerformanceStats {
+  name: string;
+  renderer: string;
+  mode: BackgroundPerformanceMode;
+  preset: BackgroundQualityId;
+  fps: number;
+  frameTime: number;
+  resolution: string;
+  dpr: number;
+  details?: Readonly<Record<string, string | number>>;
+}
+
+export type BackgroundSceneEmits = {
+  performanceStats: [stats: BackgroundPerformanceStats];
+};
 
 export interface BackgroundSceneProps {
   active?: boolean;
   animations?: BackgroundAnimationSettings;
+  performance?: BackgroundPerformanceSettings;
 }
 
 export interface WaveGridSettings {
@@ -136,8 +171,15 @@ export function createDefaultBackgroundAnimationSettings(): BackgroundAnimationS
   return createBackgroundAnimationSettings();
 }
 
+export function createDefaultBackgroundPerformanceSettings(): BackgroundPerformanceSettings {
+  return {
+    mode: 'auto',
+    showStats: false,
+  };
+}
+
 export function createBackgroundAnimationSettings(
-  settings: Partial<Omit<BackgroundAnimationSettings, 'cursor'>> = {},
+  settings: Partial<BackgroundAnimationSettings> = {},
 ): BackgroundAnimationSettings {
   const cursorMovement = settings.cursorMovement ?? true;
   const cursorClick = settings.cursorClick ?? true;
@@ -146,8 +188,6 @@ export function createBackgroundAnimationSettings(
     idle: settings.idle ?? true,
     cursorMovement,
     cursorClick,
-    // Existing scenes use this aggregate until their interaction handling is split.
-    cursor: cursorMovement || cursorClick,
     scroll: settings.scroll ?? true,
   };
 }

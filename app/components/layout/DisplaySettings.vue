@@ -5,21 +5,26 @@
 <script setup lang="ts">
 import type {
   BackgroundAnimation,
+  BackgroundPerformanceMode,
   BackgroundPreference,
   ThemePreference,
   WaveGridSetting,
 } from '@/composables/usePortfolioPreferences';
 import { WAVE_GRID_SETTING_CONTROLS } from '@/types/background';
+import { BACKGROUND_OPTIONS, resolveBackground } from '@/config/backgrounds';
 
 const {
   themePreference,
   backgroundPreference,
   backgroundAnimations,
   backgroundAdvancedSettings,
+  backgroundPerformance,
   setThemePreference,
   setBackgroundPreference,
   setBackgroundAnimationEnabled,
   setWaveGridSetting,
+  setBackgroundPerformanceMode,
+  setBackgroundPerformanceStatsEnabled,
   restoreDefaultSettings,
 } = usePortfolioPreferences();
 
@@ -32,31 +37,16 @@ const themeOptions: { value: ThemePreference; label: string }[] = [
   { value: 'light', label: 'Light' },
 ];
 
-const backgroundOptions: { value: BackgroundPreference; label: string }[] = [
-  { value: 'auto', label: 'Automatic per page' },
-  { value: 'wave', label: 'Wave grid' },
-  { value: 'particles', label: 'Particles' },
-  { value: 'triangles', label: 'Triangles' },
-  { value: 'mesh', label: 'Living mesh' },
-  { value: 'none', label: 'None' },
+const performanceOptions: { value: BackgroundPerformanceMode; label: string }[] = [
+  { value: 'auto', label: 'Auto' },
+  { value: 'high', label: 'High' },
+  { value: 'medium', label: 'Medium' },
+  { value: 'low', label: 'Low' },
 ];
 
 const route = useRoute();
 
-const automaticBackgrounds: Record<string, BackgroundPreference> = {
-  '/': 'wave',
-  '/work': 'triangles',
-  '/academic': 'particles',
-  '/personal': 'mesh',
-};
-
-const normalizedPath = computed(() => route.path.replace(/\/+$/, '') || '/');
-
-const activeBackground = computed<BackgroundPreference>(() =>
-  backgroundPreference.value === 'auto'
-    ? (automaticBackgrounds[normalizedPath.value] ?? 'none')
-    : backgroundPreference.value,
-);
+const activeBackground = computed(() => resolveBackground(route.path, backgroundPreference.value));
 
 function onThemeChange(event: Event): void {
   setThemePreference((event.target as HTMLSelectElement).value as ThemePreference);
@@ -68,6 +58,14 @@ function onBackgroundChange(event: Event): void {
 
 function onAnimationChange(animation: BackgroundAnimation, event: Event): void {
   setBackgroundAnimationEnabled(animation, (event.target as HTMLInputElement).checked);
+}
+
+function onPerformanceModeChange(event: Event): void {
+  setBackgroundPerformanceMode((event.target as HTMLSelectElement).value as BackgroundPerformanceMode);
+}
+
+function onPerformanceStatsChange(event: Event): void {
+  setBackgroundPerformanceStatsEnabled((event.target as HTMLInputElement).checked);
 }
 
 function onWaveGridSettingChange(setting: WaveGridSetting, event: Event): void {
@@ -165,13 +163,47 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onDocumentPoin
           @change="onBackgroundChange"
         >
           <option
-            v-for="option in backgroundOptions"
+            v-for="option in BACKGROUND_OPTIONS"
             :key="option.value"
             :value="option.value"
           >
             {{ option.label }}
           </option>
         </select>
+      </label>
+
+      <label class="settings-field mt-3">
+        <span>
+          Performance
+          <small>Auto lowers scene quality if rendering remains slow.</small>
+        </span>
+        <select
+          :value="backgroundPerformance.mode"
+          :disabled="backgroundPreference === 'none'"
+          @change="onPerformanceModeChange"
+        >
+          <option
+            v-for="option in performanceOptions"
+            :key="option.value"
+            :value="option.value"
+          >
+            {{ option.label }}
+          </option>
+        </select>
+      </label>
+
+      <label class="settings-toggle mt-3">
+        <span class="grid gap-1">
+          <strong>Performance stats</strong>
+          <small>Show diagnostics for the active background.</small>
+        </span>
+        <input
+          class="motion-toggle"
+          type="checkbox"
+          :checked="backgroundPerformance.showStats"
+          :disabled="backgroundPreference === 'none'"
+          @change="onPerformanceStatsChange"
+        />
       </label>
 
       <fieldset class="mt-4 grid gap-3 border-t border-line pt-4">

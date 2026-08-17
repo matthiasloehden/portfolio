@@ -5,13 +5,18 @@
  */
 
 import {
+  BACKGROUND_PERFORMANCE_MODES,
+  BACKGROUND_IDS,
   createBackgroundAnimationSettings,
   createDefaultBackgroundAdvancedSettings,
   createDefaultBackgroundAnimationSettings,
+  createDefaultBackgroundPerformanceSettings,
   createWaveGridSettings,
   type BackgroundAnimation,
   type BackgroundAdvancedSettings,
   type BackgroundAnimationSettings,
+  type BackgroundPerformanceMode,
+  type BackgroundPerformanceSettings,
   type BackgroundPreference,
   type WaveGridSetting,
   type WaveGridSettings,
@@ -21,6 +26,8 @@ export type {
   BackgroundAnimation,
   BackgroundAdvancedSettings,
   BackgroundAnimationSettings,
+  BackgroundPerformanceMode,
+  BackgroundPerformanceSettings,
   BackgroundPreference,
   WaveGridSetting,
   WaveGridSettings,
@@ -32,18 +39,12 @@ const THEME_STORAGE_KEY = 'portfolio-theme';
 const BACKGROUND_STORAGE_KEY = 'portfolio-background';
 const BACKGROUND_ANIMATIONS_STORAGE_KEY = 'portfolio-background-animations';
 const BACKGROUND_ADVANCED_SETTINGS_STORAGE_KEY = 'portfolio-background-advanced-settings';
+const BACKGROUND_PERFORMANCE_STORAGE_KEY = 'portfolio-background-performance';
 const LEGACY_BACKGROUND_MOTION_STORAGE_KEY = 'portfolio-background-motion';
 
 const themePreferences: readonly ThemePreference[] = ['system', 'light', 'dark'];
 
-const backgroundPreferences: readonly BackgroundPreference[] = [
-  'auto',
-  'wave',
-  'particles',
-  'triangles',
-  'mesh',
-  'none',
-];
+const backgroundPreferences: readonly BackgroundPreference[] = ['auto', ...BACKGROUND_IDS, 'none'];
 
 let colorSchemeQuery: MediaQueryList | null = null;
 let initialized = false;
@@ -66,6 +67,18 @@ function isBackgroundAnimationSettings(value: unknown): value is BackgroundAnima
     typeof settings.cursorMovement === 'boolean' &&
     typeof settings.cursorClick === 'boolean' &&
     typeof settings.scroll === 'boolean'
+  );
+}
+
+function isBackgroundPerformanceSettings(value: unknown): value is BackgroundPerformanceSettings {
+  if (typeof value !== 'object' || value === null) return false;
+
+  const settings = value as Record<string, unknown>;
+
+  return (
+    typeof settings.mode === 'string' &&
+    BACKGROUND_PERFORMANCE_MODES.includes(settings.mode as BackgroundPerformanceMode) &&
+    typeof settings.showStats === 'boolean'
   );
 }
 
@@ -184,6 +197,22 @@ function readBackgroundAdvancedSettings(): BackgroundAdvancedSettings {
   return createDefaultBackgroundAdvancedSettings();
 }
 
+function readBackgroundPerformanceSettings(): BackgroundPerformanceSettings {
+  const storedSettings = readStorage(BACKGROUND_PERFORMANCE_STORAGE_KEY);
+
+  if (storedSettings === null) return createDefaultBackgroundPerformanceSettings();
+
+  try {
+    const parsedSettings: unknown = JSON.parse(storedSettings);
+
+    if (isBackgroundPerformanceSettings(parsedSettings)) return parsedSettings;
+  } catch {
+    // Invalid stored data falls back to the defaults below.
+  }
+
+  return createDefaultBackgroundPerformanceSettings();
+}
+
 export function usePortfolioPreferences() {
   const themePreference = useState<ThemePreference>('portfolio-theme-preference', () => 'system');
 
@@ -197,6 +226,11 @@ export function usePortfolioPreferences() {
   const backgroundAdvancedSettings = useState<BackgroundAdvancedSettings>(
     'portfolio-background-advanced-settings',
     createDefaultBackgroundAdvancedSettings,
+  );
+
+  const backgroundPerformance = useState<BackgroundPerformanceSettings>(
+    'portfolio-background-performance',
+    createDefaultBackgroundPerformanceSettings,
   );
 
   function applyTheme(): void {
@@ -266,11 +300,34 @@ export function usePortfolioPreferences() {
     writeStorage(BACKGROUND_ADVANCED_SETTINGS_STORAGE_KEY, JSON.stringify(backgroundAdvancedSettings.value));
   }
 
+  function setBackgroundPerformanceMode(mode: BackgroundPerformanceMode): void {
+    backgroundPerformance.value = {
+      ...backgroundPerformance.value,
+      mode,
+    };
+
+    if (!import.meta.client) return;
+
+    writeStorage(BACKGROUND_PERFORMANCE_STORAGE_KEY, JSON.stringify(backgroundPerformance.value));
+  }
+
+  function setBackgroundPerformanceStatsEnabled(showStats: boolean): void {
+    backgroundPerformance.value = {
+      ...backgroundPerformance.value,
+      showStats,
+    };
+
+    if (!import.meta.client) return;
+
+    writeStorage(BACKGROUND_PERFORMANCE_STORAGE_KEY, JSON.stringify(backgroundPerformance.value));
+  }
+
   function restoreDefaultSettings(): void {
     themePreference.value = 'system';
     backgroundPreference.value = 'auto';
     backgroundAnimations.value = createDefaultBackgroundAnimationSettings();
     backgroundAdvancedSettings.value = createDefaultBackgroundAdvancedSettings();
+    backgroundPerformance.value = createDefaultBackgroundPerformanceSettings();
 
     applyTheme();
     applyBackgroundAnimationState();
@@ -281,6 +338,7 @@ export function usePortfolioPreferences() {
     removeStorage(BACKGROUND_STORAGE_KEY);
     removeStorage(BACKGROUND_ANIMATIONS_STORAGE_KEY);
     removeStorage(BACKGROUND_ADVANCED_SETTINGS_STORAGE_KEY);
+    removeStorage(BACKGROUND_PERFORMANCE_STORAGE_KEY);
     removeStorage(LEGACY_BACKGROUND_MOTION_STORAGE_KEY);
   }
 
@@ -304,6 +362,7 @@ export function usePortfolioPreferences() {
 
     backgroundAnimations.value = readBackgroundAnimationSettings();
     backgroundAdvancedSettings.value = readBackgroundAdvancedSettings();
+    backgroundPerformance.value = readBackgroundPerformanceSettings();
 
     applyTheme();
     applyBackgroundAnimationState();
@@ -327,10 +386,13 @@ export function usePortfolioPreferences() {
     backgroundPreference,
     backgroundAnimations,
     backgroundAdvancedSettings,
+    backgroundPerformance,
     setThemePreference,
     setBackgroundPreference,
     setBackgroundAnimationEnabled,
     setWaveGridSetting,
+    setBackgroundPerformanceMode,
+    setBackgroundPerformanceStatsEnabled,
     restoreDefaultSettings,
     initializePreferences,
     disposePreferences,

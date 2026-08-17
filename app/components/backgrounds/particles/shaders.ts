@@ -10,6 +10,8 @@ export const velocityShader = /* glsl */ `
   uniform float uInteractionMaxVelocity;
   uniform float uPointerRadius;
   uniform float uPointerRepulsion;
+  uniform float uClickAttraction;
+  uniform float uClickInfluence;
   uniform float uPointerVelocityTransfer;
   uniform float uPointerVortexStrength;
   uniform float uPointerInfluence;
@@ -107,7 +109,7 @@ export const velocityShader = /* glsl */ `
     float seed = positionData.w;
     float dt = min(uDelta, 0.033);
 
-    float pointerActivity = clamp(uPointerInfluence, 0.0, 1.0);
+    float pointerActivity = clamp(max(uPointerInfluence, uClickInfluence), 0.0, 1.0);
     float scrollActivity = smoothstep(0.03, 0.55, abs(uScrollVelocity));
     float idleInfluence = 1.0 - max(pointerActivity, scrollActivity);
     float ambientMix = mix(1.0, 0.38, idleInfluence);
@@ -125,7 +127,15 @@ export const velocityShader = /* glsl */ `
       * radialFalloff
       * uPointerRepulsion
       * uPointerInfluence
+      * (1.0 - uClickInfluence * 0.85)
       * (0.16 + min(pointerSpeed, 2.5) * 0.2);
+
+    // Clicks pull nearby particles toward the pointer independently from the
+    // repelling cursor-movement channel.
+    acceleration -= radialDirection
+      * radialFalloff
+      * uClickAttraction
+      * uClickInfluence;
 
     if (pointerSpeed > 0.001) {
       vec2 pointerDirection = uPointerVelocity / pointerSpeed;

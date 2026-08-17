@@ -5,7 +5,18 @@
  * controllable while cached geometry keeps static rendering inexpensive.
  */
 
-import { createDefaultBackgroundAnimationSettings, type BackgroundSceneProps } from '@/types/background';
+import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
+
+import {
+  createDefaultBackgroundAnimationSettings,
+  createDefaultBackgroundPerformanceSettings,
+  type BackgroundSceneEmits,
+  type BackgroundSceneProps,
+} from '@/types/background';
+
+import { BackgroundEnvironment } from '../shared/BackgroundEnvironment';
+import { BackgroundPerformanceRuntime } from '../shared/BackgroundPerformanceRuntime';
+import { TRIANGLE_MESH_QUALITY_PRESETS } from './config';
 
 interface MeshPoint {
   baseX: number;
@@ -45,7 +56,9 @@ interface MeshPalette {
 const props = withDefaults(defineProps<BackgroundSceneProps>(), {
   active: true,
   animations: createDefaultBackgroundAnimationSettings,
+  performance: createDefaultBackgroundPerformanceSettings,
 });
+const emit = defineEmits<BackgroundSceneEmits>();
 
 const canvas = ref<HTMLCanvasElement | null>(null);
 
@@ -102,8 +115,6 @@ const RENDER_MARGIN = 180;
  * und reduziert die Anzahl der zu zeichnenden Pixel deutlich
  * gegenüber einem unlimitierten devicePixelRatio.
  */
-const MAX_DPR = 1.5;
-
 /* -------------------------------------------------------------------------- */
 /* Canvas / Runtime State                                                     */
 /* -------------------------------------------------------------------------- */
@@ -111,7 +122,8 @@ const MAX_DPR = 1.5;
 let context: CanvasRenderingContext2D | null = null;
 let animationFrame: number | null = null;
 let resizeObserver: ResizeObserver | null = null;
-let reducedMotion: MediaQueryList | null = null;
+let environment: BackgroundEnvironment | null = null;
+let performanceRuntime: BackgroundPerformanceRuntime<(typeof TRIANGLE_MESH_QUALITY_PRESETS)[number]> | null = null;
 
 let isDocumentVisible = true;
 
@@ -269,7 +281,9 @@ function buildMesh(): void {
   pointWakeInfluence.length = 0;
   pointCoreInfluence.length = 0;
 
-  const spacing = width < 640 ? 112 : width < 1_000 ? 128 : 148;
+  const baseSpacing = width < 640 ? 112 : width < 1_000 ? 128 : 148;
+
+  const spacing = baseSpacing * (performanceRuntime?.currentPreset.spacingScale ?? 1);
 
   const rowSpacing = spacing * 0.79;
 
@@ -352,7 +366,7 @@ function buildMesh(): void {
 /* -------------------------------------------------------------------------- */
 
 function updatePointPositions(time: number): void {
-  const motion = props.active && !reducedMotion?.matches ? 1 : 0;
+  const motion = props.active && !environment?.prefersReducedMotion ? 1 : 0;
 
   /*
    * Wenn keine Animation aktiv ist, müssen wir die
@@ -810,7 +824,7 @@ function render(now: number): void {
 
   lastFrameTime = now;
 
-  const motionEnabled = props.active && props.animations.idle && !reducedMotion?.matches;
+  const motionEnabled = props.active && props.animations.idle && !environment?.prefersReducedMotion;
 
   if (motionEnabled) {
     elapsedTime += delta;
@@ -865,6 +879,15 @@ function render(now: number): void {
    */
   drawScene();
 
+  const qualityChange = performanceRuntime?.recordFrame(now);
+
+  if (qualityChange) {
+    resize();
+    updatePerformanceStats(now, true);
+  }
+
+  updatePerformanceStats(now);
+
   /*
    * Nur weiter animieren, wenn tatsächlich etwas
    * animiert werden muss.
@@ -913,7 +936,9 @@ function resize(): void {
 
   scrollOffset = window.scrollY;
 
-  const pixelRatio = Math.min(window.devicePixelRatio || 1, MAX_DPR);
+  const pixelRatioCap = performanceRuntime?.currentPreset.pixelRatioCap ?? 1.5;
+
+  const pixelRatio = Math.min(window.devicePixelRatio || 1, pixelRatioCap);
 
   element.width = Math.round(width * pixelRatio);
 
@@ -933,7 +958,7 @@ function resize(): void {
 /* -------------------------------------------------------------------------- */
 
 function handlePointerMove(event: PointerEvent): void {
-  if (!props.active || !props.animations.cursor || event.pointerType === 'touch') {
+  if (!props.active || !props.animations.cursorMovement || event.pointerType === 'touch') {
     return;
   }
 
@@ -963,7 +988,7 @@ function handlePointerOut(event: PointerEvent): void {
 }
 
 function handlePointerDown(event: PointerEvent): void {
-  if (!props.active || !props.animations.cursor || event.pointerType !== 'touch') {
+  if (!props.active || !props.animations.cursorClick) {
     return;
   }
 
@@ -1047,20 +1072,69 @@ function handleThemeChange(): void {
   requestRender();
 }
 
+function updatePerformanceStats(now: number, force = false): void {
+  if (!performanceRuntime?.shouldPublishStats(now, force)) return;
+
+  const pixelRatioCap = performanceRuntime.currentPreset.pixelRatioCap;
+  const dpr = Math.min(window.devicePixelRatio || 1, pixelRatioCap);
+
+  emit('performanceStats', {
+    name: 'Living mesh',
+    renderer: 'Canvas2D',
+    mode: props.performance.mode,
+    preset: performanceRuntime.currentPreset.id,
+    fps: performanceRuntime.fps,
+    frameTime: performanceRuntime.averageFrameTime,
+    resolution: `${Math.round(width * dpr)} × ${Math.round(height * dpr)}`,
+    dpr,
+    details: {
+      Points: points.length,
+      Triangles: triangles.length,
+      Edges: edges.length,
+    },
+  });
+}
+
+function applyPerformanceMode(): void {
+  if (!performanceRuntime) return;
+
+  performanceRuntime.setMode(props.performance.mode);
+  resize();
+  updatePerformanceStats(performance.now(), true);
+}
+
 /* -------------------------------------------------------------------------- */
 /* Props                                                                      */
 /* -------------------------------------------------------------------------- */
 
 watch(
-  () => [props.active, props.animations.idle, props.animations.cursor, props.animations.scroll],
-  ([active, , cursor, scroll]) => {
-    if (!active || (!cursor && !scroll)) {
+  () => [
+    props.active,
+    props.animations.idle,
+    props.animations.cursorMovement,
+    props.animations.cursorClick,
+    props.animations.scroll,
+  ],
+  ([active, , cursorMovement, cursorClick, scroll]) => {
+    if (!active || (!cursorMovement && !cursorClick && !scroll)) {
       pointerStrength = 0;
       pointerPresent = false;
     }
 
+    if (!active) performanceRuntime?.resetMeasurements();
+
     requestRender();
+    if (active) updatePerformanceStats(performance.now(), true);
   },
+);
+
+watch(() => props.performance.mode, applyPerformanceMode, { flush: 'post' });
+watch(
+  () => props.performance.showStats,
+  (showStats) => {
+    if (showStats) updatePerformanceStats(performance.now(), true);
+  },
+  { flush: 'post' },
 );
 
 /* -------------------------------------------------------------------------- */
@@ -1074,6 +1148,11 @@ onMounted(() => {
     return;
   }
 
+  performanceRuntime = new BackgroundPerformanceRuntime(
+    TRIANGLE_MESH_QUALITY_PRESETS,
+    props.performance.mode,
+  );
+
   context = element.getContext('2d', {
     alpha: true,
     desynchronized: true,
@@ -1083,9 +1162,11 @@ onMounted(() => {
     return;
   }
 
-  reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-
-  reducedMotion.addEventListener('change', handleMotionPreferenceChange);
+  environment = new BackgroundEnvironment({
+    onMotionPreferenceChange: handleMotionPreferenceChange,
+    onThemeChange: handleThemeChange,
+    onVisibilityChange: handleVisibilityChange,
+  });
 
   resizeObserver = new ResizeObserver(resize);
 
@@ -1123,17 +1204,15 @@ onMounted(() => {
     passive: true,
   });
 
-  window.addEventListener('portfolio-theme-change', handleThemeChange);
-
-  document.addEventListener('visibilitychange', handleVisibilityChange);
-
   resize();
+  updatePerformanceStats(performance.now(), true);
 });
 
 onBeforeUnmount(() => {
   resizeObserver?.disconnect();
 
-  reducedMotion?.removeEventListener('change', handleMotionPreferenceChange);
+  environment?.dispose();
+  environment = null;
 
   if (animationFrame !== null) {
     window.cancelAnimationFrame(animationFrame);
@@ -1151,10 +1230,6 @@ onBeforeUnmount(() => {
 
   window.removeEventListener('scroll', handleScroll);
 
-  window.removeEventListener('portfolio-theme-change', handleThemeChange);
-
-  document.removeEventListener('visibilitychange', handleVisibilityChange);
-
   points.length = 0;
   triangles.length = 0;
   edges.length = 0;
@@ -1165,6 +1240,7 @@ onBeforeUnmount(() => {
   context = null;
   cachedPalette = null;
   cachedTheme = null;
+  performanceRuntime = null;
 });
 </script>
 

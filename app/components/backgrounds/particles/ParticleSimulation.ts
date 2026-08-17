@@ -58,6 +58,8 @@ export class ParticleSimulation {
     velocityUniforms.uInteractionMaxVelocity = { value: PARTICLE_CONFIG.interactionMaxVelocity };
     velocityUniforms.uPointerRadius = { value: PARTICLE_CONFIG.pointerRadius };
     velocityUniforms.uPointerRepulsion = { value: PARTICLE_CONFIG.pointerRepulsion };
+    velocityUniforms.uClickAttraction = { value: PARTICLE_CONFIG.clickAttraction };
+    velocityUniforms.uClickInfluence = { value: 0 };
     velocityUniforms.uPointerVelocityTransfer = { value: PARTICLE_CONFIG.pointerVelocityTransfer };
     velocityUniforms.uPointerVortexStrength = { value: PARTICLE_CONFIG.pointerVortexStrength };
     velocityUniforms.uPointerInfluence = { value: 0 };
@@ -124,6 +126,7 @@ export class ParticleSimulation {
       ? PARTICLE_CONFIG.pointerRepulsion * PARTICLE_CONFIG.touchStrength
       : PARTICLE_CONFIG.pointerRepulsion;
     this.getUniform(velocityUniforms, 'uPointerInfluence').value = interaction.pointerInfluence;
+    this.getUniform(velocityUniforms, 'uClickInfluence').value = interaction.clickInfluence;
     this.getUniform(velocityUniforms, 'uScrollVelocity').value = interaction.scrollVelocity;
     this.getUniform(velocityUniforms, 'uInteractionMomentum').value = interaction.interactionMomentum;
     this.getUniform(positionUniforms, 'uDelta').value = delta;

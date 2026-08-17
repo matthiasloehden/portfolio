@@ -8,6 +8,7 @@ const {
   backgroundPreference,
   backgroundAnimations,
   backgroundAdvancedSettings,
+  backgroundPerformance,
   initializePreferences,
   disposePreferences,
 } = usePortfolioPreferences();
@@ -48,6 +49,7 @@ useHead({
       :preference="backgroundPreference"
       :animations="backgroundAnimations"
       :advanced-settings="backgroundAdvancedSettings"
+      :performance="backgroundPerformance"
     />
 
     <LayoutSiteHeader />

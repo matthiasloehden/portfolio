@@ -1,23 +1,25 @@
-```vue
 <script setup lang="ts">
 /**
  * Draws a lightweight Canvas2D triangle field with separate idle, cursor and
  * scroll animation channels. Geometry, palette and drawing paths are cached
  * so static scenes only render when their visible state needs updating.
  *
- * The scene remains mounted while inactive, allowing orchestration to switch
- * routes without rebuilding its deterministic tile data.
+ * The orchestrator keeps the scene mounted and pauses it while inactive so
+ * background changes can crossfade without rebuilding the canvas.
  */
 
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
 
-import { createDefaultBackgroundAnimationSettings, type BackgroundSceneProps } from '@/types/background';
+import {
+  createDefaultBackgroundAnimationSettings,
+  createDefaultBackgroundPerformanceSettings,
+  type BackgroundSceneEmits,
+  type BackgroundSceneProps,
+} from '@/types/background';
 
-declare global {
-  interface WindowEventMap {
-    'portfolio-theme-change': Event;
-  }
-}
+import { BackgroundEnvironment } from '../shared/BackgroundEnvironment';
+import { BackgroundPerformanceRuntime } from '../shared/BackgroundPerformanceRuntime';
+import { TRIANGLE_QUALITY_PRESETS } from './config';
 
 interface TriangleTile {
   column: number;
@@ -60,7 +62,9 @@ interface HighlightPoint {
 const props = withDefaults(defineProps<BackgroundSceneProps>(), {
   active: true,
   animations: createDefaultBackgroundAnimationSettings,
+  performance: createDefaultBackgroundPerformanceSettings,
 });
+const emit = defineEmits<BackgroundSceneEmits>();
 
 const canvas = ref<HTMLCanvasElement | null>(null);
 
@@ -71,8 +75,6 @@ const canvas = ref<HTMLCanvasElement | null>(null);
 const TARGET_TRIANGLES_DESKTOP = 1000;
 const TARGET_TRIANGLES_TABLET = 480;
 const TARGET_TRIANGLES_MOBILE = 320;
-
-const MAX_DPR = 1.35;
 
 const IDLE_FRAME_BUDGET_MS = 1000 / 30;
 const ACTIVE_FRAME_BUDGET_MS = 1000 / 60;
@@ -96,8 +98,9 @@ const highlightTrail: HighlightPoint[] = [];
 
 let context: CanvasRenderingContext2D | null = null;
 let resizeObserver: ResizeObserver | null = null;
-let reducedMotion: MediaQueryList | null = null;
+let environment: BackgroundEnvironment | null = null;
 let animationFrame: number | null = null;
+let performanceRuntime: BackgroundPerformanceRuntime<(typeof TRIANGLE_QUALITY_PRESETS)[number]> | null = null;
 
 let width = 1;
 let height = 1;
@@ -162,15 +165,17 @@ function smoothstep(edgeStart: number, edgeEnd: number, value: number): number {
 }
 
 function getTargetTriangleCount(): number {
+  const densityScale = performanceRuntime?.currentPreset.densityScale ?? 1;
+
   if (width < 640) {
-    return TARGET_TRIANGLES_MOBILE;
+    return TARGET_TRIANGLES_MOBILE * densityScale;
   }
 
   if (width < 1000) {
-    return TARGET_TRIANGLES_TABLET;
+    return TARGET_TRIANGLES_TABLET * densityScale;
   }
 
-  return TARGET_TRIANGLES_DESKTOP;
+  return TARGET_TRIANGLES_DESKTOP * densityScale;
 }
 
 function getPalette(): TrianglePalette {
@@ -548,7 +553,7 @@ function drawFrame(timestamp = performance.now()): void {
 
   const delta = lastFrameTime === 0 ? 16.67 : Math.min(timestamp - lastFrameTime, 48);
 
-  const idleMotionEnabled = props.active && props.animations.idle && reducedMotion?.matches !== true;
+  const idleMotionEnabled = props.active && props.animations.idle && !environment?.prefersReducedMotion;
 
   cleanupHighlightTrail(timestamp);
 
@@ -598,6 +603,15 @@ function drawFrame(timestamp = performance.now()): void {
 
   drawAmbientGradient();
 
+  const qualityChange = performanceRuntime?.recordFrame(timestamp);
+
+  if (qualityChange) {
+    resize();
+    updatePerformanceStats(timestamp, true);
+  }
+
+  updatePerformanceStats(timestamp);
+
   if (shouldContinue) {
     scheduleFrame();
   }
@@ -627,7 +641,9 @@ function resize(): void {
   scrollOffset = window.scrollY;
   previousScrollOffset = scrollOffset;
 
-  dpr = Math.min(window.devicePixelRatio || 1, MAX_DPR);
+  const pixelRatioCap = performanceRuntime?.currentPreset.pixelRatioCap ?? 1.35;
+
+  dpr = Math.min(window.devicePixelRatio || 1, pixelRatioCap);
 
   element.width = Math.round(width * dpr);
   element.height = Math.round(height * dpr);
@@ -661,7 +677,7 @@ function resize(): void {
 /* -------------------------------------------------------------------------- */
 
 function handlePointerMove(event: PointerEvent): void {
-  if (!props.active || !props.animations.cursor) {
+  if (!props.active || !props.animations.cursorMovement) {
     return;
   }
 
@@ -699,6 +715,25 @@ function handlePointerMove(event: PointerEvent): void {
     lastPointerPointTime = now;
   }
 
+  scheduleFrame();
+}
+
+function handlePointerDown(event: PointerEvent): void {
+  if (!props.active || !props.animations.cursorClick) return;
+
+  const now = performance.now();
+  const worldY = event.clientY + scrollOffset;
+
+  pointerPresent = true;
+  pointerScreenX = event.clientX;
+  pointerScreenY = event.clientY;
+  lastPointerWorldX = event.clientX;
+  lastPointerWorldY = worldY;
+  lastPointerPointTime = now;
+  hasPointerWorldPosition = true;
+
+  addHighlightPoint(event.clientX, worldY, 1, now);
+  addHighlightPoint(event.clientX, worldY, 0.82, now - 80);
   scheduleFrame();
 }
 
@@ -777,19 +812,65 @@ function handleMotionPreferenceChange(): void {
   }
 }
 
+function updatePerformanceStats(now: number, force = false): void {
+  if (!performanceRuntime?.shouldPublishStats(now, force)) return;
+
+  emit('performanceStats', {
+    name: 'Triangle field',
+    renderer: 'Canvas2D',
+    mode: props.performance.mode,
+    preset: performanceRuntime.currentPreset.id,
+    fps: performanceRuntime.fps,
+    frameTime: performanceRuntime.averageFrameTime,
+    resolution: `${Math.round(width * dpr)} × ${Math.round(height * dpr)}`,
+    dpr,
+    details: {
+      Triangles: metrics.columns * metrics.rows * 2,
+      'Trail points': highlightTrail.length,
+    },
+  });
+}
+
+function applyPerformanceMode(): void {
+  if (!performanceRuntime) return;
+
+  performanceRuntime.setMode(props.performance.mode);
+  resize();
+  updatePerformanceStats(performance.now(), true);
+}
+
 watch(
-  () => [props.active, props.animations.idle, props.animations.cursor, props.animations.scroll],
-  ([active, idle, cursor, scroll]) => {
-    if (!active || (!cursor && !scroll)) {
+  () => [
+    props.active,
+    props.animations.idle,
+    props.animations.cursorMovement,
+    props.animations.cursorClick,
+    props.animations.scroll,
+  ],
+  ([active, idle, cursorMovement, cursorClick, scroll]) => {
+    if (!active || (!cursorMovement && !cursorClick && !scroll)) {
       highlightTrail.length = 0;
       hasPointerWorldPosition = false;
     }
 
-    if (active || idle || cursor || scroll) {
+    if (!active) performanceRuntime?.resetMeasurements();
+
+    if (active || idle || cursorMovement || cursorClick || scroll) {
       lastFrameTime = 0;
       scheduleFrame();
     }
+
+    if (active) updatePerformanceStats(performance.now(), true);
   },
+);
+
+watch(() => props.performance.mode, applyPerformanceMode, { flush: 'post' });
+watch(
+  () => props.performance.showStats,
+  (showStats) => {
+    if (showStats) updatePerformanceStats(performance.now(), true);
+  },
+  { flush: 'post' },
 );
 
 /* -------------------------------------------------------------------------- */
@@ -803,7 +884,16 @@ onMounted(() => {
     return;
   }
 
-  reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  performanceRuntime = new BackgroundPerformanceRuntime(
+    TRIANGLE_QUALITY_PRESETS,
+    props.performance.mode,
+  );
+
+  environment = new BackgroundEnvironment({
+    onMotionPreferenceChange: handleMotionPreferenceChange,
+    onThemeChange: handleThemeChange,
+    onVisibilityChange: handleVisibilityChange,
+  });
 
   resizeObserver = new ResizeObserver(resize);
 
@@ -817,17 +907,14 @@ onMounted(() => {
 
   window.addEventListener('pointermove', handlePointerMove, { passive: true });
 
+  window.addEventListener('pointerdown', handlePointerDown, { passive: true });
+
   window.addEventListener('pointerleave', clearPointer, { passive: true });
 
   window.addEventListener('blur', clearPointer);
 
-  window.addEventListener('portfolio-theme-change', handleThemeChange);
-
-  document.addEventListener('visibilitychange', handleVisibilityChange);
-
-  reducedMotion.addEventListener('change', handleMotionPreferenceChange);
-
   resize();
+  updatePerformanceStats(performance.now(), true);
 });
 
 onBeforeUnmount(() => {
@@ -843,13 +930,11 @@ onBeforeUnmount(() => {
   window.removeEventListener('orientationchange', resize);
   window.removeEventListener('scroll', handleScroll);
   window.removeEventListener('pointermove', handlePointerMove);
+  window.removeEventListener('pointerdown', handlePointerDown);
   window.removeEventListener('pointerleave', clearPointer);
   window.removeEventListener('blur', clearPointer);
-  window.removeEventListener('portfolio-theme-change', handleThemeChange);
-
-  document.removeEventListener('visibilitychange', handleVisibilityChange);
-
-  reducedMotion?.removeEventListener('change', handleMotionPreferenceChange);
+  environment?.dispose();
+  environment = null;
 
   tileRows.length = 0;
   highlightTrail.length = 0;
@@ -861,8 +946,6 @@ onBeforeUnmount(() => {
 
   cachedPalette = null;
   cachedTheme = null;
-  reducedMotion = null;
-
   pointerPresent = false;
   hasPointerWorldPosition = false;
 
@@ -878,6 +961,7 @@ onBeforeUnmount(() => {
 
   lastFrameTime = 0;
   elapsedTime = 0;
+  performanceRuntime = null;
 });
 </script>
 

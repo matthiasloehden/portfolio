@@ -15,6 +15,7 @@ export interface InteractionState {
   pointerVelocityY: number;
   pointerSpeed: number;
   pointerInfluence: number;
+  clickInfluence: number;
   pointerType: string;
   scrollVelocity: number;
   interactionMomentum: number;
@@ -29,6 +30,7 @@ export class InteractionManager {
     pointerVelocityY: 0,
     pointerSpeed: 0,
     pointerInfluence: 0,
+    clickInfluence: 0,
     pointerType: 'none',
     scrollVelocity: 0,
     interactionMomentum: 0,
@@ -75,6 +77,7 @@ export class InteractionManager {
     const velocityDecay = Math.exp(-delta / 0.36);
     const scrollDecay = Math.exp(-delta / 0.42);
     const momentumDecay = Math.exp(-delta / PARTICLE_CONFIG.interactionMomentumDecay);
+    const clickDecay = Math.exp(-delta / PARTICLE_CONFIG.clickDecay);
 
     this.state.pointerVelocityX *= velocityDecay;
     this.state.pointerVelocityY *= velocityDecay;
@@ -85,6 +88,7 @@ export class InteractionManager {
     this.scrollTarget *= scrollDecay;
     this.state.scrollVelocity += (this.scrollTarget - this.state.scrollVelocity) * Math.min(1, delta * 12);
     this.state.interactionMomentum *= momentumDecay;
+    this.state.clickInfluence *= clickDecay;
 
     return this.state;
   }
@@ -92,7 +96,7 @@ export class InteractionManager {
   setAnimations(animations: BackgroundAnimationSettings): void {
     this.animations = animations;
 
-    if (!animations.cursor) {
+    if (!animations.cursorMovement) {
       this.state.pointerVelocityX = 0;
       this.state.pointerVelocityY = 0;
       this.state.pointerSpeed = 0;
@@ -100,12 +104,16 @@ export class InteractionManager {
       this.state.touchActive = false;
     }
 
+    if (!animations.cursorClick) {
+      this.state.clickInfluence = 0;
+    }
+
     if (!animations.scroll) {
       this.scrollTarget = 0;
       this.state.scrollVelocity = 0;
     }
 
-    if (!animations.cursor && !animations.scroll) {
+    if (!animations.cursorMovement && !animations.cursorClick && !animations.scroll) {
       this.state.interactionMomentum = 0;
     }
   }
@@ -114,6 +122,7 @@ export class InteractionManager {
     return (
       this.animations.idle ||
       this.state.pointerInfluence > 0.001 ||
+      this.state.clickInfluence > 0.001 ||
       Math.abs(this.state.scrollVelocity) > 0.001 ||
       this.state.interactionMomentum > 0.001
     );
@@ -129,12 +138,12 @@ export class InteractionManager {
     window.removeEventListener('blur', this.onBlur);
   }
 
-  private setPointer(event: PointerEvent): void {
+  private setPointer(event: PointerEvent, movementEnabled: boolean): void {
     const now = performance.now();
     const worldX = (event.clientX / this.width - 0.5) * 2 * this.aspect;
     const worldY = -(event.clientY / this.height - 0.5) * 2;
 
-    if (this.hasPointerSample) {
+    if (movementEnabled && this.hasPointerSample) {
       const deltaSeconds = Math.max((now - this.lastPointerTime) / 1000, 1 / 240);
       const rawVelocityX = (worldX - this.lastPointerX) / deltaSeconds;
       const rawVelocityY = (worldY - this.lastPointerY) / deltaSeconds;
@@ -150,14 +159,20 @@ export class InteractionManager {
     this.state.pointerY = worldY;
     this.state.pointerType = event.pointerType || 'mouse';
     this.state.touchActive = event.pointerType === 'touch' && event.buttons !== 0;
-    this.state.pointerInfluence = Math.max(
-      this.state.pointerInfluence,
-      Math.min(1, 0.16 + this.state.pointerSpeed / PARTICLE_CONFIG.maxPointerSpeed),
-    );
-    this.state.interactionMomentum = Math.max(
-      this.state.interactionMomentum,
-      Math.min(1, 0.2 + this.state.pointerSpeed / PARTICLE_CONFIG.maxPointerSpeed),
-    );
+    if (movementEnabled) {
+      this.state.pointerInfluence = Math.max(
+        this.state.pointerInfluence,
+        Math.min(1, 0.16 + this.state.pointerSpeed / PARTICLE_CONFIG.maxPointerSpeed),
+      );
+      this.state.interactionMomentum = Math.max(
+        this.state.interactionMomentum,
+        Math.min(1, 0.2 + this.state.pointerSpeed / PARTICLE_CONFIG.maxPointerSpeed),
+      );
+    } else {
+      this.state.pointerVelocityX = 0;
+      this.state.pointerVelocityY = 0;
+      this.state.pointerSpeed = 0;
+    }
 
     this.lastPointerX = worldX;
     this.lastPointerY = worldY;
@@ -167,23 +182,32 @@ export class InteractionManager {
   }
 
   private readonly onPointerDown = (event: PointerEvent): void => {
-    if (!this.animations.cursor) return;
+    if (!this.animations.cursorMovement && !this.animations.cursorClick) return;
 
-    this.setPointer(event);
+    this.setPointer(event, this.animations.cursorMovement);
     this.state.touchActive = event.pointerType === 'touch';
-    this.state.pointerInfluence = Math.max(this.state.pointerInfluence, 0.34);
+
+    if (this.animations.cursorMovement) {
+      this.state.pointerInfluence = Math.max(this.state.pointerInfluence, 0.34);
+    }
+
+    if (this.animations.cursorClick) {
+      this.state.clickInfluence = 1;
+      this.state.interactionMomentum = Math.max(this.state.interactionMomentum, 0.8);
+    }
+
     this.onActivity();
   };
 
   private readonly onPointerMove = (event: PointerEvent): void => {
-    if (!this.animations.cursor) return;
+    if (!this.animations.cursorMovement) return;
 
-    this.setPointer(event);
+    this.setPointer(event, true);
     this.onActivity();
   };
 
   private readonly onPointerEnd = (event: PointerEvent): void => {
-    if (!this.animations.cursor) return;
+    if (!this.animations.cursorMovement && !this.animations.cursorClick) return;
 
     if (event.pointerType === 'touch') this.state.touchActive = false;
     this.lastMovementTime = performance.now();
@@ -191,7 +215,7 @@ export class InteractionManager {
   };
 
   private readonly onPointerOut = (event: PointerEvent): void => {
-    if (!this.animations.cursor) return;
+    if (!this.animations.cursorMovement) return;
 
     if (event.relatedTarget === null && event.pointerType !== 'touch') this.lastMovementTime = performance.now();
   };
@@ -222,6 +246,7 @@ export class InteractionManager {
   private readonly onBlur = (): void => {
     this.state.touchActive = false;
     this.state.pointerInfluence = 0;
+    this.state.clickInfluence = 0;
     this.state.interactionMomentum = 0;
     this.scrollTarget = 0;
   };

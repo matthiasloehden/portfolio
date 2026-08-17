@@ -12,11 +12,16 @@ import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
 
 import {
   createDefaultBackgroundAnimationSettings,
+  createDefaultBackgroundPerformanceSettings,
   createDefaultWaveGridSettings,
   WAVE_GRID_MAX_TRAIL_POINTS,
+  type BackgroundSceneEmits,
   type WaveGridBackgroundProps,
+  type WaveGridSettings,
 } from '@/types/background';
 
+import { BackgroundEnvironment } from '../shared/BackgroundEnvironment';
+import { BackgroundPerformanceRuntime } from '../shared/BackgroundPerformanceRuntime';
 import {
   CLICK_RIPPLE_LAYERS,
   DEFAULT_RIPPLE_LAYERS,
@@ -24,6 +29,7 @@ import {
   RIPPLE_LAYER_OFFSET,
   SCROLL_RIPPLE_THROTTLE,
   TOUCH_RIPPLE_THROTTLE,
+  WAVE_GRID_QUALITY_PRESETS,
 } from './config';
 import type { GridPosition, TrailPoint } from './types';
 import { WaveGridRenderer } from './WaveGridRenderer';
@@ -31,16 +37,19 @@ import { WaveGridRenderer } from './WaveGridRenderer';
 const props = withDefaults(defineProps<WaveGridBackgroundProps>(), {
   active: true,
   animations: createDefaultBackgroundAnimationSettings,
+  performance: createDefaultBackgroundPerformanceSettings,
   settings: createDefaultWaveGridSettings,
 });
+const emit = defineEmits<BackgroundSceneEmits>();
 
 const canvas = ref<HTMLCanvasElement | null>(null);
 const failed = ref(false);
 const failureReason = ref<string | null>(null);
 
 let runtime: WaveGridRenderer | null = null;
-let reducedMotion: MediaQueryList | null = null;
-let colorScheme: MediaQueryList | null = null;
+let performanceRuntime: BackgroundPerformanceRuntime<(typeof WAVE_GRID_QUALITY_PRESETS)[number]> | null = null;
+let runtimeSettings: WaveGridSettings = props.settings;
+let environment: BackgroundEnvironment | null = null;
 let resizeObserver: ResizeObserver | null = null;
 let contextLost = false;
 
@@ -62,7 +71,18 @@ function applyPalette(): void {
   if (!runtime) return;
 
   runtime.applyPalette(getWaveGridPalette(document.documentElement.dataset.theme));
-  runtime.render(performance.now(), trail, props.settings);
+  runtime.render(performance.now(), trail, runtimeSettings);
+}
+
+function syncRuntimeSettings(): void {
+  const quality = performanceRuntime?.currentPreset ?? WAVE_GRID_QUALITY_PRESETS[0];
+
+  runtimeSettings = {
+    ...props.settings,
+    vertexStep: props.settings.vertexStep * quality.vertexStepScale,
+    trailLength: Math.min(props.settings.trailLength, quality.trailLengthCap),
+    pixelRatioCap: Math.min(props.settings.pixelRatioCap, quality.pixelRatioCap),
+  };
 }
 
 function addRipple(position: GridPosition, now: number, velocity: number, layers: number): void {
@@ -78,7 +98,7 @@ function addRipple(position: GridPosition, now: number, velocity: number, layers
 }
 
 function trimTrail(): void {
-  while (trail.length > props.settings.trailLength) {
+  while (trail.length > runtimeSettings.trailLength) {
     trail.shift();
   }
 }
@@ -86,7 +106,7 @@ function trimTrail(): void {
 function removeExpiredTrailPoints(now: number): void {
   let oldestPoint = trail[0];
 
-  while (oldestPoint && now - oldestPoint.createdAt > props.settings.trailLifetime) {
+  while (oldestPoint && now - oldestPoint.createdAt > runtimeSettings.trailLifetime) {
     trail.shift();
     oldestPoint = trail[0];
   }
@@ -110,7 +130,16 @@ function renderFrame(now: number): void {
   if (!runtime || contextLost) return;
 
   removeExpiredTrailPoints(now);
-  runtime.render(now, trail, props.settings);
+  runtime.render(now, trail, runtimeSettings);
+
+  const qualityChange = performanceRuntime?.recordFrame(now);
+
+  if (qualityChange) {
+    applyWaveGridSettings();
+    updatePerformanceStats(now, true);
+  }
+
+  updatePerformanceStats(now);
 
   if (!props.animations.idle && trail.length === 0) {
     setAnimationState();
@@ -120,21 +149,23 @@ function renderFrame(now: number): void {
 function resize(): void {
   if (!runtime) return;
 
-  runtime.resize(props.settings);
-  runtime.render(performance.now(), trail, props.settings);
+  runtime.resize(runtimeSettings);
+  runtime.render(performance.now(), trail, runtimeSettings);
 }
 
 function applyWaveGridSettings(): void {
+  syncRuntimeSettings();
+
   if (!runtime) return;
 
-  runtime.applySettings(props.settings);
+  runtime.applySettings(runtimeSettings);
   trimTrail();
   resize();
   setAnimationState();
 }
 
 function updatePointerPosition(clientX: number, clientY: number): GridPosition | null {
-  const position = runtime?.projectPointer(clientX, clientY, props.settings) ?? null;
+  const position = runtime?.projectPointer(clientX, clientY, runtimeSettings) ?? null;
 
   if (position) {
     lastPointerPosition = position;
@@ -154,7 +185,7 @@ function handlePointerMove(event: PointerEvent): void {
 
   const position = updatePointerPosition(event.clientX, event.clientY);
 
-  if (!position || !props.animations.cursorMovement || reducedMotion?.matches) return;
+  if (!position || !props.animations.cursorMovement || environment?.prefersReducedMotion) return;
 
   const now = performance.now();
   const distance = lastPoint ? Math.hypot(position.x - lastPoint.x, position.z - lastPoint.z) : 1;
@@ -180,7 +211,7 @@ function addPointerRipple(event: PointerEvent): void {
 
   const position = updatePointerPosition(event.clientX, event.clientY);
 
-  if (!position || !props.animations.cursorClick || reducedMotion?.matches) return;
+  if (!position || !props.animations.cursorClick || environment?.prefersReducedMotion) return;
 
   addRipple(position, performance.now(), 1, CLICK_RIPPLE_LAYERS);
 
@@ -201,7 +232,7 @@ function emitScrollRipple(position: GridPosition, distance: number, now: number)
 }
 
 function addScrollRipple(event: WheelEvent): void {
-  if (!props.active || !props.animations.scroll || reducedMotion?.matches) return;
+  if (!props.active || !props.animations.scroll || environment?.prefersReducedMotion) return;
 
   const position = updatePointerPosition(event.clientX, event.clientY);
 
@@ -219,7 +250,7 @@ function handleScroll(): void {
   if (
     !props.active ||
     !props.animations.scroll ||
-    reducedMotion?.matches ||
+    environment?.prefersReducedMotion ||
     !lastPointerPosition ||
     scrollDistance < 1
   ) {
@@ -268,7 +299,7 @@ function addTouchRipple(event: TouchEvent): void {
 
   if (
     !props.animations.cursorMovement ||
-    reducedMotion?.matches ||
+    environment?.prefersReducedMotion ||
     !previousSample ||
     now - lastTouchEmission < TOUCH_RIPPLE_THROTTLE ||
     !position
@@ -294,15 +325,44 @@ function setAnimationState(): void {
   if (!runtime) return;
 
   const now = performance.now();
-  const motionAllowed = !document.hidden && !reducedMotion?.matches && !contextLost;
+  const motionAllowed = environment?.documentVisible !== false && !environment?.prefersReducedMotion && !contextLost;
   const shouldAnimate = props.active && motionAllowed && (props.animations.idle || hasActiveTrail(now));
 
   runtime.setMotion(props.active && motionAllowed && props.animations.idle, props.active && motionAllowed);
   runtime.setAnimationLoop(shouldAnimate ? renderFrame : null);
 
   if (!shouldAnimate && !contextLost) {
-    runtime.render(now, trail, props.settings);
+    runtime.render(now, trail, runtimeSettings);
   }
+}
+
+function updatePerformanceStats(now: number, force = false): void {
+  if (!runtime || !performanceRuntime?.shouldPublishStats(now, force)) return;
+
+  const rendererStats = runtime.getPerformanceStats();
+
+  emit('performanceStats', {
+    name: 'Wave grid',
+    renderer: 'WebGL2 / lines',
+    mode: props.performance.mode,
+    preset: performanceRuntime.currentPreset.id,
+    fps: performanceRuntime.fps,
+    frameTime: performanceRuntime.averageFrameTime,
+    resolution: `${rendererStats.width} × ${rendererStats.height}`,
+    dpr: rendererStats.dpr,
+    details: {
+      'Trail points': trail.length,
+      'Vertex step': runtimeSettings.vertexStep.toFixed(2),
+    },
+  });
+}
+
+function applyPerformanceMode(): void {
+  if (!performanceRuntime) return;
+
+  performanceRuntime.setMode(props.performance.mode);
+  applyWaveGridSettings();
+  updatePerformanceStats(performance.now(), true);
 }
 
 function initialize(): void {
@@ -314,7 +374,7 @@ function initialize(): void {
     runtime = WaveGridRenderer.create(
       element,
       WAVE_GRID_MAX_TRAIL_POINTS,
-      props.settings,
+      runtimeSettings,
       getWaveGridPalette(document.documentElement.dataset.theme),
     );
 
@@ -323,6 +383,7 @@ function initialize(): void {
 
     resize();
     setAnimationState();
+    updatePerformanceStats(performance.now(), true);
   } catch (error: unknown) {
     failed.value = true;
     failureReason.value = error instanceof Error ? error.message : 'Initialization failed';
@@ -367,11 +428,23 @@ watch(
   ([active, , cursorMovement, cursorClick, scroll]) => {
     if (active) resize();
 
+    if (!active) performanceRuntime?.resetMeasurements();
+
     if (!active || (!cursorMovement && !cursorClick && !scroll)) {
       resetInteractions();
     }
 
     setAnimationState();
+    if (active) updatePerformanceStats(performance.now(), true);
+  },
+  { flush: 'post' },
+);
+
+watch(() => props.performance.mode, applyPerformanceMode, { flush: 'post' });
+watch(
+  () => props.performance.showStats,
+  (showStats) => {
+    if (showStats) updatePerformanceStats(performance.now(), true);
   },
   { flush: 'post' },
 );
@@ -391,8 +464,17 @@ watch(
 );
 
 onMounted(() => {
-  reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-  colorScheme = window.matchMedia('(prefers-color-scheme: light)');
+  performanceRuntime = new BackgroundPerformanceRuntime(
+    WAVE_GRID_QUALITY_PRESETS,
+    props.performance.mode,
+  );
+  syncRuntimeSettings();
+
+  environment = new BackgroundEnvironment({
+    onMotionPreferenceChange,
+    onThemeChange: applyPalette,
+    onVisibilityChange: setAnimationState,
+  });
   resizeObserver = new ResizeObserver(resize);
 
   if (canvas.value) {
@@ -407,13 +489,8 @@ onMounted(() => {
   window.addEventListener('touchmove', addTouchRipple, { passive: true });
   window.addEventListener('touchend', endTouchRipple, { passive: true });
   window.addEventListener('touchcancel', endTouchRipple, { passive: true });
-  window.addEventListener('portfolio-theme-change', applyPalette);
-  document.addEventListener('visibilitychange', setAnimationState);
-
   lastScrollOffset = window.scrollY;
 
-  reducedMotion.addEventListener('change', onMotionPreferenceChange);
-  colorScheme.addEventListener('change', applyPalette);
   canvas.value?.addEventListener('webglcontextlost', onContextLost);
   canvas.value?.addEventListener('webglcontextrestored', onContextRestored);
 
@@ -429,16 +506,14 @@ onBeforeUnmount(() => {
   window.removeEventListener('touchmove', addTouchRipple);
   window.removeEventListener('touchend', endTouchRipple);
   window.removeEventListener('touchcancel', endTouchRipple);
-  window.removeEventListener('portfolio-theme-change', applyPalette);
-  document.removeEventListener('visibilitychange', setAnimationState);
-
-  reducedMotion?.removeEventListener('change', onMotionPreferenceChange);
-  colorScheme?.removeEventListener('change', applyPalette);
   canvas.value?.removeEventListener('webglcontextlost', onContextLost);
   canvas.value?.removeEventListener('webglcontextrestored', onContextRestored);
 
   resizeObserver?.disconnect();
+  environment?.dispose();
+  environment = null;
   resetInteractions();
+  performanceRuntime = null;
   cleanup(true);
 });
 </script>

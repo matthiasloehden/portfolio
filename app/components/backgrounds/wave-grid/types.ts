@@ -13,3 +13,9 @@ export interface WaveGridPalette {
   waveColor: string;
   opacity: number;
 }
+
+export interface WaveGridRendererStats {
+  width: number;
+  height: number;
+  dpr: number;
+}

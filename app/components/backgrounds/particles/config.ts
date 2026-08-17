@@ -1,7 +1,6 @@
-export type QualityId = 'high' | 'medium' | 'low';
+import type { BackgroundQualityPreset } from '@/types/background';
 
-export interface ParticleQuality {
-  id: QualityId;
+export interface ParticleQuality extends BackgroundQualityPreset {
   resolution: number;
   dprCap: number;
   slowFrameThreshold: number;
@@ -27,6 +26,8 @@ export const PARTICLE_CONFIG = {
   interactionMaxVelocity: 1.35,
   pointerRadius: 0.24,
   pointerRepulsion: 3.45,
+  clickAttraction: 5.2,
+  clickDecay: 0.9,
   pointerVelocityTransfer: 0.72,
   pointerVortexStrength: 0.66,
   touchRadius: 0.3,
@@ -44,18 +45,7 @@ export const PARTICLE_CONFIG = {
   performanceSampleFrames: 120,
   performanceWarmupFrames: 180,
   poorPerformanceWindows: 2,
-  debugUpdateInterval: 250,
 } as const;
-
-export function chooseInitialQuality(): number {
-  const coarsePointer = window.matchMedia('(pointer: coarse)').matches;
-  const compactViewport = window.innerWidth < 820 || window.innerHeight < 620;
-  const cores = navigator.hardwareConcurrency || 4;
-
-  if (coarsePointer || cores <= 4) return 2;
-  if (compactViewport || cores <= 6) return 1;
-  return 0;
-}
 
 export function getParticleQuality(index: number): ParticleQuality {
   return PARTICLE_QUALITY[index] ?? PARTICLE_QUALITY[2];

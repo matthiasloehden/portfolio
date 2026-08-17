@@ -1,4 +1,18 @@
+import type { BackgroundQualityPreset } from '@/types/background';
+
 import type { WaveGridPalette } from './types';
+
+export interface WaveGridQualityPreset extends BackgroundQualityPreset {
+  pixelRatioCap: number;
+  vertexStepScale: number;
+  trailLengthCap: number;
+}
+
+export const WAVE_GRID_QUALITY_PRESETS = [
+  { id: 'high', slowFrameThreshold: 22, pixelRatioCap: 2, vertexStepScale: 1, trailLengthCap: 48 },
+  { id: 'medium', slowFrameThreshold: 26, pixelRatioCap: 1.5, vertexStepScale: 1.25, trailLengthCap: 36 },
+  { id: 'low', slowFrameThreshold: 32, pixelRatioCap: 1, vertexStepScale: 1.75, trailLengthCap: 20 },
+] as const satisfies readonly WaveGridQualityPreset[];
 
 /** Minimum time between scroll-generated ripples. */
 export const SCROLL_RIPPLE_THROTTLE = 80;
