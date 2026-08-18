@@ -1,0 +1,39 @@
+<script setup lang="ts">
+import type { NavigationItem } from '@/types/content';
+
+const props = defineProps<{
+  item: NavigationItem;
+  active: boolean;
+}>();
+
+const NuxtLinkComponent = resolveComponent('NuxtLink');
+const linkComponent = computed(() => (props.item.to ? NuxtLinkComponent : 'a'));
+const linkAttributes = computed(() => (props.item.to ? { to: props.item.to } : { href: props.item.href }));
+</script>
+
+<template>
+  <component
+    :is="linkComponent"
+    v-bind="linkAttributes"
+    :class="[
+      'group relative block py-3 font-mono text-[0.69rem] tracking-[0.03em] text-muted transition-colors hover:text-foreground focus-visible:text-foreground md:py-2',
+      active && 'text-foreground',
+    ]"
+    :aria-current="active ? 'page' : undefined"
+  >
+    <span
+      v-if="item.prefix"
+      class="mr-1.5 text-primary"
+      aria-hidden="true"
+      >{{ item.prefix }}</span
+    >
+    {{ item.label }}
+    <span
+      :class="[
+        'absolute inset-x-0 bottom-0 h-0.5 origin-right scale-x-0 bg-transparent transition-[background-color,transform] duration-[260ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:origin-left group-hover:scale-x-100 group-hover:bg-primary group-focus-visible:origin-left group-focus-visible:scale-x-100 group-focus-visible:bg-primary',
+        active && 'origin-left scale-x-100 bg-primary',
+      ]"
+      aria-hidden="true"
+    />
+  </component>
+</template>

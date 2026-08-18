@@ -11,7 +11,7 @@ const stageClasses =
 
 <template>
   <SharedPanelFrame v-bind="content.frame">
-    <div class="service-stages grid grid-cols-2 p-5 sm:grid-cols-4 sm:p-6 md:p-8 xl:p-10">
+    <div class="grid grid-cols-2 p-5 sm:grid-cols-4 sm:p-6 md:p-8 xl:p-10">
       <div
         v-for="(stage, index) in content.stages"
         :key="stage.number"
@@ -20,6 +20,7 @@ const stageClasses =
           index % 2 === 1 && 'border-l border-l-line',
           index > 0 && 'sm:border-l sm:border-l-line',
         ]"
+        data-panel-item
       >
         <span class="font-mono text-[0.58rem] text-primary">{{ stage.number }}</span>
         <strong class="font-display text-base uppercase">{{ stage.title }}</strong>
@@ -27,11 +28,12 @@ const stageClasses =
       </div>
     </div>
 
-    <dl class="framework-map m-0 px-4 pb-4">
+    <dl class="m-0 px-4 pb-4">
       <div
         v-for="(framework, index) in content.frameworks"
         :key="framework.name"
         :class="['grid grid-cols-[5rem_1fr] gap-4 border border-line p-[0.8rem]', index > 0 && 'border-t-0']"
+        data-panel-item
       >
         <dt class="font-display text-base font-bold text-primary-bright">{{ framework.name }}</dt>
         <dd class="m-0 text-[0.72rem] leading-6 text-muted">{{ framework.description }}</dd>

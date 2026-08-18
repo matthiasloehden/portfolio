@@ -1,10 +1,10 @@
-export interface NavigationItem {
+interface NavigationItemBase {
   label: string;
   prefix?: string;
-  to?: string;
-  href?: string;
   activePath?: string;
 }
+
+export type NavigationItem = NavigationItemBase & ({ to: string; href?: never } | { href: string; to?: never });
 
 export interface CaseStudyListItem {
   href: string;
@@ -30,13 +30,11 @@ export interface Capability {
   skills: string[];
 }
 
-export interface HomeAction {
+export type HomeAction = {
   label: string;
   symbol?: string;
-  to?: string;
-  href?: string;
   variant?: 'primary' | 'text';
-}
+} & ({ to: string; href?: never } | { href: string; to?: never });
 
 export interface HomeHighlight {
   number: string;
@@ -86,7 +84,7 @@ export interface CaseNote {
   text: string;
 }
 
-export interface AcademicCaseStudyContent {
+export interface CaseStudyIdentityContent {
   id: string;
   number: string;
   listTitle: string;
@@ -94,6 +92,9 @@ export interface AcademicCaseStudyContent {
   category: string;
   type: string;
   title: string;
+}
+
+export interface AcademicCaseStudyContent extends CaseStudyIdentityContent {
   lead: string;
   description: string;
   notes: CaseNote[];
@@ -104,46 +105,35 @@ export interface LabeledValue {
   value: string;
 }
 
-export interface AcademicHeroContent {
+export interface PageHeroTitleLine {
+  text: string;
+  accent?: boolean;
+  suffix?: string;
+}
+
+export interface PageHeroContent {
   kickerPrefix: string;
   kicker: string;
-  titleBeforeAccent: string;
-  titleAccent: string;
-  titleConnector: string;
-  titleAfterAccent: string;
+  titleLines: PageHeroTitleLine[];
   introduction: string;
   facts: LabeledValue[];
   scrollLabel: string;
   scrollHref: string;
 }
 
+export type AcademicHeroContent = PageHeroContent;
+
 export type AcademicOverviewContent = CaseStudyOverviewContent;
 
 export type WorkFact = LabeledValue;
 
-export interface WorkCaseStudyContent {
-  id: string;
-  number: string;
-  listTitle: string;
-  listCategory: string;
-  category: string;
-  type: string;
-  title: string;
+export interface WorkCaseStudyContent extends CaseStudyIdentityContent {
   summary: string;
   paragraphs: string[];
   facts: WorkFact[];
 }
 
-export interface WorkHeroContent {
-  kickerPrefix: string;
-  kicker: string;
-  titleLines: string[];
-  titleAccent: string;
-  introduction: string;
-  facts: WorkFact[];
-  scrollLabel: string;
-  scrollHref: string;
-}
+export type WorkHeroContent = PageHeroContent;
 
 export type WorkOverviewContent = CaseStudyOverviewContent;
 
@@ -260,29 +250,13 @@ export interface AcademicServicePanelContent {
   }>;
 }
 
-export interface PersonalSectionContent {
-  id: string;
-  number: string;
-  listTitle: string;
-  listCategory: string;
-  category: string;
-  type: string;
-  title: string;
+export interface PersonalSectionContent extends CaseStudyIdentityContent {
   lead: string;
   paragraphs: string[];
   tags: string[];
 }
 
-export interface PersonalHeroContent {
-  kickerPrefix: string;
-  kicker: string;
-  title: string;
-  titleAccent: string;
-  introduction: string;
-  facts: LabeledValue[];
-  scrollLabel: string;
-  scrollHref: string;
-}
+export type PersonalHeroContent = PageHeroContent;
 
 export type PersonalOverviewContent = CaseStudyOverviewContent;
 

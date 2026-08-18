@@ -8,18 +8,19 @@ defineProps<{
 
 <template>
   <SharedPanelFrame
-    class="work-panel bg-raised/95"
+    class="bg-raised/95"
     v-bind="content.frame"
   >
-    <div class="module-grid grid grid-cols-1 gap-3 p-5 xs:grid-cols-2 sm:p-6 md:p-8 xl:p-10">
+    <div class="grid grid-cols-1 gap-3 p-5 xs:grid-cols-2 sm:p-6 md:p-8 xl:p-10">
       <div
         v-for="module in content.modules"
         :key="module.number"
         class="grid min-h-32 content-between border border-line bg-[linear-gradient(135deg,var(--surface-hover),transparent)] p-4"
+        data-panel-item
       >
         <span class="font-mono text-[0.62rem] text-primary">{{ module.number }}</span>
         <strong class="font-display text-base uppercase">{{ module.title }}</strong>
-        <small class="font-mono text-[0.54rem] leading-6 text-muted">{{ module.description }}</small>
+        <small class="font-mono text-[0.54rem] leading-[1.45] text-muted">{{ module.description }}</small>
       </div>
     </div>
 

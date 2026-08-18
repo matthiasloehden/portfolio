@@ -70,10 +70,7 @@ const tubeConnections: TubeConnection[] = [
 </script>
 
 <template>
-  <SharedPanelFrame
-    class="cooling-panel"
-    v-bind="content.frame"
-  >
+  <SharedPanelFrame v-bind="content.frame">
     <div class="diagram-shell">
       <div
         ref="diagram"

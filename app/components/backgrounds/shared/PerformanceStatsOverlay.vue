@@ -10,12 +10,17 @@ defineProps<{
 <template>
   <aside
     v-if="enabled"
-    class="background-performance-stats"
+    class="pointer-events-none fixed right-3 bottom-3 z-40 w-60 border border-[color-mix(in_srgb,var(--primary)_45%,transparent)] bg-[color-mix(in_srgb,var(--background)_92%,transparent)] p-[0.8rem] font-mono text-[0.58rem] text-foreground backdrop-blur-xl"
     aria-live="off"
   >
-    <strong>{{ stats?.name ?? 'Background performance' }}</strong>
+    <strong class="mb-[0.65rem] block text-[0.62rem] text-primary-bright uppercase">
+      {{ stats?.name ?? 'Background performance' }}
+    </strong>
 
-    <dl v-if="stats">
+    <dl
+      v-if="stats"
+      class="m-0 grid grid-cols-2 gap-x-[0.7rem] gap-y-[0.3rem] [&_dd]:m-0 [&_dd]:text-right [&_dd]:capitalize [&_dt]:text-muted [&_dt]:capitalize"
+    >
       <dt>Renderer</dt>
       <dd>{{ stats.renderer }}</dd>
       <dt>Mode</dt>
@@ -42,66 +47,9 @@ defineProps<{
 
     <span
       v-else
-      class="background-performance-stats-pending"
+      class="text-muted"
     >
       Collecting diagnostics…
     </span>
   </aside>
 </template>
-
-<style scoped>
-.background-performance-stats {
-  position: fixed;
-  z-index: 40;
-  right: 0.75rem;
-  bottom: 0.75rem;
-
-  width: 15rem;
-  padding: 0.8rem;
-
-  border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
-
-  background: color-mix(in srgb, var(--background) 92%, transparent);
-  color: var(--text);
-
-  font-family: var(--mono-font);
-  font-size: 0.58rem;
-
-  pointer-events: none;
-  backdrop-filter: blur(12px);
-}
-
-.background-performance-stats strong {
-  display: block;
-
-  margin-bottom: 0.65rem;
-
-  color: var(--accent-bright);
-
-  font-size: 0.62rem;
-  text-transform: uppercase;
-}
-
-.background-performance-stats dl {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.3rem 0.7rem;
-
-  margin: 0;
-}
-
-.background-performance-stats dt {
-  color: var(--muted);
-  text-transform: capitalize;
-}
-
-.background-performance-stats dd {
-  margin: 0;
-  text-align: right;
-  text-transform: capitalize;
-}
-
-.background-performance-stats-pending {
-  color: var(--muted);
-}
-</style>

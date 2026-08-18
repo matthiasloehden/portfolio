@@ -9,7 +9,7 @@ defineProps<{
 <template>
   <SharedPanelFrame v-bind="content.frame">
     <div
-      class="pipeline grid grid-cols-1 items-center gap-3 p-5 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)_auto_minmax(0,1fr)] sm:p-6 md:p-8 xl:p-10"
+      class="grid grid-cols-1 items-center gap-3 p-5 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)_auto_minmax(0,1fr)] sm:p-6 md:p-8 xl:p-10"
       :aria-label="content.ariaLabel"
     >
       <template
@@ -23,7 +23,10 @@ defineProps<{
           aria-hidden="true"
           >→</i
         >
-        <div class="grid min-h-[7.2rem] min-w-0 content-between border border-line bg-surface p-3">
+        <div
+          class="grid min-h-[7.2rem] min-w-0 content-between border border-line bg-surface p-3"
+          data-panel-item
+        >
           <span class="font-mono text-[0.58rem] text-primary">
             {{ String(index + 1).padStart(2, '0') }}
           </span>

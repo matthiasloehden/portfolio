@@ -1,5 +1,5 @@
 <script setup lang="ts">
-withDefaults(
+const props = withDefaults(
   defineProps<{
     label: string;
     symbol?: string;
@@ -13,6 +13,10 @@ withDefaults(
   },
 );
 
+const NuxtLinkComponent = resolveComponent('NuxtLink');
+const linkComponent = computed(() => (props.to ? NuxtLinkComponent : 'a'));
+const linkAttributes = computed(() => (props.to ? { to: props.to } : { href: props.href }));
+
 const baseClasses =
   'action-link inline-flex items-center gap-2.5 font-mono text-[0.72rem] font-semibold transition duration-150 ease-out';
 const variantClasses = {
@@ -23,20 +27,13 @@ const variantClasses = {
 </script>
 
 <template>
-  <NuxtLink
-    v-if="to"
+  <component
+    :is="linkComponent"
+    v-bind="linkAttributes"
     :class="[baseClasses, variantClasses[variant]]"
-    :to="to"
   >
     {{ label }} <span aria-hidden="true">{{ symbol }}</span>
-  </NuxtLink>
-  <a
-    v-else
-    :class="[baseClasses, variantClasses[variant]]"
-    :href="href"
-  >
-    {{ label }} <span aria-hidden="true">{{ symbol }}</span>
-  </a>
+  </component>
 </template>
 
 <style scoped>

@@ -1,4 +1,5 @@
 import { site } from '@/data/site';
+import { createCaseStudyListItems } from '@/data/caseStudies';
 import type {
   AcademicAuthenticationPanelContent,
   AcademicCaseStudyContent,
@@ -81,12 +82,9 @@ export const itsmCase: AcademicCaseStudyContent = {
 export const academicCases = [streamingCase, passkeysCase, itsmCase];
 
 export const academicHero: AcademicHeroContent = {
-  kickerPrefix: '[ 01—03 ]',
+  kickerPrefix: '[ 01 / 03 ]',
   kicker: 'Selected academic work',
-  titleBeforeAccent: 'Systems,',
-  titleAccent: 'security',
-  titleConnector: ' &',
-  titleAfterAccent: 'service.',
+  titleLines: [{ text: 'Systems,' }, { text: 'security', accent: true, suffix: ' &' }, { text: 'service.' }],
   introduction:
     'Three selected projects show different application concerns: scalable data processing, authentication security, and reliable service operations.',
   facts: [
@@ -104,12 +102,7 @@ export const academicOverview: AcademicOverviewContent = {
   label: 'Selected university projects',
   title: 'Three perspectives on dependable digital systems.',
   titleLines: ['Three', 'perspectives', 'on dependable', 'digital', 'systems.'],
-  items: academicCases.map(({ id, number, listTitle, listCategory }) => ({
-    href: `#${id}`,
-    number,
-    title: listTitle,
-    category: listCategory,
-  })),
+  items: createCaseStudyListItems(academicCases),
 };
 
 export const academicClosing: PageClosingContent = {
@@ -165,7 +158,7 @@ export const servicePanel: AcademicServicePanelContent = {
 };
 
 export const academicMeta = {
-  title: 'University Projects — Matthias Löhden',
+  title: 'University Projects | Matthias Löhden',
   description:
     'Selected computer science work by Matthias Löhden across scalable event processing, FIDO2 authentication, service operations, and applied software design.',
 };

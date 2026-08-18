@@ -1,13 +1,8 @@
 <script setup lang="ts">
+import { useActiveNavigation } from '@/composables/useActiveNavigation';
 import { footerNavigation, site } from '@/data/site';
 
-const route = useRoute();
-const navigationItems = computed(() =>
-  footerNavigation.map((item) => ({
-    ...item,
-    active: item.activePath === route.path,
-  })),
-);
+const navigationItems = useActiveNavigation(footerNavigation);
 </script>
 
 <template>
@@ -23,7 +18,7 @@ const navigationItems = computed(() =>
       >
       <a
         class="whitespace-nowrap text-muted transition-colors hover:text-foreground"
-        href="https://github.com/matthiasloehden/portfolio"
+        :href="site.sourceUrl"
         target="_blank"
         rel="noopener noreferrer"
         aria-label="View source"

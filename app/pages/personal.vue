@@ -24,7 +24,10 @@ useSeoMeta(personalMeta);
       id="content"
       class="relative z-1 site-container"
     >
-      <PersonalHero :content="personalHero" />
+      <SharedDetailHero
+        title-id="personal-title"
+        :content="personalHero"
+      />
       <SharedCaseStudyList v-bind="personalOverview" />
 
       <PersonalFeatureSection v-bind="openSourceSection">
@@ -49,7 +52,10 @@ useSeoMeta(personalMeta);
         <CoolingLoopPanel :content="coolingPanel" />
       </PersonalFeatureSection>
 
-      <PersonalClosing :content="personalClosing" />
+      <SharedPageClosing
+        id="personal-close"
+        :content="personalClosing"
+      />
     </main>
   </div>
 </template>

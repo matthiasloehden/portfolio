@@ -16,16 +16,17 @@ defineProps<{
         v-for="(contribution, index) in content.items"
         :key="contribution.title"
         class="relative border border-line bg-[linear-gradient(110deg,var(--surface),transparent)] px-[1.2rem] pt-[1.15rem] pb-[1.3rem] [&+&]:mt-3"
+        data-panel-item
       >
         <div class="flex items-center justify-between font-mono text-[0.58rem] text-primary">
           <span>{{ String(index + 1).padStart(2, '0') }}</span>
-          <small class="inline-flex items-center gap-[0.4rem] text-[inherit] text-muted uppercase">
-            <i
-              class="size-[0.35rem] animate-[status-pulse_2.2s_ease-in-out_infinite] rounded-full bg-primary shadow-[0_0_0.6rem_var(--primary)]"
-              aria-hidden="true"
-            />
-            {{ contribution.status }}
-          </small>
+          <SharedStatusIndicator
+            class="uppercase"
+            :label="contribution.status"
+            tone="primary"
+            size="compact"
+            pulse
+          />
         </div>
         <p class="mt-[1.1rem] font-mono text-[0.58rem] text-quiet uppercase">{{ contribution.category }}</p>
         <SharedDisplayHeading

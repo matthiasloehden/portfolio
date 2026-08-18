@@ -10,7 +10,7 @@ const lineNumber = (line: number) => String(line).padStart(2, '0');
 
 <template>
   <aside
-    class="motion-float relative w-full border border-line-strong bg-raised/85 shadow-[1.5rem_1.5rem_0_color-mix(in_srgb,var(--primary)_2.5%,transparent),0_2rem_6rem_rgb(0_0_0/20%)] backdrop-blur-[18px] before:pointer-events-none before:absolute before:-top-px before:-left-px before:size-[0.65rem] before:border-t-2 before:border-l-2 before:border-primary-bright before:content-[''] after:pointer-events-none after:absolute after:-right-px after:-bottom-px after:size-[0.65rem] after:border-r-2 after:border-b-2 after:border-primary-bright after:content-[''] md:max-w-md"
+    class="relative w-full border border-line-strong bg-raised/85 shadow-[1.5rem_1.5rem_0_color-mix(in_srgb,var(--primary)_2.5%,transparent),0_2rem_6rem_rgb(0_0_0/20%)] backdrop-blur-[18px] before:pointer-events-none before:absolute before:-top-px before:-left-px before:size-[0.65rem] before:border-t-2 before:border-l-2 before:border-primary-bright before:content-[''] after:pointer-events-none after:absolute after:-right-px after:-bottom-px after:size-[0.65rem] after:border-r-2 after:border-b-2 after:border-primary-bright after:content-[''] md:max-w-md"
     aria-label="Developer profile summary"
   >
     <div
@@ -57,22 +57,29 @@ const lineNumber = (line: number) => String(line).padStart(2, '0');
       </p>
       <p>
         <span class="inline-block w-8 text-quiet select-none">{{ lineNumber(profile.focus.length + 6) }}</span
-        >};<span
-          class="ml-1 inline-block h-[1em] w-[0.45rem] animate-[cursor-blink_1.05s_steps(2,jump-none)_infinite] bg-primary align-[-0.15em]"
-        />
+        >};<span class="profile-cursor ml-1 inline-block h-[1em] w-[0.45rem] bg-primary align-[-0.15em]" />
       </p>
     </div>
     <div
       class="flex items-center justify-between border-t border-line px-[0.9rem] py-[0.7rem] font-mono text-[0.62rem] text-muted"
     >
-      <span class="flex items-center gap-[0.45rem]">
-        <i
-          class="size-[0.35rem] rounded-full bg-[#3cdc94] shadow-[0_0_0.5rem_rgb(60_220_148/80%)]"
-          aria-hidden="true"
-        />
-        {{ profile.status }}
-      </span>
+      <SharedStatusIndicator
+        :label="profile.status"
+        size="compact"
+      />
       <span class="hidden xs:inline">{{ profile.location }}</span>
     </div>
   </aside>
 </template>
+
+<style scoped>
+.profile-cursor {
+  animation: cursor-blink 1.05s steps(2, jump-none) infinite;
+}
+
+@keyframes cursor-blink {
+  50% {
+    opacity: 0;
+  }
+}
+</style>

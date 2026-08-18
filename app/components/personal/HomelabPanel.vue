@@ -20,6 +20,7 @@ const nodeClasses = 'grid min-h-[7.5rem] content-between border border-line bg-s
           nodeClasses,
           'min-h-[7.5rem] border-line-strong bg-[linear-gradient(145deg,rgb(50_132_255/12%),transparent_60%),var(--surface)] sm:min-h-56',
         ]"
+        data-panel-item
       >
         <span class="font-mono text-[0.55rem] text-primary">{{ content.host.code }}</span>
         <strong class="font-display text-[1.15rem] uppercase sm:text-[1.35rem] md:text-[1.5rem] xl:text-[1.7rem]">
@@ -47,6 +48,7 @@ const nodeClasses = 'grid min-h-[7.5rem] content-between border border-line bg-s
           v-for="service in content.services"
           :key="service.title"
           :class="nodeClasses"
+          data-panel-item
         >
           <span class="font-mono text-[0.55rem] text-primary">{{ service.type }}</span>
           <strong class="font-display text-[1.15rem] uppercase sm:text-[1.35rem] md:text-[1.5rem] xl:text-[1.7rem]">
@@ -60,13 +62,12 @@ const nodeClasses = 'grid min-h-[7.5rem] content-between border border-line bg-s
     <div
       class="flex flex-wrap justify-between gap-3 border-t border-line px-4 py-[0.9rem] font-mono text-[0.55rem] text-muted"
     >
-      <span class="inline-flex items-center gap-[0.45rem] text-foreground">
-        <i
-          class="size-[0.35rem] rounded-full bg-primary"
-          aria-hidden="true"
-        />
-        {{ content.status }}
-      </span>
+      <SharedStatusIndicator
+        :label="content.status"
+        tone="primary"
+        size="compact"
+        text-tone="foreground"
+      />
       <span>{{ content.process }}</span>
     </div>
   </SharedPanelFrame>

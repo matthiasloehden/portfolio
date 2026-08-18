@@ -91,3 +91,22 @@ watch(selectedBackground, () => {
     />
   </Teleport>
 </template>
+
+<style scoped>
+.background-scene {
+  transition:
+    opacity 280ms cubic-bezier(0.22, 1, 0.36, 1),
+    visibility 0s linear 280ms;
+  will-change: opacity;
+}
+
+.background-scene-active {
+  visibility: visible;
+  transition-delay: 0s;
+}
+
+.background-scene:not(.background-scene-active) {
+  visibility: hidden;
+  opacity: 0;
+}
+</style>

@@ -522,7 +522,7 @@ onBeforeUnmount(() => {
   overflow: hidden;
 
   background:
-    radial-gradient(circle at 73% 24%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 31rem),
+    radial-gradient(circle at 73% 24%, color-mix(in srgb, var(--primary) 12%, transparent), transparent 31rem),
     linear-gradient(to bottom, transparent 60%, var(--background) 98%);
 
   mask-image: linear-gradient(to bottom, black 0%, black 82%, transparent 100%);
@@ -557,8 +557,8 @@ canvas {
   inset: 24% -18% -25%;
 
   background-image:
-    linear-gradient(color-mix(in srgb, var(--accent) 30%, transparent) 1px, transparent 1px),
-    linear-gradient(90deg, color-mix(in srgb, var(--accent) 30%, transparent) 1px, transparent 1px);
+    linear-gradient(color-mix(in srgb, var(--primary) 30%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--primary) 30%, transparent) 1px, transparent 1px);
 
   background-size: 3.25rem 3.25rem;
 

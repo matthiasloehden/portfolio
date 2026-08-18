@@ -305,8 +305,8 @@ onBeforeUnmount(() => {
   inset: 0;
 
   background:
-    radial-gradient(circle at 76% 14%, color-mix(in srgb, var(--accent) 8%, transparent), transparent 30rem),
-    radial-gradient(circle at 14% 72%, color-mix(in srgb, var(--accent) 5%, transparent), transparent 34rem);
+    radial-gradient(circle at 76% 14%, color-mix(in srgb, var(--primary) 8%, transparent), transparent 30rem),
+    radial-gradient(circle at 14% 72%, color-mix(in srgb, var(--primary) 5%, transparent), transparent 34rem);
 
   content: '';
 

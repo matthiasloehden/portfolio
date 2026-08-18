@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import type { PageHeroTitleLine } from '@/types/content';
+
 type HeadingLevel = 'h1' | 'h2' | 'h3';
 type HeadingSize = 'hero' | 'page' | 'overview' | 'section' | 'case' | 'closing' | 'card' | 'panel' | 'label';
 
@@ -6,6 +8,7 @@ withDefaults(
   defineProps<{
     level?: HeadingLevel;
     size?: HeadingSize;
+    lines?: PageHeroTitleLine[];
   }>(),
   {
     level: 'h2',
@@ -14,6 +17,9 @@ withDefaults(
 );
 
 const slots = useSlots();
+
+const accentClasses =
+  'text-primary-bright not-italic [text-shadow:0_0_3rem_color-mix(in_srgb,var(--primary)_18%,transparent)]';
 
 const sizeClasses: Record<HeadingSize, string> = {
   hero: 'mt-6 max-w-[11ch] text-[4rem] leading-[0.82] tracking-[-0.075em] xs:text-[4.75rem] sm:text-[6rem] lg:text-[7rem] xl:text-[8.2rem]',
@@ -37,15 +43,28 @@ const sizeClasses: Record<HeadingSize, string> = {
     :is="level"
     :class="['font-display font-bold text-balance uppercase [font-stretch:condensed]', sizeClasses[size]]"
   >
-    <slot />
+    <template v-if="lines">
+      <template
+        v-for="(line, index) in lines"
+        :key="`${line.text}-${index}`"
+      >
+        <em
+          v-if="line.accent"
+          :class="accentClasses"
+          >{{ line.text }}</em
+        ><template v-else>{{ line.text }}</template
+        >{{ line.suffix }}<br v-if="index < lines.length - 1" />
+      </template>
+    </template>
+    <slot v-else />
     <em
-      v-if="slots.accent"
-      class="text-primary-bright not-italic [text-shadow:0_0_3rem_color-mix(in_srgb,var(--primary)_18%,transparent)]"
+      v-if="!lines && slots.accent"
+      :class="accentClasses"
     >
       <slot name="accent" />
     </em>
     <slot
-      v-if="slots.afterAccent"
+      v-if="!lines && slots.afterAccent"
       name="afterAccent"
     />
   </component>

@@ -1,4 +1,5 @@
 import { site } from '@/data/site';
+import { createCaseStudyListItems } from '@/data/caseStudies';
 import type {
   LearningGroup,
   OpenSourceContribution,
@@ -81,8 +82,7 @@ export const personalSections = [openSourceSection, homelabSection, learningSect
 export const personalHero: PersonalHeroContent = {
   kickerPrefix: '[ OPEN / CURIOUS ]',
   kicker: 'Personal projects & interests',
-  title: 'Built from',
-  titleAccent: 'curiosity.',
+  titleLines: [{ text: 'Built from' }, { text: 'curiosity.', accent: true }],
   introduction:
     'Beyond professional and university work, I contribute to tools I use, run systems at home, keep learning, and build PCs down to the cooling loop.',
   facts: [
@@ -99,12 +99,7 @@ export const personalOverview: PersonalOverviewContent = {
   titleId: 'personal-list-title',
   label: 'Outside client & university work',
   title: 'Four ways curiosity becomes practice.',
-  items: personalSections.map(({ id, number, listTitle, listCategory }) => ({
-    href: `#${id}`,
-    number,
-    title: listTitle,
-    category: listCategory,
-  })),
+  items: createCaseStudyListItems(personalSections),
 };
 
 export const personalClosing: PageClosingContent = {
@@ -118,7 +113,7 @@ export const personalClosing: PageClosingContent = {
     {
       label: 'View source',
       symbol: '→',
-      href: 'https://github.com/matthiasloehden/portfolio',
+      href: site.sourceUrl,
       variant: 'text',
     },
   ],

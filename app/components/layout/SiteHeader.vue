@@ -1,15 +1,12 @@
 <script setup lang="ts">
+import { useActiveNavigation } from '@/composables/useActiveNavigation';
 import { site, siteNavigation } from '@/data/site';
 
-const route = useRoute();
 const menuOpen = ref(false);
+const header = ref<HTMLElement | null>(null);
+const navigationItems = useActiveNavigation(siteNavigation);
 
-const navigationItems = computed(() =>
-  siteNavigation.map((item) => ({
-    ...item,
-    active: item.activePath === route.path,
-  })),
-);
+const route = useRoute();
 
 watch(
   () => route.fullPath,
@@ -17,16 +14,24 @@ watch(
     menuOpen.value = false;
   },
 );
+
+function onDocumentPointerDown(event: PointerEvent): void {
+  if (menuOpen.value && !header.value?.contains(event.target as Node)) menuOpen.value = false;
+}
+
+onMounted(() => document.addEventListener('pointerdown', onDocumentPointerDown));
+onBeforeUnmount(() => document.removeEventListener('pointerdown', onDocumentPointerDown));
 </script>
 
 <template>
   <header
-    class="site-header relative z-20 site-container flex min-h-19 items-center justify-between border-b border-line md:min-h-22"
+    ref="header"
+    class="relative z-20 site-container flex min-h-19 items-center justify-between border-b border-line md:min-h-22"
     data-reveal="down"
     @keydown.esc="menuOpen = false"
   >
     <NuxtLink
-      class="site-identity group inline-flex items-center gap-3.5"
+      class="group inline-flex items-center gap-3.5 transition-transform duration-[240ms] ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-[0.12rem] hover:scale-[1.015] focus-visible:-translate-y-[0.12rem] focus-visible:scale-[1.015]"
       to="/"
       :aria-label="`${site.name}, home`"
     >
@@ -47,7 +52,7 @@ watch(
         <ul
           id="site-navigation"
           :class="[
-            'absolute top-full right-0 left-0 z-20 m-0 list-none flex-col border-b border-line bg-background/95 px-6 py-4 shadow-xl backdrop-blur-xl md:static md:flex md:flex-row md:items-center md:gap-[clamp(1rem,2vw,2.25rem)] md:border-0 md:bg-transparent md:p-0 md:shadow-none md:backdrop-blur-none',
+            'absolute top-full right-0 left-0 z-20 m-0 list-none flex-col border-b border-line bg-background/95 px-6 py-4 shadow-xl backdrop-blur-xl md:static md:flex md:flex-row md:items-center md:gap-4 md:border-0 md:bg-transparent md:p-0 md:shadow-none md:backdrop-blur-none lg:gap-6 xl:gap-9',
             menuOpen ? 'flex' : 'hidden md:flex',
           ]"
         >
@@ -55,43 +60,10 @@ watch(
             v-for="item in navigationItems"
             :key="item.label"
           >
-            <NuxtLink
-              v-if="item.to"
-              class="nav-link group relative block py-3 font-mono text-[0.69rem] tracking-[0.03em] text-muted transition-colors hover:text-foreground focus-visible:text-foreground md:py-2"
-              :class="{ 'text-foreground': item.active }"
-              :to="item.to"
-              :aria-current="item.active ? 'page' : undefined"
-              exact-active-class="is-active"
-            >
-              <span
-                v-if="item.prefix"
-                class="mr-1.5 text-primary"
-                aria-hidden="true"
-                >{{ item.prefix }}</span
-              >
-              {{ item.label }}
-              <span
-                class="nav-indicator absolute inset-x-0 bottom-0 h-0.5 bg-transparent transition-colors group-hover:bg-primary group-focus-visible:bg-primary"
-                aria-hidden="true"
-              />
-            </NuxtLink>
-            <a
-              v-else
-              class="group relative block py-3 font-mono text-[0.69rem] tracking-[0.03em] text-muted transition-colors hover:text-foreground focus-visible:text-foreground md:py-2"
-              :href="item.href"
-            >
-              <span
-                v-if="item.prefix"
-                class="mr-1.5 text-primary"
-                aria-hidden="true"
-                >{{ item.prefix }}</span
-              >
-              {{ item.label }}
-              <span
-                class="absolute inset-x-0 bottom-0 h-0.5 bg-transparent transition-colors group-hover:bg-primary group-focus-visible:bg-primary"
-                aria-hidden="true"
-              />
-            </a>
+            <LayoutHeaderNavigationLink
+              :item="item"
+              :active="item.active"
+            />
           </li>
         </ul>
       </nav>
@@ -110,36 +82,3 @@ watch(
     </div>
   </header>
 </template>
-
-<style scoped>
-.site-identity {
-  transition: transform 240ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.site-identity:hover,
-.site-identity:focus-visible {
-  transform: translateY(-0.12rem) scale(1.015);
-}
-
-.nav-indicator {
-  transform: scaleX(0);
-  transform-origin: right;
-  transition:
-    background-color 180ms ease,
-    transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.nav-link:hover .nav-indicator,
-.nav-link:focus-visible .nav-indicator,
-.nav-link.is-active {
-  color: var(--text);
-}
-
-.nav-link:hover .nav-indicator,
-.nav-link:focus-visible .nav-indicator,
-.nav-link.is-active .nav-indicator {
-  background: var(--accent);
-  transform: scaleX(1);
-  transform-origin: left;
-}
-</style>

@@ -50,7 +50,10 @@ useSeoMeta(workMeta);
         <WorkClientPlatformPanel :content="clientPanel" />
       </WorkCaseStudy>
 
-      <WorkClosing :content="workClosing" />
+      <SharedPageClosing
+        id="work-close"
+        :content="workClosing"
+      />
     </main>
   </div>
 </template>

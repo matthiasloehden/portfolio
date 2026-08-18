@@ -25,6 +25,7 @@ const secondarySources = computed(() => props.content.groups.slice(1).flatMap((g
             v-for="(source, sourceIndex) in sources"
             :key="source.name"
             class="grid min-h-26 grid-cols-[1.8rem_1fr] gap-[0.7rem] border-b border-line p-4 last:border-b-0"
+            data-panel-item
           >
             <span class="font-mono text-[0.58rem] text-primary">
               {{ String(sourceIndex + 1).padStart(2, '0') }}

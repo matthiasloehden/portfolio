@@ -1,4 +1,5 @@
 import { site } from '@/data/site';
+import { createCaseStudyListItems } from '@/data/caseStudies';
 import type {
   WorkCaseStudyContent,
   WorkClientPanelContent,
@@ -94,10 +95,9 @@ export const clientCase: WorkCaseStudyContent = {
 export const workCases = [learningCase, retailCase, signageCase, clientCase];
 
 export const workHero: WorkHeroContent = {
-  kickerPrefix: '[ 2019—2025 ]',
+  kickerPrefix: '[ 2019 / 2025 ]',
   kicker: 'Client & product systems',
-  titleLines: ['Software for', 'work that'],
-  titleAccent: 'matters.',
+  titleLines: [{ text: 'Software for' }, { text: 'work that' }, { text: 'matters.', accent: true }],
   introduction:
     'At TopRed Media GmbH, I contributed across the full lifecycle of production enterprise applications, from initial development through years of feature development, refactoring, integrations, and maintenance. Working in a three-developer team, I contributed across the stack as requirements, workflows, and the products themselves continuously evolved.',
   facts: [
@@ -114,12 +114,7 @@ export const workOverview: WorkOverviewContent = {
   titleId: 'work-list-title',
   label: 'Selected professional work',
   title: 'Platforms built around real operations.',
-  items: workCases.map(({ id, number, listTitle, listCategory }) => ({
-    href: `#${id}`,
-    number,
-    title: listTitle,
-    category: listCategory,
-  })),
+  items: createCaseStudyListItems(workCases),
 };
 
 export const workContext: WorkContextContent = {
@@ -207,7 +202,7 @@ export const clientPanel: WorkClientPanelContent = {
 };
 
 export const workMeta = {
-  title: 'Professional Work — Matthias Löhden',
+  title: 'Professional Work | Matthias Löhden',
   description:
     'Professional software projects by Matthias Löhden at TopRed Media GmbH, including learning, shop management, digital signage, and communication platforms.',
 };

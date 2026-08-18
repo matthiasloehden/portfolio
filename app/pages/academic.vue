@@ -21,7 +21,10 @@ useSeoMeta(academicMeta);
       id="content"
       class="relative z-1 site-container"
     >
-      <AcademicHero :content="academicHero" />
+      <SharedDetailHero
+        title-id="projects-title"
+        :content="academicHero"
+      />
       <SharedCaseStudyList v-bind="academicOverview" />
 
       <AcademicCaseStudy v-bind="streamingCase">
@@ -39,7 +42,11 @@ useSeoMeta(academicMeta);
         <AcademicServicePanel :content="servicePanel" />
       </AcademicCaseStudy>
 
-      <AcademicClosing :content="academicClosing" />
+      <SharedPageClosing
+        id="projects-close"
+        :content="academicClosing"
+        width="narrow"
+      />
     </main>
   </div>
 </template>

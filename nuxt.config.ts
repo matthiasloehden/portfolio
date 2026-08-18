@@ -19,7 +19,7 @@ export default defineNuxtConfig({
       htmlAttrs: {
         lang: 'en',
       },
-      title: 'Matthias Löhden — Software Engineer',
+      title: 'Matthias Löhden | Software Engineer',
       meta: [
         {
           name: 'description',
