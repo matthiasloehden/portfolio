@@ -1,10 +1,16 @@
 <script setup lang="ts">
 import type { PageHeroContent } from '@/types/content';
 
-const props = defineProps<{
-  titleId: string;
-  content: PageHeroContent;
-}>();
+const props = withDefaults(
+  defineProps<{
+    titleId: string;
+    content: PageHeroContent;
+    desktopAlignment?: 'start' | 'end';
+  }>(),
+  {
+    desktopAlignment: 'end',
+  },
+);
 
 const titleLabel = computed(() => props.content.titleLines.map((line) => `${line.text}${line.suffix ?? ''}`).join(' '));
 </script>
@@ -21,7 +27,10 @@ const titleLabel = computed(() => props.content.titleLines.map((line) => `${line
     />
 
     <div
-      class="grid grid-cols-1 items-end gap-12 md:grid-cols-[minmax(0,1.25fr)_minmax(18rem,0.55fr)] md:gap-16 lg:gap-24 xl:gap-36"
+      :class="[
+        'grid grid-cols-1 items-end gap-12 md:grid-cols-[minmax(0,1.25fr)_minmax(18rem,0.55fr)] md:gap-16 lg:gap-24 xl:gap-36',
+        desktopAlignment === 'start' ? 'md:items-start' : 'md:items-end',
+      ]"
     >
       <SharedDisplayHeading
         :id="titleId"
@@ -34,7 +43,7 @@ const titleLabel = computed(() => props.content.titleLines.map((line) => `${line
       />
 
       <div
-        class="max-w-lg pb-2 [--reveal-delay:130ms] md:max-w-none"
+        :class="['max-w-lg pb-2 [--reveal-delay:130ms] md:max-w-none', desktopAlignment === 'start' && 'md:pt-9']"
         data-reveal="right"
       >
         <p class="motion-hover text-base leading-7 text-muted xl:text-[1.15rem] xl:leading-8">

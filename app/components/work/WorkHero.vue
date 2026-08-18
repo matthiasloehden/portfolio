@@ -10,5 +10,6 @@ defineProps<{
   <SharedDetailHero
     title-id="work-title"
     :content="content"
+    desktop-alignment="start"
   />
 </template>
