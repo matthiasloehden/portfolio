@@ -12,7 +12,7 @@
  * - Respects the user's `prefers-reduced-motion` setting.
  */
 
-export default defineNuxtPlugin(() => {
+export default defineNuxtPlugin((nuxtApp) => {
   const motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)');
 
   /**
@@ -104,9 +104,11 @@ export default defineNuxtPlugin(() => {
   }
 
   /**
-   * Initialise the reveal system once Nuxt is ready.
+   * Initialise the reveal system once hydration completes. Registering the
+   * Nuxt hook directly avoids the idle-frame deferral in `onNuxtReady`, which
+   * may be delayed indefinitely while an animated background is rendering.
    */
-  onNuxtReady(() => {
+  nuxtApp.hooks.hookOnce('app:suspense:resolve', () => {
     document.documentElement.classList.add('motion-ready');
 
     // Observe existing elements.
