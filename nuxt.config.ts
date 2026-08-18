@@ -38,6 +38,13 @@ export default defineNuxtConfig({
 
   vite: {
     plugins: [tailwindcss()],
+    optimizeDeps: {
+      // These imports live behind client-only background components, so Vite
+      // does not reliably discover them before the first browser request.
+      // Pre-bundling them prevents a cold E2E run from invalidating modules
+      // while the initial Playwright workers are hydrating the app.
+      include: ['three', 'three/addons/misc/GPUComputationRenderer.js'],
+    },
     server: {
       watch: {
         usePolling: true,

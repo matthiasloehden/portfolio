@@ -2,8 +2,10 @@ import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
   testDir: './tests/e2e',
+  forbidOnly: Boolean(process.env.CI),
   fullyParallel: false,
-  workers: 2,
+  retries: process.env.CI ? 1 : 0,
+  workers: process.env.CI ? 4 : '80%',
   timeout: 45_000,
   expect: {
     timeout: 8_000,
@@ -11,7 +13,7 @@ export default defineConfig({
   reporter: 'line',
   use: {
     baseURL: 'http://127.0.0.1:4173',
-    headless: process.env.CI ? true : false,
+    headless: true,
     launchOptions: {
       args: ['--use-gl=angle', '--use-angle=swiftshader-webgl', '--enable-unsafe-swiftshader'],
     },
@@ -35,7 +37,10 @@ export default defineConfig({
   ],
   webServer: {
     command: 'yarn dev --host 127.0.0.1 --port 4173',
-    url: 'http://127.0.0.1:4173/academic',
+    env: {
+      NUXT_APP_BASE_URL: '/',
+    },
+    url: 'http://127.0.0.1:4173/',
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
   },

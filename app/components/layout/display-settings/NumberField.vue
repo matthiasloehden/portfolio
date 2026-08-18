@@ -9,6 +9,8 @@ defineProps<{
   disabled?: boolean;
 }>();
 
+const descriptionId = useId();
+
 const emit = defineEmits<{
   'update:modelValue': [value: number];
 }>();
@@ -26,6 +28,7 @@ function onChange(event: Event): void {
       {{ label }}
       <small
         v-if="description"
+        :id="descriptionId"
         class="text-[0.56rem] leading-[1.4] text-muted"
       >
         {{ description }}
@@ -39,6 +42,8 @@ function onChange(event: Event): void {
       :max="max"
       :step="step"
       :disabled="disabled"
+      :aria-label="label"
+      :aria-describedby="description ? descriptionId : undefined"
       @change="onChange"
     />
   </label>

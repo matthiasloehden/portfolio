@@ -1,0 +1,101 @@
+import { expect, expectPageContract, test, waitForApp } from './support/app-test';
+
+test.describe('Shared navigation', () => {
+  test('supports keyboard access and routes through header and footer navigation', async ({ page }, testInfo) => {
+    const isMobile = testInfo.project.name === 'mobile-chromium';
+
+    await expectPageContract(page, {
+      path: '/work',
+      title: 'Professional Work | Matthias Löhden',
+      heading: 'Software for work that matters.',
+      background: '.triangle-background',
+    });
+
+    const skipLink = page.getByRole('link', { name: 'Skip to content' });
+    await page.keyboard.press('Home');
+    await page.keyboard.press('Tab');
+    await expect(skipLink).toBeFocused();
+    await expect(skipLink).toHaveAttribute('href', '#content');
+
+    const mainNavigation = page.getByRole('navigation', { name: 'Main navigation' });
+    const mainMenu = page.locator('#site-navigation');
+    const footerNavigation = page.getByRole('navigation', { name: 'Footer navigation' });
+
+    if (isMobile) {
+      await page.getByRole('button', { name: 'Open navigation' }).click();
+      await expect(mainMenu).toBeVisible();
+    }
+
+    await expect(mainNavigation.getByRole('link', { name: 'Work', exact: true })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
+    await expect(footerNavigation.getByRole('link', { name: 'Work', exact: true })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
+
+    await mainNavigation.getByRole('link', { name: 'University', exact: true }).click();
+    await expect(page).toHaveURL(/\/academic$/);
+
+    if (isMobile) {
+      await expect(mainMenu).toBeHidden();
+      await page.getByRole('button', { name: 'Open navigation' }).click();
+      await expect(mainMenu).toBeVisible();
+    }
+
+    await expect(mainNavigation.getByRole('link', { name: 'University', exact: true })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
+
+    if (isMobile) {
+      await page.getByRole('button', { name: 'Close navigation' }).click();
+    }
+
+    await footerNavigation.scrollIntoViewIfNeeded();
+    await footerNavigation.getByRole('link', { name: 'Personal', exact: true }).click();
+    await expect(page).toHaveURL(/\/personal$/);
+    await expect(footerNavigation.getByRole('link', { name: 'Personal', exact: true })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
+  });
+
+  test('adapts the main navigation to the current viewport', async ({ page }, testInfo) => {
+    await page.goto('/academic');
+    await waitForApp(page);
+
+    const menu = page.locator('#site-navigation');
+    const menuButton = page.locator('button[aria-controls="site-navigation"]');
+
+    if (testInfo.project.name === 'desktop-chromium') {
+      await expect(menu).toBeVisible();
+      await expect(menu.getByRole('link')).toHaveCount(5);
+      await expect(menuButton).toBeHidden();
+      return;
+    }
+
+    await expect(menu).toBeHidden();
+
+    await page.getByRole('button', { name: 'Open navigation' }).click();
+    await expect(menu).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Close navigation' })).toHaveAttribute('aria-expanded', 'true');
+    await expect(menu.getByRole('link')).toHaveCount(5);
+
+    await page.keyboard.press('Escape');
+    await expect(menu).toBeHidden();
+
+    await page.getByRole('button', { name: 'Open navigation' }).click();
+    const viewport = page.viewportSize();
+    if (!viewport) throw new Error('The mobile viewport is unavailable');
+    await page.mouse.click(10, viewport.height - 20);
+    await expect(menu).toBeHidden();
+
+    await page.getByRole('button', { name: 'Open navigation' }).click();
+    await menu.getByRole('link', { name: 'Work', exact: true }).click();
+    await expect(page).toHaveURL(/\/work$/);
+    await expect(menu).toBeHidden();
+    await expect(page.getByRole('button', { name: 'Open navigation' })).toHaveAttribute('aria-expanded', 'false');
+  });
+});

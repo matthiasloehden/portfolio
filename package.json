@@ -11,7 +11,9 @@
     "lint:fix": "oxlint --fix",
     "format": "oxfmt .",
     "format:check": "oxfmt . --check",
-    "test:e2e": "xvfb-run -a playwright test",
+    "test:e2e": "playwright test",
+    "test:e2e:a11y": "playwright test tests/e2e/accessibility.spec.ts",
+    "test:e2e:headed": "playwright test --headed",
     "type-check": "nuxi prepare && vue-tsc --build",
     "check": "yarn type-check && yarn lint && yarn format:check"
   },
@@ -20,12 +22,14 @@
     "three": "^0.185.1"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.12.1",
     "@playwright/test": "^1.62.1",
     "@tailwindcss/vite": "^4.3.3",
     "@types/node": "^26.1.2",
     "@types/three": "^0.185.0",
     "oxfmt": "^0.61.0",
     "oxlint": "^1.76.0",
+    "playwright-core": "^1.62.1",
     "tailwindcss": "^4.3.3",
     "typescript": "6.0.3",
     "vite": "^8.2.0",
