@@ -2,14 +2,14 @@ import type { HomeAboutContent, HomeCapabilitiesContent, HomeHeroContent } from 
 import { site } from '@/data/site';
 
 export const homeHero = {
-  kicker: 'Based in Germany · Building software',
+  kicker: 'Software Engineer · CS Student · Germany',
   title: 'I build',
   titleAccent: 'applications.',
   introduction:
-    'I’m Matthias, a software engineer focused on building reliable applications and the systems behind them, from backend architecture and data to interfaces, integrations, and long-term maintainability.',
+    'I’m Matthias, a trained application developer with three years of professional full-stack experience, currently studying computer science at IU. My background spans production applications, backend and frontend development, databases, integrations, system maintenance, and DevOps.',
   actions: [
     { label: 'Start a conversation', href: `mailto:${site.email}` },
-    { label: 'Explore profile', symbol: '↓', to: '/#about', variant: 'text' },
+    { label: 'View experience', symbol: '↓', to: '/#about', variant: 'text' },
   ],
   profile: {
     filename: 'profile.ts',
@@ -21,7 +21,7 @@ export const homeHero = {
   },
   highlights: [
     { number: '01', title: 'Since 2019', description: 'Professional software development' },
-    { number: '02', title: 'B.Sc. Informatics', description: 'Currently studying at IU' },
+    { number: '02', title: 'B.Sc. Computer Science', description: 'Currently studying at IU' },
     { number: '03', title: 'From concept to maintenance', description: 'Design, delivery, evolution' },
   ],
 } satisfies HomeHeroContent;
@@ -32,7 +32,7 @@ export const homeAbout = {
   title: 'Practical experience, backed by',
   titleAccent: 'strong fundamentals.',
   paragraphs: [
-    'I completed my application-development apprenticeship at TopRed Media from 2019 to 2022 and continued there as a software developer until 2025. Since 2022, I have paired that hands-on experience with computer science studies at IU.',
+    'I completed my application-development apprenticeship at TopRed Media from 2019 to 2022 and continued there as a software developer until 2025. Since 2022, I have paired that hands-on experience with computer science studies at IU, with coursework in distributed systems, security and software design.',
     'I like understanding how systems work and why they are built the way they are. I want to understand the actual problem, make deliberate technical decisions, and build solutions that are reliable, maintainable, and fit for purpose.',
   ],
   principles: ['Applications', 'Systems', 'Performance', 'Maintainability'],
@@ -69,7 +69,7 @@ export const homeCapabilities = {
       layer: 'Coursework',
       title: 'Academic',
       to: '/academic',
-      skills: ['Java', 'Python', 'JavaScript', 'Prolog', 'Apache Kafka', 'Apache Flink', 'ClickHouse', 'FIDO2'],
+      skills: ['Java', 'Python', 'JavaScript', 'R', 'Prolog', 'Apache Kafka', 'Apache Flink', 'ClickHouse', 'Grafana', 'FIDO2'],
     },
     {
       number: '03',
