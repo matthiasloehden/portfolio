@@ -1,32 +1,26 @@
-import { expect, expectHeadingInViewport, expectPageContract, test } from './support/app-test';
+import { clientCase, workCases, workClosing, workHero, workMeta, workOverview } from '@/data/work';
+import { expect, expectHeadingInViewport, expectPageContract, getPageHeroTitle, test } from './support/app-test';
 
 test.describe('Work page', () => {
   test('presents all professional case studies and links the overview to them', async ({ page }) => {
     await expectPageContract(page, {
       path: '/work',
-      title: 'Professional Work | Matthias Löhden',
-      heading: 'Software for work that matters.',
+      title: workMeta.title,
+      heading: getPageHeroTitle(workHero),
       background: '.triangle-background',
     });
 
-    const overview = page.locator('#work-list');
-    await expect(overview.getByRole('link')).toHaveCount(4);
+    const overview = page.locator(`#${workOverview.id}`);
+    await expect(overview.getByRole('link')).toHaveCount(workOverview.items.length);
 
-    const caseStudies = [
-      'Enterprise learning platform',
-      'Retail operations platform',
-      'Digital signage control system',
-      'One platform, different communities.',
-    ];
-
-    for (const heading of caseStudies) {
-      await expect(page.getByRole('heading', { name: heading, exact: true })).toBeAttached();
+    for (const caseStudy of workCases) {
+      await expect(page.getByRole('heading', { name: caseStudy.title, exact: true })).toBeAttached();
     }
 
-    await overview.getByRole('link', { name: /Client platform/i }).click();
-    await expect(page).toHaveURL(/#client-platform$/);
-    await expectHeadingInViewport(page, 'One platform, different communities.');
+    await overview.getByRole('link', { name: clientCase.listTitle }).click();
+    await expect(page).toHaveURL((url) => url.hash === `#${clientCase.id}`);
+    await expectHeadingInViewport(page, clientCase.title);
 
-    await expect(page.getByRole('heading', { name: 'Built for the people operating it every day.' })).toBeAttached();
+    await expect(page.getByRole('heading', { name: workClosing.title, exact: true })).toBeAttached();
   });
 });

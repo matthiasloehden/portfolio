@@ -1,40 +1,47 @@
-import { expect, expectHeadingInViewport, expectPageContract, test } from './support/app-test';
+import {
+  contributionPanel,
+  coolingPanel,
+  hardwareSection,
+  homelabPanel,
+  learningPanel,
+  personalClosing,
+  personalHero,
+  personalMeta,
+  personalOverview,
+  personalSections,
+} from '@/data/personal';
+import { expect, expectHeadingInViewport, expectPageContract, getPageHeroTitle, test } from './support/app-test';
 
 test.describe('Personal page', () => {
   test('presents all personal projects with their supporting panels', async ({ page }) => {
     await expectPageContract(page, {
       path: '/personal',
-      title: 'Personal Projects & Interests | Matthias Löhden',
-      heading: 'Built from curiosity.',
+      title: personalMeta.title,
+      heading: getPageHeroTitle(personalHero),
       background: '.mesh-background',
     });
 
-    const overview = page.locator('#personal-list');
-    await expect(overview.getByRole('link')).toHaveCount(4);
+    const overview = page.locator(`#${personalOverview.id}`);
+    await expect(overview.getByRole('link')).toHaveCount(personalOverview.items.length);
 
-    const projects = [
-      'Improving the tools I already use.',
-      'Running software beyond localhost.',
-      'From transistors to software architecture.',
-      'The machine matters too.',
-    ];
-
-    for (const heading of projects) {
-      await expect(page.getByRole('heading', { name: heading, exact: true })).toBeAttached();
+    for (const project of personalSections) {
+      await expect(page.getByRole('heading', { name: project.title, exact: true })).toBeAttached();
     }
 
-    await expect(page.getByLabel('Selected open-source contributions')).toBeAttached();
-    await expect(page.getByLabel(/A personal computer hosts Docker workloads/i)).toBeAttached();
-    await expect(page.getByLabel(/Favorite educational YouTube creators/i)).toBeAttached();
-    await expect(page.getByLabel(/Custom PC water-cooling system/i)).toBeAttached();
+    for (const panel of [contributionPanel, homelabPanel, learningPanel, coolingPanel]) {
+      await expect(page.getByLabel(panel.ariaLabel, { exact: true })).toBeAttached();
+    }
 
-    await overview.getByRole('link', { name: /Custom PC hardware/i }).click();
-    await expect(page).toHaveURL(/#hardware$/);
-    await expectHeadingInViewport(page, 'The machine matters too.');
+    await overview.getByRole('link', { name: hardwareSection.listTitle }).click();
+    await expect(page).toHaveURL((url) => url.hash === `#${hardwareSection.id}`);
+    await expectHeadingInViewport(page, hardwareSection.title);
 
-    await expect(page.getByRole('link', { name: 'View source', exact: true }).last()).toHaveAttribute(
+    const sourceAction = personalClosing.actions.find((action) => action.href?.startsWith('http'));
+    if (!sourceAction?.href) throw new Error('The personal page needs an external source action');
+
+    await expect(page.getByRole('link', { name: sourceAction.label, exact: true }).last()).toHaveAttribute(
       'href',
-      'https://github.com/matthiasloehden/portfolio',
+      sourceAction.href,
     );
   });
 });

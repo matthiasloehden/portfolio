@@ -1,38 +1,41 @@
-import { expect, expectPageContract, test } from './support/app-test';
+import { homeAbout, homeCapabilities, homeHero } from '@/data/home';
+import { site } from '@/data/site';
+import { workHero } from '@/data/work';
+import { expect, expectPageContract, getPageHeroTitle, test } from './support/app-test';
 
 test.describe('Home page', () => {
   test('introduces the profile and provides the three capability paths', async ({ page }) => {
     await expectPageContract(page, {
       path: '/',
-      title: 'Matthias Löhden | Software Engineer',
-      heading: 'I build applications.',
+      title: `${site.name} | ${site.role}`,
+      heading: `${homeHero.title} ${homeHero.titleAccent}`,
       background: '.wave-background',
     });
 
-    await expect(page.getByText('Professional software development', { exact: true })).toBeVisible();
+    await expect(page.getByText(homeHero.highlights[0].description, { exact: true })).toBeVisible();
     await expect(
-      page.getByRole('heading', { name: /Practical experience, backed by strong fundamentals\./i }),
+      page.getByRole('heading', { name: `${homeAbout.title} ${homeAbout.titleAccent}`, exact: true }),
     ).toBeAttached();
-    await expect(page.getByRole('heading', { name: /Experience, in context\./i })).toBeAttached();
+    await expect(
+      page.getByRole('heading', {
+        name: `${homeCapabilities.title} ${homeCapabilities.titleAccent}`,
+        exact: true,
+      }),
+    ).toBeAttached();
 
     const capabilities = page.locator('#capabilities');
     const capabilityLinks = capabilities.getByRole('link');
-    await expect(capabilityLinks).toHaveCount(3);
-    await expect(capabilities.getByRole('link', { name: 'View Professional section' })).toHaveAttribute(
-      'href',
-      '/work',
-    );
-    await expect(capabilities.getByRole('link', { name: 'View Academic section' })).toHaveAttribute(
-      'href',
-      '/academic',
-    );
-    await expect(capabilities.getByRole('link', { name: 'View Personal section' })).toHaveAttribute(
-      'href',
-      '/personal',
-    );
+    await expect(capabilityLinks).toHaveCount(homeCapabilities.items.length);
 
-    await capabilities.getByRole('link', { name: 'View Professional section' }).click();
-    await expect(page).toHaveURL(/\/work$/);
-    await expect(page.getByRole('heading', { level: 1, name: 'Software for work that matters.' })).toBeVisible();
+    for (const capability of homeCapabilities.items) {
+      await expect(
+        capabilities.getByRole('link', { name: `View ${capability.title} section`, exact: true }),
+      ).toHaveAttribute('href', capability.to);
+    }
+
+    const firstCapability = homeCapabilities.items[0];
+    await capabilities.getByRole('link', { name: `View ${firstCapability.title} section`, exact: true }).click();
+    await expect(page).toHaveURL((url) => url.pathname === firstCapability.to);
+    await expect(page.getByRole('heading', { level: 1, name: getPageHeroTitle(workHero) })).toBeVisible();
   });
 });

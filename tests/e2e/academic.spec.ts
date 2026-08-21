@@ -1,33 +1,37 @@
-import { expect, expectHeadingInViewport, expectPageContract, test } from './support/app-test';
+import {
+  academicCases,
+  academicHero,
+  academicMeta,
+  academicOverview,
+  authenticationPanel,
+  passkeysCase,
+  servicePanel,
+  streamingPanel,
+} from '@/data/academic';
+import { expect, expectHeadingInViewport, expectPageContract, getPageHeroTitle, test } from './support/app-test';
 
 test.describe('Academic page', () => {
   test('presents all university projects and their essential system information', async ({ page }) => {
     await expectPageContract(page, {
       path: '/academic',
-      title: 'University Projects | Matthias Löhden',
-      heading: 'Systems, security & service.',
+      title: academicMeta.title,
+      heading: getPageHeroTitle(academicHero),
       background: '.particle-background',
     });
 
-    const overview = page.locator('#academic-list');
-    await expect(overview.getByRole('link')).toHaveCount(3);
+    const overview = page.locator(`#${academicOverview.id}`);
+    await expect(overview.getByRole('link')).toHaveCount(academicOverview.items.length);
 
-    const projects = [
-      'From raw events to a live operational view.',
-      'Passwordless sign-in with FIDO2 passkeys.',
-      'Turning framework guidance into workable service operations.',
-    ];
-
-    for (const heading of projects) {
-      await expect(page.getByRole('heading', { name: heading, exact: true })).toBeAttached();
+    for (const project of academicCases) {
+      await expect(page.getByRole('heading', { name: project.title, exact: true })).toBeAttached();
     }
 
-    await expect(page.getByLabel(/Data flows from producers through Kafka and Flink/i)).toBeAttached();
-    await expect(page.getByText('No shared password transmitted', { exact: true })).toBeAttached();
-    await expect(page.getByText('FitSM', { exact: true })).toBeAttached();
+    await expect(page.getByLabel(streamingPanel.ariaLabel, { exact: true })).toBeAttached();
+    await expect(page.getByText(authenticationPanel.status, { exact: true })).toBeAttached();
+    await expect(page.getByText(servicePanel.frameworks[1].name, { exact: true })).toBeAttached();
 
-    await overview.getByRole('link', { name: /FIDO2 passkeys/i }).click();
-    await expect(page).toHaveURL(/#passkeys$/);
-    await expectHeadingInViewport(page, 'Passwordless sign-in with FIDO2 passkeys.');
+    await overview.getByRole('link', { name: passkeysCase.listTitle }).click();
+    await expect(page).toHaveURL((url) => url.hash === `#${passkeysCase.id}`);
+    await expectHeadingInViewport(page, passkeysCase.title);
   });
 });

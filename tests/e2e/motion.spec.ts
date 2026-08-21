@@ -1,3 +1,5 @@
+import { streamingCase } from '@/data/academic';
+import { hardwareSection } from '@/data/personal';
 import { expect, test, waitForApp } from './support/app-test';
 
 test.describe('Motion preferences and scroll reveal', () => {
@@ -5,7 +7,7 @@ test.describe('Motion preferences and scroll reveal', () => {
     await page.goto('/academic');
     await waitForApp(page);
 
-    const target = page.locator('#streaming header [data-reveal="up"]').first();
+    const target = page.locator(`#${streamingCase.id} header [data-reveal="up"]`).first();
     await expect(target).not.toHaveClass(/is-revealed/);
 
     await target.scrollIntoViewIfNeeded();
@@ -25,6 +27,6 @@ test.describe('Motion preferences and scroll reveal', () => {
     await waitForApp(page);
 
     await expect.poll(() => page.locator('[data-reveal]:not(.is-revealed)').count()).toBe(0);
-    await expect(page.getByRole('heading', { name: 'The machine matters too.' })).toBeAttached();
+    await expect(page.getByRole('heading', { name: hardwareSection.title, exact: true })).toBeAttached();
   });
 });
