@@ -291,6 +291,7 @@ export interface OpenSourceContribution {
   category: string;
   title: string;
   description: string;
+  href?: string;
 }
 
 export interface LearningSource {

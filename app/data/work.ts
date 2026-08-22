@@ -81,7 +81,8 @@ export const clientCase: WorkCaseStudyContent = {
   category: 'TopRed Media',
   type: 'Company product',
   title: 'Configurable client platform',
-  summary: 'A shared application foundation with client-specific modules for content, communication, and access control.',
+  summary:
+    'A shared application foundation with client-specific modules for content, communication, and access control.',
   paragraphs: [
     'Our team consolidated reusable packages and features from other projects into a configurable product platform that TopRed Media offered to clients. Modules such as CMS content, articles, live chat, events, teams, roles, and permissions could be enabled and configured individually for each client.',
     'The same foundation supported use cases as different as communication between a personal trainer and customers or coordination within a kindergarten, without maintaining a separate product for each client.',

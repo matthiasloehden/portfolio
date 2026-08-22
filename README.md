@@ -38,7 +38,7 @@ performance fallbacks, and automated quality gates.
 ## My Open Source Contributions 
 | Work | Status | Link |
 | --- | --- | --- |
-| Smart-home control for `magic_mapper` | Merged | [feature/add-tcp-command](https://github.com/andrewfraley/magic_mapper/commit/9f45787c178d706ead3e8574dae0f2775ac24d7b) |
+| Smart-home control for `magic_mapper` | Merged | [Pull request #22](https://github.com/andrewfraley/magic_mapper/pull/22) |
 | Game-server panel frontend feature | Implemented | ⛓️‍💥 |
 | Game-server plugin bug fix | Fixed | ⛓️‍💥 |
 

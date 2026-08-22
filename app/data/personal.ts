@@ -24,7 +24,7 @@ export const openSourceSection: PersonalSectionContent = {
   lead: 'My personal projects often begin with a practical need. Sometimes the best place to solve it is upstream.',
   paragraphs: [
     'I have contributed features and fixes to a remote-control library, a game-server management panel, and a game-server plugin. One of those contributions added smart-home control for my smart bulb. It was accepted and merged into the library.',
-    'Working in existing codebases has taught me to understand unfamiliar structures, keep changes focused, and fit new behavior into an established project.',
+    'Contributing to existing projects has taught me to navigate unfamiliar codebases, understand established conventions, and keep changes focused enough to integrate cleanly.',
   ],
   tags: ['Open source', 'Frontend', 'Smart home', 'Debugging'],
 };
@@ -39,8 +39,8 @@ export const homelabSection: PersonalSectionContent = {
   title: 'Running software beyond localhost.',
   lead: 'I use my own PC to learn how applications behave when they depend on containers, services, and the resources around them.',
   paragraphs: [
-    'I have worked with Docker, hosted server workloads, and set up large language models locally.',
-    'Because I manage the whole environment myself, I can experiment with deployment and operations while staying in control of every part.',
+    'I use Docker to run and isolate services on my own hardware, host applications and game-server workloads, and experiment with running large language models locally.',
+    'Managing the environment myself gives me hands-on experience with deployment, networking, storage, and resource constraints outside a development machine.',
   ],
   tags: ['Docker', 'Server hosting', 'Local LLMs', 'Self-hosting'],
 };
@@ -87,11 +87,11 @@ export const personalHero: PersonalHeroContent = {
     'Beyond professional and university work, I contribute to tools I use, run systems at home, keep learning, and build PCs down to the cooling loop.',
   ],
   facts: [
-    { label: 'Code', value: 'C#, Unity & open source' },
+    { label: 'Code', value: 'Java, TypeScript & open source' },
     { label: 'Systems', value: 'Docker, hosting & local AI' },
     { label: 'Hardware', value: 'Custom-built & water-cooled' },
   ],
-  scrollLabel: 'Explore personal work',
+  scrollLabel: 'Explore projects & interests',
   scrollHref: '#personal-list',
 };
 
@@ -99,7 +99,7 @@ export const personalOverview: PersonalOverviewContent = {
   id: 'personal-list',
   titleId: 'personal-list-title',
   label: 'Outside client & university work',
-  title: 'Four ways curiosity becomes practice.',
+  title: 'Projects, systems & technical interests.',
   items: createCaseStudyListItems(personalSections),
 };
 
@@ -126,6 +126,7 @@ export const contributions: OpenSourceContribution[] = [
     category: 'Remote-control library',
     title: 'Smart-home control',
     description: 'Added a function for controlling my smart bulb and contributed it back to the library.',
+    href: 'https://github.com/andrewfraley/magic_mapper/pull/22',
   },
   {
     status: 'Implemented',
@@ -185,7 +186,7 @@ export const homelabPanel: PersonalHomelabPanelContent = {
     { type: 'MODEL', title: 'Local LLM', description: 'AI on-device' },
   ],
   status: 'Self-managed',
-  process: 'Experiment → understand → improve',
+  process: 'Deploy → observe → understand → improve',
 };
 
 export const learningPanel: PersonalLearningPanelContent = {
