@@ -1,8 +1,8 @@
-import { site } from '@/data/site';
 import { createCaseStudyListItems } from '@/data/caseStudies';
 import type {
   AcademicAuthenticationPanelContent,
   AcademicCaseStudyContent,
+  AcademicEngineeringPanelContent,
   AcademicHeroContent,
   AcademicOverviewContent,
   AcademicServicePanelContent,
@@ -12,18 +12,18 @@ import type {
 
 export const streamingCase: AcademicCaseStudyContent = {
   id: 'streaming',
-  number: '01',
+  number: '02',
   listTitle: 'Event-streaming analytics',
   listCategory: 'Scalability & big data',
   category: 'Scalability & big data',
   type: 'Streaming architecture',
   title: 'From raw events to a live operational view.',
-  lead: 'A prototype centered on distributed systems and real-time data processing, built around a streaming pipeline for live operational insight.',
+  lead: 'A distributed event-processing prototype for ingesting, transforming, and analyzing streaming data in real time.',
   description:
     'Kafka decoupled event producers from downstream consumers. Flink validated, enriched, and aggregated the stream before writing query-ready records to ClickHouse. Grafana turned that data into an operational dashboard for inspecting volume, trends, and processing health.',
   notes: [
     {
-      title: 'Question',
+      title: 'Engineering question',
       text: 'How can a modular pipeline turn an unbounded event stream into information that is useful immediately?',
     },
     {
@@ -35,7 +35,7 @@ export const streamingCase: AcademicCaseStudyContent = {
 
 export const passkeysCase: AcademicCaseStudyContent = {
   id: 'passkeys',
-  number: '02',
+  number: '03',
   listTitle: 'FIDO2 passkeys',
   listCategory: 'Security design',
   category: 'Security design',
@@ -46,7 +46,7 @@ export const passkeysCase: AcademicCaseStudyContent = {
     'Rather than treating security as an additional layer, the system was designed around authentication flows, credentials, trust boundaries, and sensitive operations. Registration associated a public key with the user, while authentication used a scoped challenge-response ceremony protected by the browser and authenticator.',
   notes: [
     {
-      title: 'Question',
+      title: 'Engineering question',
       text: 'How can authentication become easier for users while reducing exposure to phishing and credential reuse?',
     },
     {
@@ -56,20 +56,43 @@ export const passkeysCase: AcademicCaseStudyContent = {
   ],
 };
 
+export const softwareEngineeringCase: AcademicCaseStudyContent = {
+  id: 'software-engineering',
+  number: '01',
+  listTitle: 'Software engineering project',
+  listCategory: 'Lifecycle & quality',
+  category: 'Software engineering',
+  type: 'Team project',
+  title: 'From requirements to a tested release.',
+  lead: 'A completed group project bringing methods from earlier software-engineering courses together across the full development lifecycle.',
+  description:
+    'Our team developed a TypeScript web application for planning and tracking learning time, organizing the work through tickets and milestones. We collaborated on requirements, specification, design, implementation, testing, and documentation. I contributed across these stages while taking primary responsibility for architecture and quality management.',
+  notes: [
+    {
+      title: 'Engineering question',
+      text: 'How can a team apply software-engineering methods to deliver a traceable, quality-assured application across the complete lifecycle?',
+    },
+    {
+      title: 'Focus',
+      text: 'Software lifecycle, architecture, quality management, testing, documentation, and iterative delivery.',
+    },
+  ],
+};
+
 export const itsmCase: AcademicCaseStudyContent = {
   id: 'itsm',
-  number: '03',
+  number: '04',
   listTitle: 'IT service management',
   listCategory: 'Service operations',
   category: 'Service operations',
   type: 'Operating model',
-  title: 'Turning framework guidance into workable service operations.',
-  lead: 'A service-management concept focused on operational reliability, clear ownership, and repeatable service quality.',
+  title: 'Designing a lightweight IT service management model.',
+  lead: 'A service-management concept based on ITIL and FitSM, defining ownership, incident and request flows, escalation paths, and continual improvement.',
   description:
-    'The work defined ownership, escalation paths, service records, and improvement loops without treating the frameworks as rigid checklists. ITIL provided the broader practice perspective; FitSM helped reduce it to a lightweight and auditable minimum.',
+    'The model translated broader framework guidance into a lightweight and auditable operating approach. ITIL provided the practice context, while FitSM helped define a practical minimum for repeatable service quality.',
   notes: [
     {
-      title: 'Question',
+      title: 'Engineering question',
       text: 'What is the smallest useful process model that still creates clear ownership and repeatable service quality?',
     },
     {
@@ -79,18 +102,19 @@ export const itsmCase: AcademicCaseStudyContent = {
   ],
 };
 
-export const academicCases = [streamingCase, passkeysCase, itsmCase];
+export const academicCases = [softwareEngineeringCase, streamingCase, passkeysCase, itsmCase];
 
 export const academicHero: AcademicHeroContent = {
-  kickerPrefix: '[ 01 / 03 ]',
+  kickerPrefix: '[ COMPUTER SCIENCE ]',
   kicker: 'Selected academic work',
-  titleLines: [{ text: 'Systems,' }, { text: 'security', accent: true, suffix: ' &' }, { text: 'service.' }],
-  introduction:
-    'Three selected projects show different application concerns: scalable data processing, authentication security, and reliable service operations.',
+  titleLines: [{ text: 'Software,' }, { text: 'systems', accent: true, suffix: ' &' }, { text: 'security.' }],
+  introduction: [
+    'Four selected projects cover software engineering across the full lifecycle, distributed data processing, authentication and system security, and reliable service operations.',
+  ],
   facts: [
-    { label: 'Languages', value: 'JavaScript, Java, Python & Prolog' },
-    { label: 'Systems', value: 'Kafka, Flink, ClickHouse & WebAuthn' },
-    { label: 'Focus', value: 'Scalability, security & operations' },
+    { label: 'Coursework', value: 'JavaScript, Java, Python, Prolog & R' },
+    { label: 'Systems & tools', value: 'Kafka, Flink, ClickHouse, Grafana & WebAuthn' },
+    { label: 'Focus', value: 'Software engineering, systems & security' },
   ],
   scrollLabel: 'View projects',
   scrollHref: '#academic-list',
@@ -100,18 +124,18 @@ export const academicOverview: AcademicOverviewContent = {
   id: 'academic-list',
   titleId: 'academic-list-title',
   label: 'Selected university projects',
-  title: 'Three perspectives on dependable digital systems.',
-  titleLines: ['Three', 'perspectives', 'on dependable', 'digital', 'systems.'],
+  title: 'Four selected university projects.',
+  titleLines: ['Four selected', 'university', 'projects.'],
   items: createCaseStudyListItems(academicCases),
 };
 
 export const academicClosing: PageClosingContent = {
-  kickerPrefix: '/ END',
-  kicker: 'More work ahead',
-  title: 'Curiosity is the common stack.',
-  description: 'These projects connect technical implementation with the systems, standards, and people around it.',
+  kickerPrefix: '/',
+  kicker: 'Academic scope',
+  title: 'Computer science beyond the application layer.',
+  description:
+    'These projects connect my professional experience with academic work across the complete software lifecycle, distributed data processing, authentication and system security, and IT service operations.',
   actions: [
-    { label: 'Start a conversation', href: `mailto:${site.email}` },
     { label: 'View personal projects', symbol: '→', to: '/personal', variant: 'text' },
   ],
 };
@@ -126,6 +150,35 @@ export const streamingPanel: AcademicStreamingPanelContent = {
     { name: 'ClickHouse', description: 'Analytics' },
     { name: 'Grafana', description: 'Visibility' },
   ],
+};
+
+export const engineeringPanel: AcademicEngineeringPanelContent = {
+  frame: { title: 'lernzeit.manager', meta: 'personal study planning' },
+  ariaLabel: 'Preview of the completed learning-time manager web application',
+  navigation: ['Overview', 'Learning goals', 'Planning', 'Focus time', 'Analytics', 'Reminders'],
+  metrics: [
+    { label: 'Active goals', value: '2' },
+    { label: 'Monthly plan', value: '38 h' },
+    { label: 'Focus time', value: '8.1 h' },
+  ],
+  goals: [
+    { title: 'Data modeling', status: 'In progress' },
+    { title: 'Linear algebra', status: 'Planned' },
+  ],
+  schedule: [
+    { date: '26.07', title: 'Normalization exercises' },
+    { date: '29.07', title: 'Vector space exercises' },
+  ],
+  facts: [
+    { label: 'Project', value: 'Collaborative group work' },
+    { label: 'Primary responsibility', value: 'Architecture & quality management' },
+    { label: 'Delivery', value: 'Tickets, milestones & reviews' },
+  ],
+  demo: {
+    label: 'View live demo',
+    href: 'https://struperto.github.io/isef01-lernzeit-manager/',
+  },
+  status: 'Full lifecycle completed',
 };
 
 export const authenticationPanel: AcademicAuthenticationPanelContent = {
@@ -160,5 +213,5 @@ export const servicePanel: AcademicServicePanelContent = {
 export const academicMeta = {
   title: 'University Projects | Matthias Löhden',
   description:
-    'Selected computer science work by Matthias Löhden across scalable event processing, FIDO2 authentication, service operations, and applied software design.',
+    'Selected computer science work by Matthias Löhden across scalable event processing, FIDO2 authentication, applied software engineering, and service operations.',
 };

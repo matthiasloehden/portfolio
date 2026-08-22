@@ -5,9 +5,11 @@ import {
   academicMeta,
   academicOverview,
   authenticationPanel,
+  engineeringPanel,
   itsmCase,
   passkeysCase,
   servicePanel,
+  softwareEngineeringCase,
   streamingCase,
   streamingPanel,
 } from '@/data/academic';
@@ -27,18 +29,25 @@ useSeoMeta(academicMeta);
       />
       <SharedCaseStudyList v-bind="academicOverview" />
 
-      <AcademicCaseStudy v-bind="streamingCase">
-        <AcademicStreamingPanel :content="streamingPanel" />
+      <AcademicCaseStudy v-bind="softwareEngineeringCase">
+        <AcademicEngineeringPanel :content="engineeringPanel" />
       </AcademicCaseStudy>
 
       <AcademicCaseStudy
-        v-bind="passkeysCase"
+        v-bind="streamingCase"
         reverse
       >
+        <AcademicStreamingPanel :content="streamingPanel" />
+      </AcademicCaseStudy>
+
+      <AcademicCaseStudy v-bind="passkeysCase">
         <AcademicAuthenticationPanel :content="authenticationPanel" />
       </AcademicCaseStudy>
 
-      <AcademicCaseStudy v-bind="itsmCase">
+      <AcademicCaseStudy
+        v-bind="itsmCase"
+        reverse
+      >
         <AcademicServicePanel :content="servicePanel" />
       </AcademicCaseStudy>
 

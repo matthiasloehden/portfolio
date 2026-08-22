@@ -11,23 +11,10 @@ defineProps<{
     class="bg-raised/95"
     v-bind="content.frame"
   >
-    <div class="grid grid-cols-1 gap-4 p-5 sm:grid-cols-[7rem_1fr] sm:p-6 md:p-8 xl:p-10">
-      <div
-        class="grid grid-cols-4 content-start gap-[0.35rem] overflow-hidden border-b border-line pb-3 sm:grid-cols-1 sm:border-r sm:border-b-0 sm:pr-4 sm:pb-0"
-        aria-hidden="true"
-      >
-        <span
-          v-for="(item, index) in content.navigation"
-          :key="item"
-          :class="[
-            'px-1 py-[0.55rem] text-center font-mono text-[0.55rem] sm:px-[0.55rem] sm:text-left',
-            index === 0 ? 'border-l border-primary bg-surface-hover text-foreground' : 'text-muted',
-          ]"
-        >
-          {{ item }}
-        </span>
-      </div>
-
+    <SharedAppPreview
+      :navigation="content.navigation"
+      aria-label="Learning platform interface preview"
+    >
       <div class="grid grid-cols-1 gap-[0.65rem] sm:grid-cols-3">
         <div
           class="grid min-h-32 content-between border border-line bg-[linear-gradient(110deg,var(--surface-hover),transparent),repeating-linear-gradient(90deg,transparent,transparent_2rem,var(--line)_2rem,var(--line)_calc(2rem+1px))] p-3 sm:col-span-3"
@@ -56,7 +43,7 @@ defineProps<{
           <small class="font-mono text-[0.54rem] leading-[1.45] text-muted">{{ format.description }}</small>
         </div>
       </div>
-    </div>
+    </SharedAppPreview>
 
     <div class="border-t border-line px-4 py-3">
       <SharedStatusIndicator :label="content.status" />

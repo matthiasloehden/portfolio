@@ -160,18 +160,20 @@ export interface PanelFrameContent {
   meta: string;
 }
 
+export interface AppPreviewFeatured {
+  title: string;
+  description: string;
+}
+
+export interface AppPreviewItem extends AppPreviewFeatured {
+  symbol: string;
+}
+
 export interface WorkLearningPanelContent {
   frame: PanelFrameContent;
   navigation: string[];
-  featured: {
-    title: string;
-    description: string;
-  };
-  formats: Array<{
-    symbol: string;
-    title: string;
-    description: string;
-  }>;
+  featured: AppPreviewFeatured;
+  formats: AppPreviewItem[];
   status: string;
 }
 
@@ -240,13 +242,24 @@ export interface AcademicAuthenticationPanelContent {
 export interface AcademicEngineeringPanelContent {
   frame: PanelFrameContent;
   ariaLabel: string;
-  responsibilities: string[];
-  stages: Array<{
-    number: string;
-    title: string;
-    description: string;
+  navigation: string[];
+  metrics: Array<{
+    label: string;
+    value: string;
   }>;
-  delivery: string[];
+  goals: Array<{
+    title: string;
+    status: string;
+  }>;
+  schedule: Array<{
+    date: string;
+    title: string;
+  }>;
+  facts: LabeledValue[];
+  demo: {
+    label: string;
+    href: string;
+  };
   status: string;
 }
 
