@@ -10,7 +10,7 @@ defineProps<{
   <SharedPanelFrame v-bind="content.frame">
     <SharedAppPreview
       :navigation="content.navigation"
-      :aria-label="content.ariaLabel"
+      :ariaLabel="content.ariaLabel"
     >
       <div class="grid content-start gap-4">
         <header class="border-b border-line pb-2">

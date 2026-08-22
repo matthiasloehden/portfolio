@@ -13,7 +13,7 @@ defineProps<{
   >
     <SharedAppPreview
       :navigation="content.navigation"
-      aria-label="Learning platform interface preview"
+      ariaLabel="Learning platform interface preview"
     >
       <div class="grid grid-cols-1 gap-[0.65rem] sm:grid-cols-3">
         <div
