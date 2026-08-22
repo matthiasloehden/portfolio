@@ -115,7 +115,7 @@ export interface PageHeroContent {
   kickerPrefix: string;
   kicker: string;
   titleLines: PageHeroTitleLine[];
-  introduction: string;
+  introduction: string[];
   facts: LabeledValue[];
   scrollLabel: string;
   scrollHref: string;
@@ -234,6 +234,19 @@ export interface AcademicAuthenticationPanelContent {
     title: string;
     description: string;
   }>;
+  status: string;
+}
+
+export interface AcademicEngineeringPanelContent {
+  frame: PanelFrameContent;
+  ariaLabel: string;
+  responsibilities: string[];
+  stages: Array<{
+    number: string;
+    title: string;
+    description: string;
+  }>;
+  delivery: string[];
   status: string;
 }
 

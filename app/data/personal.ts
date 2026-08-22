@@ -83,8 +83,9 @@ export const personalHero: PersonalHeroContent = {
   kickerPrefix: '[ OPEN / CURIOUS ]',
   kicker: 'Personal projects & interests',
   titleLines: [{ text: 'Built from' }, { text: 'curiosity.', accent: true }],
-  introduction:
+  introduction: [
     'Beyond professional and university work, I contribute to tools I use, run systems at home, keep learning, and build PCs down to the cooling loop.',
+  ],
   facts: [
     { label: 'Code', value: 'C#, Unity & open source' },
     { label: 'Systems', value: 'Docker, hosting & local AI' },

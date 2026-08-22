@@ -7,7 +7,7 @@ defineProps<
   }
 >();
 
-const paragraphDelayClasses = ['[--reveal-delay:0ms]', '[--reveal-delay:70ms]'];
+const paragraphDelayClasses = ['[--reveal-delay:0ms]', '[--reveal-delay:70ms]', '[--reveal-delay:140ms]'];
 const factDelayClasses = ['[--reveal-delay:0ms]', '[--reveal-delay:55ms]', '[--reveal-delay:110ms]'];
 </script>
 

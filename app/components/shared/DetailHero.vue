@@ -46,9 +46,15 @@ const titleLabel = computed(() => props.content.titleLines.map((line) => `${line
         :class="['max-w-lg pb-2 [--reveal-delay:130ms] md:max-w-none', desktopAlignment === 'start' && 'md:pt-9']"
         data-reveal="right"
       >
-        <p class="motion-hover text-base leading-7 text-muted xl:text-[1.15rem] xl:leading-8">
-          {{ content.introduction }}
-        </p>
+        <div class="space-y-4">
+          <p
+            v-for="paragraph in content.introduction"
+            :key="paragraph"
+            class="motion-hover text-base leading-7 text-muted xl:text-[1.15rem] xl:leading-8"
+          >
+            {{ paragraph }}
+          </p>
+        </div>
         <SharedHeroFacts :facts="content.facts" />
       </div>
     </div>

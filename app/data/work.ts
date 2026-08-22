@@ -20,9 +20,9 @@ export const learningCase: WorkCaseStudyContent = {
   category: 'Enterprise client',
   type: 'Learning & content',
   title: 'Enterprise learning platform',
-  summary: 'A learning application backed by a purpose-built publishing and permissions system.',
+  summary: 'Learning platform with a custom CMS, role-based access, and multiple content formats.',
   paragraphs: [
-    'Our team at TopRed Media was responsible for an application that brought multiple learning formats into one managed experience. Its custom CMS supported events, videos, podcasts, and articles instead of forcing very different content into one generic model.',
+    'Our team at TopRed Media was responsible for developing the application and managing its content. Its custom CMS supported events, videos, podcasts, and articles in one system.',
     'Custom access rights controlled who could reach specific parts of the platform, making permissions a core product capability alongside publishing.',
   ],
   facts: [
@@ -40,15 +40,16 @@ export const retailCase: WorkCaseStudyContent = {
   category: 'Enterprise client',
   type: 'Retail operations',
   title: 'Retail operations platform',
-  summary: 'A data-heavy operational workspace for tasks, shop records, changes, and reporting.',
+  summary: 'Operational platform for shop data, tasks, workflows, and Excel-based reporting.',
   paragraphs: [
-    'Our team built the platform that gave employees a central place to receive and complete tasks while maintaining the operational record for each shop. Individual shop pages collected opening times, floor layouts, location data, and location or postal-change workflows.',
-    'Its analytics brought shop, task, and related platform data together in Excel reports. The flow also worked in reverse: edited spreadsheets could be uploaded and synchronized back to the database.',
+    'Our team built a central platform where shop employees received and completed operational tasks, including documenting completed work with photo uploads.',
+    'Each shop had its own profile containing location data, floor layouts, opening hours, open and closed tasks, and workflows for location and postal changes.',
+    'The platform’s analytics brought shop, task, and related platform data together in Excel reports. The flow also worked in reverse: edited spreadsheets could be uploaded and synchronized back to the database.',
   ],
   facts: [
     { label: 'Purpose', value: 'Shop and task management' },
     { label: 'Data', value: 'Locations, layouts, hours, tasks' },
-    { label: 'Reporting', value: 'Excel export and import sync' },
+    { label: 'Reporting', value: 'Bidirectional Excel/database sync' },
   ],
 };
 
@@ -60,7 +61,7 @@ export const signageCase: WorkCaseStudyContent = {
   category: 'Enterprise client',
   type: 'Digital signage',
   title: 'Digital signage control system',
-  summary: 'Player software connecting remote operations, physical displays, and platform analytics.',
+  summary: 'Python service and Electron UI for remote display control and operational monitoring.',
   paragraphs: [
     'I was responsible for a Python service with an Electron frontend that ran on digital-signage players and controlled their connected displays while advertisements were playing.',
     'The service communicated with each display over RS-232 and sent player status back to the central retail operations platform for analytics. Operators could connect through remote administration and use the Electron interface to control the service.',
@@ -78,34 +79,36 @@ export const clientCase: WorkCaseStudyContent = {
   listTitle: 'Client platform',
   listCategory: 'CMS & communication',
   category: 'TopRed Media',
-  type: 'Internal product',
-  title: 'One platform, different communities.',
-  summary: 'A configurable application foundation for content, communication, and client-specific workflows.',
+  type: 'Company product',
+  title: 'Configurable client platform',
+  summary: 'A shared application foundation with client-specific modules for content, communication, and access control.',
   paragraphs: [
-    'Alongside the client work, our team developed an internal platform combining a custom CMS with live chat, event management, team management, and related communication tools.',
-    'It was adaptable to very different organizations: examples included a personal trainer communicating with customers and a kindergarten coordinating its community. The shared product foundation could serve both without reducing them to the same workflow.',
+    'Our team consolidated reusable packages and features from other projects into a configurable product platform that TopRed Media offered to clients. Modules such as CMS content, articles, live chat, events, teams, roles, and permissions could be enabled and configured individually for each client.',
+    'The same foundation supported use cases as different as communication between a personal trainer and customers or coordination within a kindergarten, without maintaining a separate product for each client.',
   ],
   facts: [
     { label: 'Purpose', value: 'Content and communication' },
-    { label: 'Modules', value: 'CMS, live chat, events, teams' },
-    { label: 'Model', value: 'Configurable for client contexts' },
+    { label: 'Modules', value: 'Content, chat, events, teams, access' },
+    { label: 'Model', value: 'Features enabled per client' },
   ],
 };
 
 export const workCases = [learningCase, retailCase, signageCase, clientCase];
 
 export const workHero: WorkHeroContent = {
-  kickerPrefix: '[ 2019 / 2025 ]',
-  kicker: 'Client & product systems',
-  titleLines: [{ text: 'Software for' }, { text: 'work that' }, { text: 'matters.', accent: true }],
-  introduction:
-    'At TopRed Media GmbH, I contributed across the full lifecycle of production enterprise applications, from initial development through years of feature development, refactoring, integrations, and maintenance. Working in a three-developer team, I contributed across the stack as requirements, workflows, and the products themselves continuously evolved.',
+  kickerPrefix: '[ 2019–2025 ]',
+  kicker: 'Professional software development',
+  titleLines: [{ text: 'Production' }, { text: 'software.', accent: true }],
+  introduction: [
+    'At TopRed Media GmbH, I contributed across the full lifecycle of production enterprise applications, from initial development through years of feature development, refactoring, integrations, and maintenance.',
+    'Working in a three-developer team, I contributed across the stack as requirements, workflows, and the products themselves continuously evolved.',
+  ],
   facts: [
     { label: 'Company', value: 'TopRed Media GmbH' },
     { label: 'Role', value: 'Apprentice → full-stack developer' },
     { label: 'Systems', value: 'Four selected projects' },
   ],
-  scrollLabel: 'Explore the systems',
+  scrollLabel: 'Explore selected work',
   scrollHref: '#work-list',
 };
 
@@ -113,13 +116,13 @@ export const workOverview: WorkOverviewContent = {
   id: 'work-list',
   titleId: 'work-list-title',
   label: 'Selected professional work',
-  title: 'Platforms built around real operations.',
+  title: 'Four selected production systems.',
   items: createCaseStudyListItems(workCases),
 };
 
 export const workContext: WorkContextContent = {
-  kicker: 'Core stack across these products',
-  title: 'One foundation, different systems.',
+  kicker: 'Technology overview',
+  title: 'Core technologies across these projects.',
   stack: {
     languages: ['PHP', 'SQL', 'JavaScript'],
     backend: ['Laravel', 'MySQL', 'Redis', 'Meilisearch'],
@@ -128,19 +131,20 @@ export const workContext: WorkContextContent = {
   highlightsLabel: 'Highlights',
   highlights: [
     'Backend architecture, data modeling, and application workflows',
-    'Single-page applications with Inertia.js',
+    'Single-page applications with Laravel, Vue, and Inertia.js',
     'Caching and evaluating complex user permissions with Redis',
     'Search and filtering of large datasets with Meilisearch',
+    'Bidirectional Excel and database synchronization',
     'Integrating applications with external services and physical systems',
   ],
 };
 
 export const workClosing: WorkClosingContent = {
-  kickerPrefix: '/ CONTEXT',
-  kicker: 'A note on client work',
-  title: 'Built for the people operating it every day.',
+  kickerPrefix: '/',
+  kicker: 'Professional scope',
+  title: 'About these projects.',
   description:
-    'These projects are described at a system level. The common thread is practical software that connects content, workflows, data, and physical operations.',
+    'These client projects and the company-owned product are intentionally described at a system level. Together, they represent the range of production software I worked on: application workflows, user interfaces, data, permissions, search, integrations, maintenance, and software interacting with physical systems.',
   actions: [
     { label: 'Start a conversation', href: `mailto:${site.email}` },
     { label: 'View university work', symbol: '→', to: '/academic', variant: 'text' },
