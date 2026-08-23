@@ -55,7 +55,7 @@ export interface HomeHeroContent {
   kicker: string;
   title: string;
   titleAccent: string;
-  introduction: string;
+  introduction: string[];
   actions: HomeAction[];
   profile: DeveloperProfile;
   highlights: HomeHighlight[];
@@ -291,6 +291,7 @@ export interface OpenSourceContribution {
   category: string;
   title: string;
   description: string;
+  technicalDescription?: string;
   href?: string;
 }
 

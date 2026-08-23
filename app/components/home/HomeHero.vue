@@ -29,12 +29,17 @@ defineProps<{
           {{ content.title }}
           <template #accent> {{ content.titleAccent }}</template>
         </SharedDisplayHeading>
-        <p
-          class="mt-9 max-w-[38rem] text-base leading-7 text-muted [--reveal-delay:150ms] lg:text-[1.15rem] lg:leading-8"
+        <div
+          class="mt-9 max-w-[38rem] space-y-4 text-base leading-7 text-muted [--reveal-delay:150ms] lg:text-[1.15rem] lg:leading-8"
           data-reveal="up"
         >
-          {{ content.introduction }}
-        </p>
+          <p
+            v-for="paragraph in content.introduction"
+            :key="paragraph"
+          >
+            {{ paragraph }}
+          </p>
+        </div>
         <div
           class="mt-9 flex flex-col items-start gap-6 [--reveal-delay:200ms] xs:flex-row xs:flex-wrap xs:items-center"
           data-reveal="up"

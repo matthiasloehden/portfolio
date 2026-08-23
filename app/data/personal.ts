@@ -21,12 +21,12 @@ export const openSourceSection: PersonalSectionContent = {
   category: 'Open source',
   type: 'Useful changes, shared back',
   title: 'Improving the tools I already use.',
-  lead: 'My personal projects often begin with a practical need. Sometimes the best place to solve it is upstream.',
+  lead: 'My personal projects often begin with a practical need—and sometimes the best place to solve it is upstream.',
   paragraphs: [
-    'I have contributed features and fixes to a remote-control library, a game-server management panel, and a game-server plugin. One of those contributions added smart-home control for my smart bulb. It was accepted and merged into the library.',
-    'Contributing to existing projects has taught me to navigate unfamiliar codebases, understand established conventions, and keep changes focused enough to integrate cleanly.',
+    'I contribute features and fixes to tools I actually use. This includes adding lazy-server support to a game-server management panel and contributing a smart-home control feature back to a remote-control library.',
+    'Working in existing codebases has taught me to understand unfamiliar systems, compare different approaches, and find solutions that fit naturally into the existing project.',
   ],
-  tags: ['Open source', 'Frontend', 'Smart home', 'Debugging'],
+  tags: ['Open source', 'Docker', 'Networking', 'Debugging'],
 };
 
 export const homelabSection: PersonalSectionContent = {
@@ -126,13 +126,17 @@ export const contributions: OpenSourceContribution[] = [
     category: 'Remote-control library',
     title: 'Smart-home control',
     description: 'Added a function for controlling my smart bulb and contributed it back to the library.',
+    technicalDescription: 'Designed as reusable network command support for other devices as well.',
     href: 'https://github.com/andrewfraley/magic_mapper/pull/22',
   },
   {
-    status: 'Implemented',
+    status: 'Open PR',
     category: 'Game-server panel',
-    title: 'Frontend feature',
-    description: 'Extended the panel frontend with an additional function.',
+    title: 'Lazy server support',
+    description:
+      'Added lazy-server support so idle game servers can shut down and automatically start again when someone connects.',
+    technicalDescription: 'Integrated into the existing Auto-Stop and proxy system without adding another service.',
+    href: 'https://github.com/discohaus/discopanel/pull/128',
   },
   {
     status: 'Fixed',

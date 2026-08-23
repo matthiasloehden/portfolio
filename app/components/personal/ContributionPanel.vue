@@ -46,6 +46,12 @@ defineProps<{
           <p class="mt-[0.65rem] max-w-[43rem] text-[0.76rem] leading-[1.65] text-muted">
             {{ contribution.description }}
           </p>
+          <p
+            v-if="contribution.technicalDescription"
+            class="mt-2 max-w-[43rem] font-mono text-[0.58rem] leading-[1.55] text-quiet"
+          >
+            {{ contribution.technicalDescription }}
+          </p>
           <span
             v-if="contribution.href"
             class="absolute right-[1.2rem] bottom-[1.15rem] font-mono text-sm text-primary transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"

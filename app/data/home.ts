@@ -5,8 +5,10 @@ export const homeHero = {
   kicker: 'Software Engineer · CS Student · Germany',
   title: 'I build',
   titleAccent: 'applications.',
-  introduction:
-    'I’m Matthias, a trained application developer with three years of professional full-stack experience, currently studying computer science at IU. My background spans production applications, backend and frontend development, databases, integrations, system maintenance, and DevOps.',
+  introduction: [
+    'I’m Matthias, a trained application developer with three years of professional experience, currently studying computer science at IU.',
+    'My background spans production applications, backend and frontend development, databases, integrations, system maintenance, and DevOps.',
+  ],
   actions: [
     { label: 'Start a conversation', href: `mailto:${site.email}` },
     { label: 'View experience', symbol: '↓', to: '/#about', variant: 'text' },
@@ -32,7 +34,7 @@ export const homeAbout = {
   title: 'Practical experience, backed by',
   titleAccent: 'strong fundamentals.',
   paragraphs: [
-    'I completed my application-development apprenticeship at TopRed Media from 2019 to 2022 and continued there as a software developer until 2025. Since 2022, I have paired that hands-on experience with computer science studies at IU, with coursework in distributed systems, security and software design.',
+    'I completed my application-development apprenticeship at TopRed Media from 2019 to 2022 and continued there as a full-stack developer until 2025. Since 2022, I have paired that hands-on experience with computer science studies at IU, with coursework in distributed systems, security and software design.',
     'I like understanding how systems work and why they are built the way they are. I want to understand the actual problem, make deliberate technical decisions, and build solutions that are reliable, maintainable, and fit for purpose.',
   ],
   principles: ['Applications', 'Systems', 'Performance', 'Maintainability'],
@@ -72,7 +74,7 @@ export const homeCapabilities = {
       skills: [
         'Java',
         'Python',
-        'JavaScript',
+        'TypeScript',
         'R',
         'Prolog',
         'Apache Kafka',
@@ -89,9 +91,9 @@ export const homeCapabilities = {
       to: '/personal',
       skills: [
         'Open Source',
-        'Docker',
         'TypeScript',
         'Nuxt',
+        'Docker',
         'C#',
         'Unity',
         'C',

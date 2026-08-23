@@ -1,4 +1,5 @@
 import { createCaseStudyListItems } from '@/data/caseStudies';
+import { site } from '@/data/site';
 import type {
   AcademicAuthenticationPanelContent,
   AcademicCaseStudyContent,
@@ -135,7 +136,10 @@ export const academicClosing: PageClosingContent = {
   title: 'Computer science beyond the application layer.',
   description:
     'These projects connect my professional experience with academic work across the complete software lifecycle, distributed data processing, authentication and system security, and IT service operations.',
-  actions: [{ label: 'View personal projects', symbol: '→', to: '/personal', variant: 'text' }],
+  actions: [
+    { label: 'Start a conversation', href: `mailto:${site.email}` },
+    { label: 'View personal projects', symbol: '→', to: '/personal', variant: 'text' },
+  ],
 };
 
 export const streamingPanel: AcademicStreamingPanelContent = {

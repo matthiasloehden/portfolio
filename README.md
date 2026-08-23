@@ -39,7 +39,7 @@ performance fallbacks, and automated quality gates.
 | Work | Status | Link |
 | --- | --- | --- |
 | Smart-home control for `magic_mapper` | Merged | [Pull request #22](https://github.com/andrewfraley/magic_mapper/pull/22) |
-| Game-server panel frontend feature | Implemented | ⛓️‍💥 |
+| Lazy server support for Game-server panel | Open PR | [Pull request #128](https://github.com/discohaus/discopanel/pull/128) |
 | Game-server plugin bug fix | Fixed | ⛓️‍💥 |
 
 ## Development
