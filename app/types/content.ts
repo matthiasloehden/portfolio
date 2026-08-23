@@ -291,7 +291,6 @@ export interface OpenSourceContribution {
   category: string;
   title: string;
   description: string;
-  technicalDescription?: string;
   href?: string;
 }
 

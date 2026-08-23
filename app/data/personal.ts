@@ -21,9 +21,9 @@ export const openSourceSection: PersonalSectionContent = {
   category: 'Open source',
   type: 'Useful changes, shared back',
   title: 'Improving the tools I already use.',
-  lead: 'My personal projects often begin with a practical need—and sometimes the best place to solve it is upstream.',
+  lead: 'My personal projects often begin with a practical need. Sometimes the best place to solve it is upstream.',
   paragraphs: [
-    'I contribute features and fixes to tools I actually use. This includes adding lazy-server support to a game-server management panel and contributing a smart-home control feature back to a remote-control library.',
+    'I contribute features and fixes to tools I actually use, from smart-home and remote-control software to game-server management.',
     'Working in existing codebases has taught me to understand unfamiliar systems, compare different approaches, and find solutions that fit naturally into the existing project.',
   ],
   tags: ['Open source', 'Docker', 'Networking', 'Debugging'],
@@ -124,18 +124,15 @@ export const contributions: OpenSourceContribution[] = [
   {
     status: 'Merged',
     category: 'Remote-control library',
-    title: 'Smart-home control',
-    description: 'Added a function for controlling my smart bulb and contributed it back to the library.',
-    technicalDescription: 'Designed as reusable network command support for other devices as well.',
+    title: 'Smart Home Control',
+    description: 'Added TCP support to a remote-control library for controlling network devices.',
     href: 'https://github.com/andrewfraley/magic_mapper/pull/22',
   },
   {
-    status: 'Open PR',
+    status: 'Open',
     category: 'Game-server panel',
-    title: 'Lazy server support',
-    description:
-      'Added lazy-server support so idle game servers can shut down and automatically start again when someone connects.',
-    technicalDescription: 'Integrated into the existing Auto-Stop and proxy system without adding another service.',
+    title: 'On-Demand Game Servers',
+    description: 'Extended the existing proxy to wake stopped servers on player connection.',
     href: 'https://github.com/discohaus/discopanel/pull/128',
   },
   {
