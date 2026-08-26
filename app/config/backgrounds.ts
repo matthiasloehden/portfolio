@@ -12,8 +12,8 @@ export const BACKGROUND_OPTIONS = [
 const AUTOMATIC_BACKGROUNDS: Readonly<Record<string, BackgroundId>> = {
   '/': 'wave',
   '/work': 'triangles',
-  '/academic': 'particles',
-  '/personal': 'mesh',
+  '/academic': 'mesh',
+  '/personal': 'particles',
 };
 
 export function resolveBackground(path: string, preference: BackgroundPreference): BackgroundId | 'none' {
