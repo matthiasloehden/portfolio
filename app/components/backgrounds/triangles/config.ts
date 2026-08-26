@@ -2,14 +2,12 @@ import type { BackgroundQualityPreset, BackgroundTheme } from '@/types/backgroun
 
 import type { TrianglePalette } from './types';
 
-export interface TriangleQualityPreset extends BackgroundQualityPreset {
-  densityScale: number;
-}
+export type TriangleQualityPreset = BackgroundQualityPreset;
 
 export const TRIANGLE_QUALITY_PRESETS = [
-  { id: 'high', slowFrameThreshold: 38, densityScale: 1, pixelRatioCap: 1.35 },
-  { id: 'medium', slowFrameThreshold: 42, densityScale: 0.72, pixelRatioCap: 1.15 },
-  { id: 'low', slowFrameThreshold: 48, densityScale: 0.48, pixelRatioCap: 1 },
+  { id: 'high', slowFrameThreshold: 38 },
+  { id: 'medium', slowFrameThreshold: 42 },
+  { id: 'low', slowFrameThreshold: 48 },
 ] as const satisfies readonly TriangleQualityPreset[];
 
 export const TRIANGLE_CONFIG = {
@@ -32,7 +30,6 @@ export const TRIANGLE_CONFIG = {
     desktop: 135,
     mobile: 100,
   },
-  highlightLifetime: 1_000,
   maxHighlightPoints: 32,
   trailSpacing: 18,
   minPointerDistance: 8,

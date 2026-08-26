@@ -3,9 +3,10 @@
  *
  * The runtime wraps AdaptivePerformanceManager with the behavior shared by the
  * Vue controllers: mode changes, preset lookup, frame sampling and throttled
- * overlay updates. Renderers still apply their own preset values and report
- * scene-specific resource statistics. This keeps performance policy consistent
- * without forcing unrelated Canvas2D and WebGL renderers into one base class.
+ * overlay updates. Scene controllers resolve inherited preset values before
+ * passing settings to their renderers, while renderers report scene-specific
+ * resource statistics. This keeps performance policy consistent without
+ * forcing unrelated Canvas2D and WebGL renderers into one base class.
  */
 import type {
   BackgroundPerformanceDescriptor,

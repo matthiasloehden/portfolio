@@ -1,3 +1,5 @@
+import type { Locator } from '@playwright/test';
+
 import { siteNavigation } from '@/data/site';
 import { workHero, workMeta } from '@/data/work';
 import { expect, expectPageContract, getDisplayHeadingText, test, waitForApp } from './support/app-test';
@@ -12,6 +14,20 @@ function routeAt(index: number): { label: string; to: string } {
 const workRoute = routeAt(1);
 const academicRoute = routeAt(2);
 const personalRoute = routeAt(3);
+
+async function expectActiveNavigationStyle(link: Locator, mobile: boolean): Promise<void> {
+  const indicator = link.locator('[data-navigation-active-indicator]');
+
+  await expect
+    .poll(() => indicator.evaluate((element) => new DOMMatrixReadOnly(getComputedStyle(element).transform).a))
+    .toBe(1);
+
+  if (mobile) {
+    await expect
+      .poll(() => link.evaluate((element) => getComputedStyle(element).backgroundColor))
+      .not.toBe('rgba(0, 0, 0, 0)');
+  }
+}
 
 test.describe('Shared navigation', () => {
   test('supports keyboard access and routes through header and footer navigation', async ({ page }, testInfo) => {
@@ -39,14 +55,13 @@ test.describe('Shared navigation', () => {
       await expect(mainMenu).toBeVisible();
     }
 
-    await expect(mainNavigation.getByRole('link', { name: workRoute.label, exact: true })).toHaveAttribute(
-      'aria-current',
-      'page',
-    );
+    const activeHeaderLink = mainNavigation.getByRole('link', { name: workRoute.label, exact: true });
+    await expect(activeHeaderLink).toHaveAttribute('aria-current', 'page');
     await expect(footerNavigation.getByRole('link', { name: workRoute.label, exact: true })).toHaveAttribute(
       'aria-current',
       'page',
     );
+    await expectActiveNavigationStyle(activeHeaderLink, isMobile);
 
     await mainNavigation.getByRole('link', { name: academicRoute.label, exact: true }).click();
     await expect(page).toHaveURL((url) => url.pathname === academicRoute.to);
@@ -95,6 +110,14 @@ test.describe('Shared navigation', () => {
     await expect(menu).toBeVisible();
     await expect(page.getByRole('button', { name: 'Close navigation' })).toHaveAttribute('aria-expanded', 'true');
     await expect(menu.getByRole('link')).toHaveCount(siteNavigation.length);
+
+    await page.getByRole('button', { name: 'Open display settings' }).click();
+    await expect(menu).toBeHidden();
+    await expect(page.getByRole('dialog', { name: 'Display settings' })).toBeVisible();
+
+    await page.getByRole('button', { name: 'Open navigation' }).click();
+    await expect(page.getByRole('dialog', { name: 'Display settings' })).toBeHidden();
+    await expect(menu).toBeVisible();
 
     await page.keyboard.press('Escape');
     await expect(menu).toBeHidden();

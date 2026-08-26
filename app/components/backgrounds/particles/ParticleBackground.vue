@@ -16,13 +16,12 @@
 
 import { onBeforeUnmount, onMounted, watch } from 'vue';
 
+import { createRuntimeBackgroundSettings } from '@/components/backgrounds/settings/registry';
 import {
   createDefaultBackgroundAnimationSettings,
   createDefaultBackgroundPerformanceSettings,
-  type BackgroundSceneEmits,
-  type BackgroundSceneProps,
-  type BackgroundTheme,
-} from '@/types/background';
+} from '@/config/backgrounds';
+import { type BackgroundSceneEmits, type BackgroundTheme, type ParticleBackgroundProps } from '@/types/background';
 
 import { BackgroundEnvironment } from '../shared/BackgroundEnvironment';
 import { BackgroundPerformanceRuntime } from '../shared/BackgroundPerformanceRuntime';
@@ -34,10 +33,11 @@ import { PARTICLE_CONFIG, PARTICLE_QUALITY_PRESETS } from './config';
 import { InteractionManager } from './InteractionManager';
 import { ParticleRenderer } from './ParticleRenderer';
 
-const props = withDefaults(defineProps<BackgroundSceneProps>(), {
+const props = withDefaults(defineProps<ParticleBackgroundProps>(), {
   active: true,
   animations: createDefaultBackgroundAnimationSettings,
   performance: createDefaultBackgroundPerformanceSettings,
+  settingOverrides: () => ({}),
 });
 const emit = defineEmits<BackgroundSceneEmits>();
 
@@ -51,6 +51,11 @@ let previousTime = 0;
 let environment: BackgroundEnvironment | null = null;
 let resizeController: BackgroundResizeController | null = null;
 let webglContext: WebGLContextLifecycle | null = null;
+
+function getRuntimeSettings() {
+  const preset = performanceRuntime?.currentPreset ?? PARTICLE_QUALITY_PRESETS[0];
+  return createRuntimeBackgroundSettings('particles', props.settingOverrides, preset.id);
+}
 
 function resize(): void {
   runtime?.resize();
@@ -71,6 +76,7 @@ function renderFrame(now: number): void {
   const qualityChange = performanceRuntime?.recordFrame(now);
 
   if (qualityChange) {
+    runtime.setSettings(getRuntimeSettings());
     runtime.setQuality(qualityChange, environment?.theme ?? 'dark');
     resize();
     updatePerformanceStats(now, true);
@@ -122,8 +128,17 @@ function applyPerformanceMode(): void {
 
   const quality = performanceRuntime.setMode(props.performance.mode);
 
+  runtime?.setSettings(getRuntimeSettings());
   runtime?.setQuality(quality, environment?.theme ?? 'dark');
   resize();
+  updatePerformanceStats(performance.now(), true);
+}
+
+function applyParticleSettings(): void {
+  const resizeRequired = runtime?.setSettings(getRuntimeSettings()) ?? false;
+
+  if (resizeRequired) resize();
+  setAnimationState();
   updatePerformanceStats(performance.now(), true);
 }
 
@@ -134,7 +149,7 @@ function initialize(): void {
   if (!element || !quality) return;
 
   try {
-    runtime = ParticleRenderer.create(element, quality, environment?.theme ?? 'dark');
+    runtime = ParticleRenderer.create(element, quality, environment?.theme ?? 'dark', getRuntimeSettings());
     interaction = new InteractionManager(props.animations, setAnimationState);
 
     clearFailure();
@@ -203,6 +218,8 @@ useBackgroundPerformanceSettings(() => props.performance, {
   onModeChange: applyPerformanceMode,
   onStatsRequested: () => updatePerformanceStats(performance.now(), true),
 });
+
+watch(() => props.settingOverrides, applyParticleSettings, { deep: true, flush: 'post' });
 
 onMounted(() => {
   performanceRuntime = new BackgroundPerformanceRuntime(PARTICLE_QUALITY_PRESETS, props.performance.mode, {

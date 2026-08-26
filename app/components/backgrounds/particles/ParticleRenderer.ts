@@ -14,7 +14,12 @@
  */
 import * as THREE from 'three';
 
-import type { BackgroundAnimationSettings, BackgroundRendererContract, BackgroundTheme } from '@/types/background';
+import type {
+  BackgroundAnimationSettings,
+  BackgroundRendererContract,
+  BackgroundTheme,
+  ParticleSettings,
+} from '@/types/background';
 
 import { ThreeBackgroundRenderer } from '../shared/ThreeBackgroundRenderer';
 import type { InteractionState } from './InteractionManager';
@@ -32,12 +37,18 @@ export class ParticleRenderer implements BackgroundRendererContract<ParticleRend
   private constructor(
     private readonly canvas: HTMLCanvasElement,
     quality: ParticleQualityPreset,
+    private settings: ParticleSettings,
   ) {
     this.quality = quality;
   }
 
-  static create(canvas: HTMLCanvasElement, quality: ParticleQualityPreset, theme: BackgroundTheme): ParticleRenderer {
-    const runtime = new ParticleRenderer(canvas, quality);
+  static create(
+    canvas: HTMLCanvasElement,
+    quality: ParticleQualityPreset,
+    theme: BackgroundTheme,
+    settings: ParticleSettings,
+  ): ParticleRenderer {
+    const runtime = new ParticleRenderer(canvas, quality, settings);
 
     try {
       runtime.initialize(theme);
@@ -64,7 +75,7 @@ export class ParticleRenderer implements BackgroundRendererContract<ParticleRend
     const width = Math.max(this.canvas.clientWidth || window.innerWidth, 1);
     const height = Math.max(this.canvas.clientHeight || window.innerHeight, 1);
     const aspect = width / height;
-    const dpr = Math.min(window.devicePixelRatio, this.quality.pixelRatioCap);
+    const dpr = Math.min(window.devicePixelRatio, this.settings.pixelRatioCap);
 
     this.renderer.resize(width, height, dpr);
 
@@ -86,6 +97,14 @@ export class ParticleRenderer implements BackgroundRendererContract<ParticleRend
 
   setTheme(theme: BackgroundTheme): void {
     this.simulation?.setColor(getParticleColor(theme));
+  }
+
+  setSettings(settings: ParticleSettings): boolean {
+    const pixelRatioCapChanged = this.settings.pixelRatioCap !== settings.pixelRatioCap;
+
+    this.settings = settings;
+    this.simulation?.setSettings(settings);
+    return pixelRatioCapChanged;
   }
 
   render(now: number, delta: number, interaction: InteractionState, animations: BackgroundAnimationSettings): void {
@@ -138,7 +157,14 @@ export class ParticleRenderer implements BackgroundRendererContract<ParticleRend
     // Resolution is the GPGPU texture size, so a quality change requires a
     // complete simulation rebuild rather than a uniform update.
     this.simulation?.dispose();
-    this.simulation = new ParticleSimulation(this.renderer.instance, this.scene, this.quality, aspect, color);
+    this.simulation = new ParticleSimulation(
+      this.renderer.instance,
+      this.scene,
+      this.quality,
+      this.settings,
+      aspect,
+      color,
+    );
     this.resize();
   }
 }

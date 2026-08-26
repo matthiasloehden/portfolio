@@ -5,17 +5,17 @@
  * draws only the viewport plus a buffer. Its points keep deterministic motion
  * parameters while pointer influence is cached separately, allowing the mesh to
  * preserve its visual identity without updating off-screen geometry every frame.
- * Theme, quality, scrolling and interaction enter through explicit methods.
+ * Theme, settings, scrolling and interaction enter through explicit methods.
  *
  * Internal point/triangle/edge shapes are defined first, then renderer state and
  * the public lifecycle. Geometry creation, viewport synchronization, influence
  * calculation and drawing helpers follow below. DOM events and scheduling stay
  * in MeshBackground.
  */
-import type { BackgroundRendererContract, BackgroundTheme } from '@/types/background';
+import type { BackgroundRendererContract, BackgroundTheme, MeshSettings } from '@/types/background';
 
 import { seededRandom, smoothstep } from '../shared/math';
-import { getMeshPalette, MESH_CONFIG, type MeshQualityPreset } from './config';
+import { getMeshPalette, MESH_CONFIG } from './config';
 import type { MeshPalette, MeshRendererStats, MeshRenderState } from './types';
 
 interface MeshPoint {
@@ -45,9 +45,12 @@ interface MeshEdge {
   tone: number;
 }
 
+function clampAlpha(value: number): number {
+  return Math.min(1, Math.max(0, value));
+}
+
 export class MeshRenderer implements BackgroundRendererContract<MeshRendererStats> {
   private context: CanvasRenderingContext2D | null;
-  private quality: MeshQualityPreset;
   private palette: MeshPalette;
 
   private readonly points: MeshPoint[] = [];
@@ -86,10 +89,9 @@ export class MeshRenderer implements BackgroundRendererContract<MeshRendererStat
 
   private constructor(
     private readonly canvas: HTMLCanvasElement,
-    quality: MeshQualityPreset,
     theme: BackgroundTheme,
+    private settings: MeshSettings,
   ) {
-    this.quality = quality;
     this.palette = getMeshPalette(theme);
     this.context = canvas.getContext('2d', {
       alpha: true,
@@ -97,18 +99,18 @@ export class MeshRenderer implements BackgroundRendererContract<MeshRendererStat
     });
 
     if (!this.context) throw new Error('Canvas2D is unavailable');
+
+    this.resetInteractions();
   }
 
-  static create(canvas: HTMLCanvasElement, quality: MeshQualityPreset, theme: BackgroundTheme): MeshRenderer {
-    return new MeshRenderer(canvas, quality, theme);
+  static create(canvas: HTMLCanvasElement, theme: BackgroundTheme, settings: MeshSettings): MeshRenderer {
+    return new MeshRenderer(canvas, theme, settings);
   }
 
-  resize(quality: MeshQualityPreset = this.quality): void {
+  resize(): void {
     const context = this.context;
 
     if (!context) return;
-
-    this.quality = quality;
 
     const bounds = this.canvas.getBoundingClientRect();
 
@@ -116,7 +118,7 @@ export class MeshRenderer implements BackgroundRendererContract<MeshRendererStat
     this.height = Math.max(1, Math.round(bounds.height));
     this.worldHeight = Math.max(this.height, this.canvas.parentElement?.parentElement?.scrollHeight ?? this.height);
     this.scrollOffset = window.scrollY;
-    this.dpr = Math.min(window.devicePixelRatio || 1, quality.pixelRatioCap);
+    this.dpr = Math.min(window.devicePixelRatio || 1, this.settings.pixelRatioCap);
 
     this.canvas.width = Math.round(this.width * this.dpr);
     this.canvas.height = Math.round(this.height * this.dpr);
@@ -127,12 +129,25 @@ export class MeshRenderer implements BackgroundRendererContract<MeshRendererStat
     this.resetFrameTime();
   }
 
-  setQuality(quality: MeshQualityPreset): void {
-    this.resize(quality);
-  }
-
   setTheme(theme: BackgroundTheme): void {
     this.palette = getMeshPalette(theme);
+  }
+
+  setSettings(settings: MeshSettings): void {
+    const resizeRequired =
+      this.settings.densityScale !== settings.densityScale || this.settings.pixelRatioCap !== settings.pixelRatioCap;
+    const radiusScaleChanged = this.settings.interactionRadiusScale !== settings.interactionRadiusScale;
+    const radiusScaleRatio = settings.interactionRadiusScale / this.settings.interactionRadiusScale;
+
+    this.settings = settings;
+
+    if (radiusScaleChanged) {
+      this.pointerRadius *= radiusScaleRatio;
+      this.releaseStartRadius *= radiusScaleRatio;
+    }
+
+    if (resizeRequired) this.resize();
+    else if (radiusScaleChanged) this.syncMeshWindow(true);
   }
 
   setPointer(clientX: number, clientY: number, now = performance.now()): void {
@@ -157,13 +172,13 @@ export class MeshRenderer implements BackgroundRendererContract<MeshRendererStat
 
   resetInteractions(): void {
     this.pointerStrength = 0;
-    this.pointerRadius = MESH_CONFIG.pointerWakeMinRadius;
+    this.pointerRadius = MESH_CONFIG.pointerWakeMinRadius * this.settings.interactionRadiusScale;
     this.pointerPresent = false;
     this.lastPointerActivity = Number.NEGATIVE_INFINITY;
     this.activityWasFresh = false;
     this.releaseStartedAt = Number.NEGATIVE_INFINITY;
     this.releaseStartStrength = 0;
-    this.releaseStartRadius = MESH_CONFIG.pointerWakeMinRadius;
+    this.releaseStartRadius = MESH_CONFIG.pointerWakeMinRadius * this.settings.interactionRadiusScale;
   }
 
   resetMotion(): void {
@@ -182,7 +197,7 @@ export class MeshRenderer implements BackgroundRendererContract<MeshRendererStat
 
     this.lastFrameTime = now;
 
-    if (state.advanceIdle) this.elapsedTime += delta;
+    if (state.advanceIdle) this.elapsedTime += delta * this.settings.idleSpeed;
 
     this.syncMeshWindow();
 
@@ -229,7 +244,7 @@ export class MeshRenderer implements BackgroundRendererContract<MeshRendererStat
           ? spacingConfig.tablet
           : spacingConfig.desktop;
 
-    this.spacing = baseSpacing * this.quality.spacingScale;
+    this.spacing = baseSpacing / this.settings.densityScale;
     this.rowSpacing = this.spacing * spacingConfig.rowScale;
     this.columnCount = Math.ceil(this.width / this.spacing) + 3;
     this.totalRowCount = Math.ceil(this.worldHeight / this.rowSpacing) + 3;
@@ -242,8 +257,12 @@ export class MeshRenderer implements BackgroundRendererContract<MeshRendererStat
     const rowOriginY = -this.rowSpacing;
     // Rows are exchanged outside the visible viewport. The configured buffer
     // covers both pointer glow range and the maximum animated vertex drift.
-    const visibleTop = this.scrollOffset - config.viewportBuffer;
-    const visibleBottom = this.scrollOffset + this.height + config.viewportBuffer;
+    const viewportBuffer = Math.max(
+      config.viewportBuffer,
+      config.pointerWakeRadius * this.settings.interactionRadiusScale + 60,
+    );
+    const visibleTop = this.scrollOffset - viewportBuffer;
+    const visibleBottom = this.scrollOffset + this.height + viewportBuffer;
     const startRow = Math.max(0, Math.floor((visibleTop - rowOriginY) / this.rowSpacing) - 1);
     const endRow = Math.min(this.totalRowCount - 1, Math.ceil((visibleBottom - rowOriginY) / this.rowSpacing) + 1);
 
@@ -345,7 +364,8 @@ export class MeshRenderer implements BackgroundRendererContract<MeshRendererStat
       const fadeIn = 1 - Math.exp(-delta * config.pointerWakeAttackRate);
 
       this.pointerStrength += (1 - this.pointerStrength) * fadeIn;
-      this.pointerRadius += (config.pointerWakeRadius - this.pointerRadius) * fadeIn;
+      this.pointerRadius +=
+        (config.pointerWakeRadius * this.settings.interactionRadiusScale - this.pointerRadius) * fadeIn;
     } else {
       if (this.activityWasFresh) {
         // Snapshot the current attack state once; subsequent frames interpolate
@@ -355,17 +375,22 @@ export class MeshRenderer implements BackgroundRendererContract<MeshRendererStat
         this.releaseStartRadius = this.pointerRadius;
       }
 
-      const releaseProgress = Math.min(1, Math.max(0, (now - this.releaseStartedAt) / config.pointerWakeDuration));
+      const releaseProgress = Math.min(
+        1,
+        Math.max(0, (now - this.releaseStartedAt) / this.settings.interactionDuration),
+      );
       const easedReleaseProgress = smoothstep(0, 1, releaseProgress);
 
       this.pointerStrength = this.releaseStartStrength * (1 - easedReleaseProgress);
       this.pointerRadius =
-        this.releaseStartRadius + (config.pointerWakeMinRadius - this.releaseStartRadius) * easedReleaseProgress;
+        this.releaseStartRadius +
+        (config.pointerWakeMinRadius * this.settings.interactionRadiusScale - this.releaseStartRadius) *
+          easedReleaseProgress;
     }
 
     if (!active) {
       this.pointerStrength = 0;
-      this.pointerRadius = config.pointerWakeMinRadius;
+      this.pointerRadius = config.pointerWakeMinRadius * this.settings.interactionRadiusScale;
     }
 
     this.activityWasFresh = activityIsFresh;
@@ -389,11 +414,13 @@ export class MeshRenderer implements BackgroundRendererContract<MeshRendererStat
       point.x =
         point.baseX +
         (Math.sin(this.elapsedTime * point.speedX + point.phaseX) * point.amplitudeX +
-          Math.sin(this.elapsedTime * 0.07 + point.secondaryPhase) * point.amplitudeX * 0.35);
+          Math.sin(this.elapsedTime * 0.07 + point.secondaryPhase) * point.amplitudeX * 0.35) *
+          this.settings.idleStrength;
       point.y =
         point.baseY +
         (Math.cos(this.elapsedTime * point.speedY + point.phaseY) * point.amplitudeY +
-          Math.sin(this.elapsedTime * 0.085 - point.secondaryPhase) * point.amplitudeY * 0.28);
+          Math.sin(this.elapsedTime * 0.085 - point.secondaryPhase) * point.amplitudeY * 0.28) *
+          this.settings.idleStrength;
     }
   }
 
@@ -420,9 +447,11 @@ export class MeshRenderer implements BackgroundRendererContract<MeshRendererStat
     if (this.pointerStrength <= 0.001) return 0;
 
     const config = MESH_CONFIG;
+    const minimumRadius = config.pointerWakeMinRadius * this.settings.interactionRadiusScale;
+    const maximumRadius = config.pointerWakeRadius * this.settings.interactionRadiusScale;
     const dynamicRadius = Math.max(
-      config.pointerWakeMinRadius,
-      radius * (this.pointerRadius / config.pointerWakeRadius),
+      minimumRadius,
+      radius * this.settings.interactionRadiusScale * (this.pointerRadius / maximumRadius),
     );
     const dx = x - this.pointerX;
     const dy = y - this.pointerY;
@@ -432,7 +461,12 @@ export class MeshRenderer implements BackgroundRendererContract<MeshRendererStat
 
     const distance = Math.sqrt(distanceSquared);
 
-    return (1 - smoothstep(dynamicRadius * 0.18, dynamicRadius, distance)) * this.pointerStrength;
+    return Math.min(
+      1,
+      (1 - smoothstep(dynamicRadius * 0.18, dynamicRadius, distance)) *
+        this.pointerStrength *
+        this.settings.interactionStrength,
+    );
   }
 
   private getCoreInfluenceAt(x: number, y: number, active: boolean): number {
@@ -441,11 +475,14 @@ export class MeshRenderer implements BackgroundRendererContract<MeshRendererStat
     const dx = x - this.pointerX;
     const dy = y - this.pointerY;
     const distanceSquared = dx * dx + dy * dy;
-    const radius = MESH_CONFIG.pointerCoreRadius;
+    const radius = MESH_CONFIG.pointerCoreRadius * this.settings.interactionRadiusScale;
 
     if (distanceSquared >= radius * radius) return 0;
 
-    return 1 - smoothstep(radius * 0.18, radius, Math.sqrt(distanceSquared));
+    return Math.min(
+      1,
+      (1 - smoothstep(radius * 0.18, radius, Math.sqrt(distanceSquared))) * this.settings.interactionStrength,
+    );
   }
 
   private drawScene(active: boolean): void {
@@ -474,6 +511,8 @@ export class MeshRenderer implements BackgroundRendererContract<MeshRendererStat
   }
 
   private drawPointerGlow(context: CanvasRenderingContext2D, pointerScreenY: number, active: boolean): void {
+    const effectOpacity = this.settings.interactionStrength * this.settings.opacity;
+
     if (this.pointerStrength > 0.002) {
       const glow = context.createRadialGradient(
         this.pointerX,
@@ -484,8 +523,14 @@ export class MeshRenderer implements BackgroundRendererContract<MeshRendererStat
         this.pointerRadius,
       );
 
-      glow.addColorStop(0, `rgba(${this.palette.ambient}, ${0.075 * this.pointerStrength})`);
-      glow.addColorStop(0.42, `rgba(${this.palette.ambient}, ${0.025 * this.pointerStrength})`);
+      glow.addColorStop(
+        0,
+        `rgba(${this.palette.ambient}, ${clampAlpha(0.075 * this.pointerStrength * effectOpacity)})`,
+      );
+      glow.addColorStop(
+        0.42,
+        `rgba(${this.palette.ambient}, ${clampAlpha(0.025 * this.pointerStrength * effectOpacity)})`,
+      );
       glow.addColorStop(1, `rgba(${this.palette.ambient}, 0)`);
       context.fillStyle = glow;
       context.globalAlpha = 1;
@@ -499,7 +544,7 @@ export class MeshRenderer implements BackgroundRendererContract<MeshRendererStat
 
     if (!active || !this.pointerPresent) return;
 
-    const radius = MESH_CONFIG.pointerCoreRadius;
+    const radius = MESH_CONFIG.pointerCoreRadius * this.settings.interactionRadiusScale;
     const coreGlow = context.createRadialGradient(
       this.pointerX,
       pointerScreenY,
@@ -509,8 +554,8 @@ export class MeshRenderer implements BackgroundRendererContract<MeshRendererStat
       radius,
     );
 
-    coreGlow.addColorStop(0, `rgba(${this.palette.ambient}, 0.075)`);
-    coreGlow.addColorStop(0.35, `rgba(${this.palette.ambient}, 0.028)`);
+    coreGlow.addColorStop(0, `rgba(${this.palette.ambient}, ${clampAlpha(0.075 * effectOpacity)})`);
+    coreGlow.addColorStop(0.35, `rgba(${this.palette.ambient}, ${clampAlpha(0.028 * effectOpacity)})`);
     coreGlow.addColorStop(1, `rgba(${this.palette.ambient}, 0)`);
     context.fillStyle = coreGlow;
     context.globalAlpha = 1;
@@ -534,7 +579,9 @@ export class MeshRenderer implements BackgroundRendererContract<MeshRendererStat
     const centerY = (a.y + b.y + c.y) / 3;
     const influence = this.getWakeInfluenceAt(centerX, centerY, 275);
     const idlePulse = 0.5 + Math.sin(this.elapsedTime * 0.18 + triangle.tone * 9) * 0.5;
-    const alpha = this.palette.baseFillAlpha * triangle.tone + influence * (0.045 + idlePulse * 0.028);
+    const alpha = clampAlpha(
+      (this.palette.baseFillAlpha * triangle.tone + influence * (0.045 + idlePulse * 0.028)) * this.settings.opacity,
+    );
 
     if (alpha < 0.002) return;
 
@@ -575,7 +622,9 @@ export class MeshRenderer implements BackgroundRendererContract<MeshRendererStat
     context.moveTo(a.x, screenAY);
     context.lineTo(b.x, screenBY);
     context.strokeStyle = influence > 0.015 ? this.palette.glow : this.palette.line;
-    context.globalAlpha = this.palette.baseLineAlpha * edge.tone * idleShimmer + influence * 0.62;
+    context.globalAlpha = clampAlpha(
+      (this.palette.baseLineAlpha * edge.tone * idleShimmer + influence * 0.62) * this.settings.opacity,
+    );
     context.lineWidth = 0.78 + influence * 1.55;
     context.stroke();
   }
@@ -594,7 +643,7 @@ export class MeshRenderer implements BackgroundRendererContract<MeshRendererStat
     context.beginPath();
     context.arc(point.x, screenY, 1.1 + influence * 2.1, 0, Math.PI * 2);
     context.fillStyle = this.palette.node;
-    context.globalAlpha = 0.24 + influence * 0.76;
+    context.globalAlpha = clampAlpha((0.24 + influence * 0.76) * this.settings.opacity);
 
     if (coreInfluence > 0.01) {
       context.shadowColor = this.palette.glow;

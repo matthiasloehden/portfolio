@@ -17,7 +17,11 @@ touch scrolling remain unaffected.
 
 `MeshBackground.vue` owns input and browser lifecycle, while `MeshRenderer.ts` owns geometry, simulation, drawing, and
 viewport windowing. Pointer influence is calculated once per vertex each frame and reused by connected edges and nodes.
+Editable defaults, performance values, and runtime limits live beside them in `settings.ts`; internal geometry and
+palette constants remain in `config.ts`.
 
 Animation stops when the scene is inactive or the page is hidden. Inactive canvases still receive one synchronized
 scroll frame so a later crossfade never reveals stale geometry. Reduced motion keeps a static mesh, and the display
 settings can select auto, high, medium, or low quality and enable the shared performance overlay.
+Density and render resolution follow the active performance preset unless the visitor has explicitly overridden the
+corresponding field.

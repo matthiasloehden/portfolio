@@ -2,15 +2,12 @@ import type { BackgroundQualityPreset, BackgroundTheme } from '@/types/backgroun
 
 import type { WavePalette } from './types';
 
-export interface WaveQualityPreset extends BackgroundQualityPreset {
-  vertexStepScale: number;
-  trailLengthCap: number;
-}
+export type WaveQualityPreset = BackgroundQualityPreset;
 
 export const WAVE_QUALITY_PRESETS = [
-  { id: 'high', slowFrameThreshold: 22, pixelRatioCap: 2, vertexStepScale: 1, trailLengthCap: 48 },
-  { id: 'medium', slowFrameThreshold: 26, pixelRatioCap: 1.5, vertexStepScale: 1.25, trailLengthCap: 36 },
-  { id: 'low', slowFrameThreshold: 32, pixelRatioCap: 1, vertexStepScale: 1.75, trailLengthCap: 20 },
+  { id: 'high', slowFrameThreshold: 22 },
+  { id: 'medium', slowFrameThreshold: 26 },
+  { id: 'low', slowFrameThreshold: 32 },
 ] as const satisfies readonly WaveQualityPreset[];
 
 /** Minimum time between scroll-generated ripples. */

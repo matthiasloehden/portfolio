@@ -11,9 +11,9 @@
  * generation and drawing helpers are kept near the bottom. Browser events and
  * frame scheduling remain in TriangleBackground.
  */
-import type { BackgroundRendererContract, BackgroundTheme } from '@/types/background';
+import type { BackgroundRendererContract, BackgroundTheme, TriangleSettings } from '@/types/background';
 
-import { getTrianglePalette, TRIANGLE_CONFIG, type TriangleQualityPreset } from './config';
+import { getTrianglePalette, TRIANGLE_CONFIG } from './config';
 import type { TrianglePalette, TrianglePosition, TriangleRendererStats } from './types';
 import { seededRandom, smoothstep } from '../shared/math';
 
@@ -52,7 +52,6 @@ interface VisibleWorldBounds {
 
 export class TriangleRenderer implements BackgroundRendererContract<TriangleRendererStats> {
   private context: CanvasRenderingContext2D | null;
-  private quality: TriangleQualityPreset;
 
   private width = 1;
   private height = 1;
@@ -78,10 +77,9 @@ export class TriangleRenderer implements BackgroundRendererContract<TriangleRend
 
   private constructor(
     private readonly canvas: HTMLCanvasElement,
-    quality: TriangleQualityPreset,
     theme: BackgroundTheme,
+    private settings: TriangleSettings,
   ) {
-    this.quality = quality;
     this.palette = getTrianglePalette(theme);
     this.context = canvas.getContext('2d', {
       alpha: true,
@@ -93,14 +91,12 @@ export class TriangleRenderer implements BackgroundRendererContract<TriangleRend
     }
   }
 
-  static create(canvas: HTMLCanvasElement, quality: TriangleQualityPreset, theme: BackgroundTheme): TriangleRenderer {
-    return new TriangleRenderer(canvas, quality, theme);
+  static create(canvas: HTMLCanvasElement, theme: BackgroundTheme, settings: TriangleSettings): TriangleRenderer {
+    return new TriangleRenderer(canvas, theme, settings);
   }
 
-  resize(quality: TriangleQualityPreset = this.quality): void {
+  resize(): void {
     if (!this.context) return;
-
-    this.quality = quality;
 
     const rect = this.canvas.getBoundingClientRect();
     const viewportWidth = window.innerWidth || Math.max(rect.width, 1);
@@ -108,7 +104,7 @@ export class TriangleRenderer implements BackgroundRendererContract<TriangleRend
 
     this.width = Math.max(1, Math.round(rect.width || viewportWidth));
     this.height = Math.max(1, Math.round(rect.height || viewportHeight));
-    this.dpr = Math.min(window.devicePixelRatio || 1, quality.pixelRatioCap);
+    this.dpr = Math.min(window.devicePixelRatio || 1, this.settings.pixelRatioCap);
 
     this.canvas.width = Math.round(this.width * this.dpr);
     this.canvas.height = Math.round(this.height * this.dpr);
@@ -123,13 +119,20 @@ export class TriangleRenderer implements BackgroundRendererContract<TriangleRend
     this.syncGridForViewport();
   }
 
-  setQuality(quality: TriangleQualityPreset): void {
-    this.resize(quality);
-  }
-
   setTheme(theme: BackgroundTheme): void {
     this.palette = getTrianglePalette(theme);
     this.ambientGradient = null;
+  }
+
+  setSettings(settings: TriangleSettings): void {
+    const resizeRequired =
+      this.settings.densityScale !== settings.densityScale || this.settings.pixelRatioCap !== settings.pixelRatioCap;
+    const opacityChanged = this.settings.opacity !== settings.opacity;
+
+    this.settings = settings;
+
+    if (resizeRequired) this.resize();
+    else if (opacityChanged) this.ambientGradient = null;
   }
 
   setScrollOffset(scrollOffset: number): void {
@@ -202,7 +205,7 @@ export class TriangleRenderer implements BackgroundRendererContract<TriangleRend
 
     const newest = this.highlightTrail[this.highlightTrail.length - 1];
 
-    return newest !== undefined && now - newest.time < TRIANGLE_CONFIG.highlightLifetime;
+    return newest !== undefined && now - newest.time < this.settings.highlightLifetime;
   }
 
   render(now: number, elapsedTime: number, idleMotionEnabled: boolean): void {
@@ -226,11 +229,12 @@ export class TriangleRenderer implements BackgroundRendererContract<TriangleRend
     context.rotate(TRIANGLE_CONFIG.rotationRadians);
     context.translate(-this.width * 0.5, -this.height * 0.5);
 
-    const motion = idleMotionEnabled ? 1 : 0.82;
+    const idleStrength = idleMotionEnabled ? this.settings.idleStrength : 0.82;
+    const sceneOpacity = idleMotionEnabled ? this.settings.opacity : this.settings.opacity * 0.82;
 
     for (const row of this.tileRows) {
       for (const tile of row.tiles) {
-        this.drawTriangle(tile, row.y, now, elapsedTime, motion);
+        this.drawTriangle(tile, row.y, now, elapsedTime, idleStrength, sceneOpacity);
       }
     }
 
@@ -284,9 +288,9 @@ export class TriangleRenderer implements BackgroundRendererContract<TriangleRend
     const targets = TRIANGLE_CONFIG.targetTriangles;
     const breakpoints = TRIANGLE_CONFIG.viewportBreakpoints;
 
-    if (this.width < breakpoints.mobile) return targets.mobile * this.quality.densityScale;
-    if (this.width < breakpoints.tablet) return targets.tablet * this.quality.densityScale;
-    return targets.desktop * this.quality.densityScale;
+    if (this.width < breakpoints.mobile) return targets.mobile * this.settings.densityScale;
+    if (this.width < breakpoints.tablet) return targets.tablet * this.settings.densityScale;
+    return targets.desktop * this.settings.densityScale;
   }
 
   private rebuildTrianglePaths(): void {
@@ -410,7 +414,14 @@ export class TriangleRenderer implements BackgroundRendererContract<TriangleRend
     this.tileRows.push(...nextRows);
   }
 
-  private drawTriangle(tile: TriangleTile, baseWorldY: number, now: number, elapsedTime: number, motion: number): void {
+  private drawTriangle(
+    tile: TriangleTile,
+    baseWorldY: number,
+    now: number,
+    elapsedTime: number,
+    idleStrength: number,
+    sceneOpacity: number,
+  ): void {
     const context = this.context;
     const path = tile.side === 'a' ? this.trianglePathA : this.trianglePathB;
 
@@ -419,10 +430,10 @@ export class TriangleRenderer implements BackgroundRendererContract<TriangleRend
     const x = tile.column * this.metrics.cellWidth;
     const centerWorldX = x + this.metrics.cellWidth * 0.5;
     const centerWorldY = baseWorldY + this.metrics.cellHeight * 0.5;
-    const idle = motion * Math.sin(elapsedTime * tile.speed + tile.phase);
+    const idle = idleStrength * Math.sin(elapsedTime * tile.speed + tile.phase);
     const trailInfluence = this.getTrailInfluence(centerWorldX, centerWorldY, now);
     const baseAlpha = 0.045 + tile.tone * 0.055 + Math.abs(idle) * 0.018;
-    const alpha = (baseAlpha + trailInfluence * 0.22) * motion;
+    const alpha = (baseAlpha + trailInfluence * 0.22) * sceneOpacity;
 
     context.save();
     context.translate(x + tile.driftX * idle, baseWorldY + tile.driftY * idle);
@@ -432,7 +443,7 @@ export class TriangleRenderer implements BackgroundRendererContract<TriangleRend
       context.fill(path);
 
       if (trailInfluence > 0.14) {
-        context.strokeStyle = `rgba(${this.palette.accent}, ${trailInfluence * 0.16})`;
+        context.strokeStyle = `rgba(${this.palette.accent}, ${trailInfluence * 0.16 * sceneOpacity})`;
         context.lineWidth = 1;
         context.stroke(path);
       }
@@ -451,13 +462,14 @@ export class TriangleRenderer implements BackgroundRendererContract<TriangleRend
       this.width < TRIANGLE_CONFIG.viewportBreakpoints.mobile
         ? TRIANGLE_CONFIG.pointerRadius.mobile
         : TRIANGLE_CONFIG.pointerRadius.desktop;
-    const radiusSquared = radius * radius;
+    const scaledRadius = radius * this.settings.interactionRadiusScale;
+    const radiusSquared = scaledRadius * scaledRadius;
     let influence = 0;
 
     for (const point of this.highlightTrail) {
       const age = now - point.time;
 
-      if (age >= TRIANGLE_CONFIG.highlightLifetime) continue;
+      if (age >= this.settings.highlightLifetime) continue;
 
       const dx = centerX - point.x;
       const dy = centerWorldY - point.worldY;
@@ -466,16 +478,16 @@ export class TriangleRenderer implements BackgroundRendererContract<TriangleRend
       if (distanceSquared >= radiusSquared) continue;
 
       const distance = Math.sqrt(distanceSquared);
-      const normalizedAge = age / TRIANGLE_CONFIG.highlightLifetime;
+      const normalizedAge = age / this.settings.highlightLifetime;
       const fade = (1 - normalizedAge) ** 2;
-      const proximity = smoothstep(radius, 0, distance);
+      const proximity = smoothstep(scaledRadius, 0, distance);
 
       influence = Math.max(influence, proximity * fade * point.strength);
 
-      if (influence >= 1) return 1;
+      if (influence * this.settings.highlightStrength >= 1) return 1;
     }
 
-    return Math.min(1, influence);
+    return Math.min(1, influence * this.settings.highlightStrength);
   }
 
   private cleanupHighlightTrail(now: number): void {
@@ -484,7 +496,7 @@ export class TriangleRenderer implements BackgroundRendererContract<TriangleRend
     while (firstValidIndex < this.highlightTrail.length) {
       const point = this.highlightTrail[firstValidIndex];
 
-      if (!point || now - point.time < TRIANGLE_CONFIG.highlightLifetime) break;
+      if (!point || now - point.time < this.settings.highlightLifetime) break;
       firstValidIndex += 1;
     }
 
@@ -508,7 +520,7 @@ export class TriangleRenderer implements BackgroundRendererContract<TriangleRend
       this.width * 0.72,
     );
 
-    gradient.addColorStop(0, `rgba(${this.palette.ambient}, 0.055)`);
+    gradient.addColorStop(0, `rgba(${this.palette.ambient}, ${0.055 * this.settings.opacity})`);
     gradient.addColorStop(1, `rgba(${this.palette.ambient}, 0)`);
     this.ambientGradient = gradient;
   }

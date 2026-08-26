@@ -4,6 +4,27 @@ type AppFixtures = {
   runtimeErrorGuard: void;
 };
 
+const LOW_PERFORMANCE_DISPLAY_PREFERENCES = {
+  version: 1,
+  backgroundPreference: 'auto',
+  backgroundAnimations: {
+    idle: true,
+    cursorMovement: true,
+    cursorClick: true,
+    scroll: true,
+  },
+  backgroundPerformance: {
+    mode: 'low',
+    showStats: false,
+  },
+  backgroundSettingOverrides: {
+    wave: {},
+    particles: {},
+    triangles: {},
+    mesh: {},
+  },
+} as const;
+
 function isNuxtServerTimingNoise(message: string): boolean {
   return (
     (message.includes("Warning: Label '[nuxt-app]") && message.includes('already exists for console.time()')) ||
@@ -23,10 +44,13 @@ export const test = base.extend<AppFixtures>({
 
       // Each local run may start many WebGL-heavy pages in parallel. The low
       // profile keeps the actual backgrounds enabled while reducing rendering
-      // load that is irrelevant to the acceptance criteria.
-      await page.addInitScript(() => {
-        localStorage.setItem('portfolio-background-performance', JSON.stringify({ mode: 'low', showStats: false }));
-      });
+      // load that is irrelevant to the acceptance criteria. Existing storage
+      // must win on reload so persistence tests exercise the real application.
+      await page.addInitScript((preferences) => {
+        if (localStorage.getItem('portfolio-display-preferences') === null) {
+          localStorage.setItem('portfolio-display-preferences', JSON.stringify(preferences));
+        }
+      }, LOW_PERFORMANCE_DISPLAY_PREFERENCES);
 
       page.on('pageerror', (error) => errors.push(error.message));
       page.on('console', (message) => {

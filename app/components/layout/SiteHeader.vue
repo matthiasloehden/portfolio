@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { useActiveNavigation } from '@/composables/useActiveNavigation';
 import { site, siteNavigation } from '@/data/site';
+import SharedPanelTrigger from '@/components/shared/PanelTrigger.vue';
 
 const menuOpen = ref(false);
+const settingsOpen = ref(false);
 const header = ref<HTMLElement | null>(null);
 const navigationItems = useActiveNavigation(siteNavigation);
 
@@ -12,8 +14,23 @@ watch(
   () => route.fullPath,
   () => {
     menuOpen.value = false;
+    settingsOpen.value = false;
   },
 );
+
+watch(settingsOpen, (open) => {
+  if (open) menuOpen.value = false;
+});
+
+function closeHeaderPanels(): void {
+  menuOpen.value = false;
+  settingsOpen.value = false;
+}
+
+function toggleMenu(): void {
+  menuOpen.value = !menuOpen.value;
+  if (menuOpen.value) settingsOpen.value = false;
+}
 
 function onDocumentPointerDown(event: PointerEvent): void {
   if (menuOpen.value && !header.value?.contains(event.target as Node)) menuOpen.value = false;
@@ -28,7 +45,7 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onDocumentPoin
     ref="header"
     class="relative z-20 site-container flex min-h-19 items-center justify-between border-b border-line md:min-h-22"
     data-reveal="down"
-    @keydown.esc="menuOpen = false"
+    @keydown.esc="closeHeaderPanels"
   >
     <NuxtLink
       class="group inline-flex items-center gap-3.5 transition-transform duration-[240ms] ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-[0.12rem] hover:scale-[1.015] focus-visible:-translate-y-[0.12rem] focus-visible:scale-[1.015]"
@@ -52,8 +69,8 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onDocumentPoin
         <ul
           id="site-navigation"
           :class="[
-            'absolute top-full right-0 left-0 z-20 m-0 list-none flex-col border-b border-line bg-background/95 px-6 py-4 shadow-xl backdrop-blur-xl md:static md:flex md:flex-row md:items-center md:gap-4 md:border-0 md:bg-transparent md:p-0 md:shadow-none md:backdrop-blur-none lg:gap-6 xl:gap-9',
-            menuOpen ? 'flex' : 'hidden md:flex',
+            'absolute top-full right-0 left-0 z-20 m-0 flex list-none flex-col border-b border-line bg-raised/95 px-6 py-4 shadow-xl backdrop-blur-xl transition-[opacity,transform,visibility] duration-150 ease-out motion-reduce:transition-none md:pointer-events-auto md:visible md:static md:translate-y-0 md:flex-row md:items-center md:gap-4 md:border-0 md:bg-transparent md:p-0 md:opacity-100 md:shadow-none md:backdrop-blur-none md:transition-none lg:gap-6 xl:gap-9',
+            menuOpen ? 'visible translate-y-0 opacity-100' : 'pointer-events-none invisible -translate-y-1 opacity-0',
           ]"
         >
           <li
@@ -68,17 +85,26 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onDocumentPoin
         </ul>
       </nav>
 
-      <LayoutDisplaySettings class="md:ml-3" />
-      <button
-        class="grid size-9 cursor-pointer place-items-center border border-line bg-raised font-mono text-sm text-muted transition-colors hover:border-line-strong hover:text-foreground focus-visible:border-line-strong focus-visible:text-foreground md:hidden"
-        type="button"
-        aria-controls="site-navigation"
-        :aria-expanded="menuOpen"
-        :aria-label="menuOpen ? 'Close navigation' : 'Open navigation'"
-        @click="menuOpen = !menuOpen"
+      <LayoutDisplaySettings
+        v-model:open="settingsOpen"
+        class="md:ml-3"
+      />
+      <SharedPanelTrigger
+        class="md:hidden"
+        :expanded="menuOpen"
+        controls="site-navigation"
+        label="Open navigation"
+        expanded-label="Close navigation"
+        @toggle="toggleMenu"
       >
-        <span aria-hidden="true">{{ menuOpen ? '×' : '≡' }}</span>
-      </button>
+        <svg
+          class="size-4 stroke-current [stroke-width:1.3] [stroke-linecap:round]"
+          viewBox="0 0 16 16"
+          fill="none"
+        >
+          <path d="M2 4h12M2 8h12M2 12h12" />
+        </svg>
+      </SharedPanelTrigger>
     </div>
   </header>
 </template>

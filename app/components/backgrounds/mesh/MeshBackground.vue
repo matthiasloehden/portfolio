@@ -15,13 +15,12 @@
 
 import { onBeforeUnmount, onMounted, watch } from 'vue';
 
+import { createRuntimeBackgroundSettings } from '@/components/backgrounds/settings/registry';
 import {
   createDefaultBackgroundAnimationSettings,
   createDefaultBackgroundPerformanceSettings,
-  type BackgroundSceneEmits,
-  type BackgroundSceneProps,
-  type BackgroundTheme,
-} from '@/types/background';
+} from '@/config/backgrounds';
+import { type BackgroundSceneEmits, type BackgroundTheme, type MeshBackgroundProps } from '@/types/background';
 
 import { AnimationFrameScheduler } from '../shared/AnimationFrameScheduler';
 import { BackgroundEnvironment } from '../shared/BackgroundEnvironment';
@@ -32,10 +31,11 @@ import { useBackgroundPerformanceSettings } from '../shared/useBackgroundPerform
 import { MESH_QUALITY_PRESETS } from './config';
 import { MeshRenderer } from './MeshRenderer';
 
-const props = withDefaults(defineProps<BackgroundSceneProps>(), {
+const props = withDefaults(defineProps<MeshBackgroundProps>(), {
   active: true,
   animations: createDefaultBackgroundAnimationSettings,
   performance: createDefaultBackgroundPerformanceSettings,
+  settingOverrides: () => ({}),
 });
 const emit = defineEmits<BackgroundSceneEmits>();
 
@@ -46,6 +46,11 @@ let frameScheduler: AnimationFrameScheduler | null = null;
 let resizeController: BackgroundResizeController | null = null;
 let environment: BackgroundEnvironment | null = null;
 let performanceRuntime: BackgroundPerformanceRuntime<(typeof MESH_QUALITY_PRESETS)[number]> | null = null;
+
+function getRuntimeSettings() {
+  const preset = performanceRuntime?.currentPreset ?? MESH_QUALITY_PRESETS[0];
+  return createRuntimeBackgroundSettings('mesh', props.settingOverrides, preset.id);
+}
 
 function renderFrame(now: number): void {
   if (!runtime) return;
@@ -60,9 +65,7 @@ function renderFrame(now: number): void {
   const qualityChange = props.active ? performanceRuntime?.recordFrame(now) : null;
 
   if (qualityChange) {
-    runtime.setQuality(qualityChange);
-    runtime.setScrollOffset(window.scrollY, false);
-    updatePerformanceStats(now, true);
+    applyMeshSettings();
   }
 
   if (props.active) updatePerformanceStats(now);
@@ -79,9 +82,9 @@ function requestRender(): void {
 }
 
 function resize(): void {
-  if (!runtime || !performanceRuntime) return;
+  if (!runtime) return;
 
-  runtime.resize(performanceRuntime.currentPreset);
+  runtime.resize();
   runtime.setScrollOffset(window.scrollY, false);
   requestRender();
 }
@@ -166,9 +169,12 @@ function updatePerformanceStats(now: number, force = false): void {
 function applyPerformanceMode(): void {
   if (!performanceRuntime) return;
 
-  const quality = performanceRuntime.setMode(props.performance.mode);
+  performanceRuntime.setMode(props.performance.mode);
+  applyMeshSettings();
+}
 
-  runtime?.setQuality(quality);
+function applyMeshSettings(): void {
+  runtime?.setSettings(getRuntimeSettings());
   runtime?.setScrollOffset(window.scrollY, false);
   requestRender();
   updatePerformanceStats(performance.now(), true);
@@ -176,12 +182,10 @@ function applyPerformanceMode(): void {
 
 function initialize(): void {
   const element = canvas.value;
-  const quality = performanceRuntime?.currentPreset;
-
-  if (!element || !quality) return;
+  if (!element) return;
 
   try {
-    runtime = MeshRenderer.create(element, quality, environment?.theme ?? 'dark');
+    runtime = MeshRenderer.create(element, environment?.theme ?? 'dark', getRuntimeSettings());
     runtime.resize();
     runtime.setScrollOffset(window.scrollY, false);
 
@@ -228,6 +232,8 @@ useBackgroundPerformanceSettings(() => props.performance, {
   onModeChange: applyPerformanceMode,
   onStatsRequested: () => updatePerformanceStats(performance.now(), true),
 });
+
+watch(() => props.settingOverrides, applyMeshSettings, { deep: true, flush: 'post' });
 
 onMounted(() => {
   frameScheduler = new AnimationFrameScheduler(renderFrame);

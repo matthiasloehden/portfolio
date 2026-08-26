@@ -28,6 +28,7 @@ export class WaveRenderer implements BackgroundRendererContract<WaveRendererStat
   private material: THREE.ShaderMaterial | null = null;
   private grid: THREE.LineSegments | null = null;
   private trailTexture: THREE.DataTexture | null = null;
+  private settings: WaveSettings | null = null;
 
   private readonly trailData: Uint8Array;
   private readonly raycaster = new THREE.Raycaster();
@@ -59,6 +60,7 @@ export class WaveRenderer implements BackgroundRendererContract<WaveRendererStat
   }
 
   private initialize(settings: WaveSettings, theme: BackgroundTheme): void {
+    this.settings = settings;
     this.renderer = ThreeBackgroundRenderer.create(this.canvas, { antialias: true });
     const palette = getWavePalette(theme);
 
@@ -83,11 +85,14 @@ export class WaveRenderer implements BackgroundRendererContract<WaveRendererStat
         uTrailCount: { value: 0 },
         uTime: { value: 0 },
         uIdleMotion: { value: 0 },
+        uIdleStrength: { value: settings.idleStrength },
         uInteractionMotion: { value: 0 },
+        uRippleStrength: { value: settings.rippleStrength },
         uGridSize: { value: new THREE.Vector2(settings.gridWidth, settings.gridDepth) },
         uColor: { value: new THREE.Color(palette.color) },
         uWaveColor: { value: new THREE.Color(palette.waveColor) },
         uOpacity: { value: palette.opacity },
+        uOpacityScale: { value: settings.opacity },
       },
       vertexShader: createWaveVertexShader(this.maxTrailPoints),
       fragmentShader: waveFragmentShader,
@@ -117,19 +122,45 @@ export class WaveRenderer implements BackgroundRendererContract<WaveRendererStat
     this.camera.updateProjectionMatrix();
   }
 
-  applySettings(settings: WaveSettings): void {
-    if (!this.grid || !this.material) return;
+  applySettings(settings: WaveSettings): boolean {
+    if (!this.grid || !this.material) return false;
 
-    const nextGeometry = createWaveGeometry(settings);
+    const previousSettings = this.settings;
+    const geometryChanged =
+      previousSettings === null ||
+      previousSettings.gridWidth !== settings.gridWidth ||
+      previousSettings.gridDepth !== settings.gridDepth ||
+      previousSettings.gridSpacing !== settings.gridSpacing ||
+      previousSettings.vertexStep !== settings.vertexStep;
+    const pixelRatioCapChanged = previousSettings?.pixelRatioCap !== settings.pixelRatioCap;
 
-    this.grid.geometry.dispose();
-    this.grid.geometry = nextGeometry;
+    if (geometryChanged) {
+      const nextGeometry = createWaveGeometry(settings);
+
+      this.grid.geometry.dispose();
+      this.grid.geometry = nextGeometry;
+    }
 
     const gridSize = this.material.uniforms.uGridSize?.value;
 
     if (gridSize instanceof THREE.Vector2) {
       gridSize.set(settings.gridWidth, settings.gridDepth);
     }
+
+    if (this.material.uniforms.uOpacityScale) {
+      this.material.uniforms.uOpacityScale.value = settings.opacity;
+    }
+
+    if (this.material.uniforms.uIdleStrength) {
+      this.material.uniforms.uIdleStrength.value = settings.idleStrength;
+    }
+
+    if (this.material.uniforms.uRippleStrength) {
+      this.material.uniforms.uRippleStrength.value = settings.rippleStrength;
+    }
+
+    this.settings = settings;
+    return pixelRatioCapChanged;
   }
 
   setTheme(theme: BackgroundTheme): void {
@@ -223,6 +254,7 @@ export class WaveRenderer implements BackgroundRendererContract<WaveRendererStat
     this.material = null;
     this.grid = null;
     this.trailTexture = null;
+    this.settings = null;
   }
 
   private updateTrailTexture(now: number, trail: readonly TrailPoint[], settings: WaveSettings): void {

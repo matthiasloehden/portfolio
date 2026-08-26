@@ -1,70 +1,119 @@
 <script setup lang="ts">
+import {
+  getBackgroundSettingControls,
+  resolveBackgroundSettingsForEditor,
+} from '@/components/backgrounds/settings/registry';
+import { BACKGROUND_OPTIONS, getBackgroundLabel, resolveBackground } from '@/config/backgrounds';
 import type {
   BackgroundAnimation,
+  BackgroundId,
   BackgroundPerformanceMode,
   BackgroundPreference,
-  ThemePreference,
-  WaveSetting,
-} from '@/composables/usePreferences';
-import { BACKGROUND_OPTIONS, resolveBackground } from '@/config/backgrounds';
-import { WAVE_SETTING_CONTROLS } from '@/types/background';
-import SettingsNumberField from './display-settings/NumberField.vue';
-import SettingsSelectField from './display-settings/SelectField.vue';
-import SettingsToggleField from './display-settings/ToggleField.vue';
+  BackgroundQualityId,
+  BackgroundSettingKey,
+} from '@/types/background';
+import type { ThemePreference } from '@/types/display';
+import SharedAccordion from '@/components/shared/Accordion.vue';
+import SharedAccordionGroup from '@/components/shared/AccordionGroup.vue';
+import SharedPanelTrigger from '@/components/shared/PanelTrigger.vue';
+import SharedSelectField from '@/components/shared/form/SelectField.vue';
+import SharedToggleField from '@/components/shared/form/ToggleField.vue';
+import SettingsBackgroundFields from './display-settings/BackgroundSettingsFields.vue';
 
 const {
   themePreference,
   backgroundPreference,
   backgroundAnimations,
-  backgroundAdvancedSettings,
   backgroundPerformance,
+  backgroundSettingOverrides,
   setThemePreference,
   setBackgroundPreference,
   setBackgroundAnimationEnabled,
-  setWaveSetting,
+  setBackgroundSetting,
+  resetBackgroundSetting,
   setBackgroundPerformanceMode,
   setBackgroundPerformanceStatsEnabled,
   restoreDefaultSettings,
-} = usePreferences();
+} = useDisplayPreferences();
 
 const root = ref<HTMLElement | null>(null);
-const open = ref(false);
+const open = defineModel<boolean>('open', { default: false });
+const route = useRoute();
+const { performanceStats } = useBackgroundRuntimeStatus();
 
-const themeOptions: Array<{ value: ThemePreference; label: string }> = [
+const themeOptions: readonly { value: ThemePreference; label: string }[] = [
   { value: 'system', label: 'System' },
   { value: 'dark', label: 'Dark' },
   { value: 'light', label: 'Light' },
 ];
 
-const performanceOptions: Array<{ value: BackgroundPerformanceMode; label: string }> = [
-  { value: 'auto', label: 'Auto' },
-  { value: 'high', label: 'High' },
-  { value: 'medium', label: 'Medium' },
-  { value: 'low', label: 'Low' },
-];
-
-const animationOptions: Array<{
+const animationOptions: readonly {
   key: BackgroundAnimation;
   label: string;
   description: string;
-}> = [
-  { key: 'idle', label: 'Background idle animation', description: 'Animate the scene while it is idle.' },
-  {
-    key: 'cursorMovement',
-    label: 'Cursor movement animation',
-    description: 'React to mouse, pen and touch input.',
-  },
-  {
-    key: 'cursorClick',
-    label: 'Cursor click animation',
-    description: 'React to mouse, pen and touch presses.',
-  },
-  { key: 'scroll', label: 'Scroll animation', description: 'React to scrolling and wheel gestures.' },
+}[] = [
+  { key: 'idle', label: 'Idle motion', description: 'Animate the scene while it is idle.' },
+  { key: 'cursorMovement', label: 'Pointer movement', description: 'React to mouse, pen and touch movement.' },
+  { key: 'cursorClick', label: 'Pointer presses', description: 'React to mouse, pen and touch presses.' },
+  { key: 'scroll', label: 'Scroll response', description: 'React to scrolling and wheel gestures.' },
 ];
 
-const route = useRoute();
-const controlsDisabled = computed(() => backgroundPreference.value === 'none');
 const activeBackground = computed(() => resolveBackground(route.path, backgroundPreference.value));
+const activeBackgroundLabel = computed(() => getBackgroundLabel(activeBackground.value));
+const controlsDisabled = computed(() => activeBackground.value === 'none');
+
+const backgroundOptions = computed(() =>
+  BACKGROUND_OPTIONS.map((option) => ({
+    ...option,
+    label:
+      option.value === 'auto' && backgroundPreference.value === 'auto'
+        ? `Automatic per page — ${activeBackgroundLabel.value}`
+        : option.label,
+  })),
+);
+
+const performanceOptions = computed<readonly { value: BackgroundPerformanceMode; label: string }[]>(() => {
+  const activePreset =
+    backgroundPerformance.value.mode === 'auto' && performanceStats.value?.mode === 'auto'
+      ? performanceStats.value.preset
+      : undefined;
+  const autoLabel =
+    backgroundPerformance.value.mode !== 'auto'
+      ? 'Auto'
+      : activePreset
+        ? `Auto — ${activePreset.charAt(0).toUpperCase()}${activePreset.slice(1)}`
+        : 'Auto — detecting…';
+
+  return [
+    { value: 'auto', label: autoLabel },
+    { value: 'high', label: 'High' },
+    { value: 'medium', label: 'Medium' },
+    { value: 'low', label: 'Low' },
+  ];
+});
+
+const activePerformancePreset = computed<BackgroundQualityId>(() => {
+  if (backgroundPerformance.value.mode !== 'auto') return backgroundPerformance.value.mode;
+  return performanceStats.value?.mode === 'auto' ? performanceStats.value.preset : 'high';
+});
+
+const activeSettingsControls = computed(() =>
+  activeBackground.value === 'none' ? [] : getBackgroundSettingControls(activeBackground.value),
+);
+
+const activeSettingsValues = computed<Readonly<Record<string, number>>>(() =>
+  activeBackground.value === 'none'
+    ? {}
+    : resolveBackgroundSettingsForEditor(
+        activeBackground.value,
+        backgroundSettingOverrides.value,
+        activePerformancePreset.value,
+      ),
+);
+
+const activeSettingOverrides = computed<Readonly<Record<string, number | undefined>>>(() =>
+  activeBackground.value === 'none' ? {} : backgroundSettingOverrides.value[activeBackground.value],
+);
 
 function onThemeChange(value: string): void {
   setThemePreference(value as ThemePreference);
@@ -78,6 +127,27 @@ function onPerformanceModeChange(value: string): void {
   setBackgroundPerformanceMode(value as BackgroundPerformanceMode);
 }
 
+function getActiveSetting(setting: string): {
+  background: BackgroundId;
+  key: BackgroundSettingKey<BackgroundId>;
+} | null {
+  const background = activeBackground.value;
+  if (background === 'none') return null;
+
+  const control = getBackgroundSettingControls(background).find((candidate) => candidate.key === setting);
+  return control ? { background, key: control.key as BackgroundSettingKey<BackgroundId> } : null;
+}
+
+function onBackgroundSettingChange(setting: string, value: number): void {
+  const activeSetting = getActiveSetting(setting);
+  if (activeSetting) setBackgroundSetting(activeSetting.background, activeSetting.key, value);
+}
+
+function onBackgroundSettingReset(setting: string): void {
+  const activeSetting = getActiveSetting(setting);
+  if (activeSetting) resetBackgroundSetting(activeSetting.background, activeSetting.key);
+}
+
 function onDocumentPointerDown(event: PointerEvent): void {
   if (open.value && !root.value?.contains(event.target as Node)) open.value = false;
 }
@@ -89,26 +159,21 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onDocumentPoin
 <template>
   <div
     ref="root"
-    class="relative"
+    class="static md:relative"
     @keydown.esc="open = false"
   >
-    <button
-      class="grid size-9 cursor-pointer place-items-center border border-line bg-raised text-muted transition-[color,border-color,background-color,transform] duration-[260ms] ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-[1.06] hover:rotate-5 hover:border-line-strong hover:text-foreground focus-visible:scale-[1.06] focus-visible:rotate-5 focus-visible:border-line-strong focus-visible:text-foreground aria-expanded:scale-[1.06] aria-expanded:rotate-5"
-      type="button"
-      aria-haspopup="dialog"
-      :aria-expanded="open"
-      aria-controls="display-settings"
-      aria-label="Display settings"
-      title="Display settings"
-      @click="open = !open"
+    <SharedPanelTrigger
+      :expanded="open"
+      controls="display-settings"
+      label="Open display settings"
+      expanded-label="Close display settings"
+      popup="dialog"
+      @toggle="open = !open"
     >
       <svg
-        class="stroke-current [stroke-width:1.2] [stroke-linecap:round] [stroke-linejoin:round]"
-        width="16"
-        height="16"
+        class="size-4 stroke-current [stroke-width:1.2] [stroke-linecap:round] [stroke-linejoin:round]"
         viewBox="0 0 16 16"
         fill="none"
-        aria-hidden="true"
       >
         <path d="M2 4h7M12 4h2M2 12h2M7 12h7M2 8h3M8 8h6" />
         <circle
@@ -127,108 +192,112 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onDocumentPoin
           r="1.5"
         />
       </svg>
-    </button>
+    </SharedPanelTrigger>
 
     <Transition
-      enter-active-class="origin-top-right transition duration-[180ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
-      enter-from-class="-translate-y-[0.35rem] scale-[0.97] opacity-0"
-      leave-active-class="origin-top-right transition duration-150 ease-in"
-      leave-to-class="-translate-y-1 scale-[0.98] opacity-0"
+      enter-active-class="transition duration-150 ease-out motion-reduce:transition-none"
+      enter-from-class="-translate-y-1 opacity-0"
+      leave-active-class="transition duration-150 ease-in motion-reduce:transition-none"
+      leave-to-class="-translate-y-1 opacity-0"
     >
       <div
         v-if="open"
         id="display-settings"
-        class="absolute top-[calc(100%+0.75rem)] right-0 z-50 max-h-[min(44rem,calc(100vh-5rem))] w-[min(18rem,calc(100vw-2rem))] origin-top-right overflow-y-auto overscroll-contain border border-line bg-raised/95 p-4 shadow-2xl backdrop-blur-xl"
+        class="absolute top-full right-0 left-0 z-50 origin-top-right border-b border-line bg-raised/95 shadow-2xl backdrop-blur-xl md:top-[calc(100%+0.75rem)] md:left-auto md:w-[min(20rem,calc(100vw-2rem))] md:border"
         role="dialog"
         aria-label="Display settings"
       >
-        <div class="mb-4 flex items-center justify-between gap-4 border-b border-line pb-3">
-          <strong class="font-display text-sm tracking-[0.04em] text-foreground uppercase">Display</strong>
-          <span class="font-mono text-[0.58rem] text-muted">Preferences</span>
-        </div>
-
-        <SettingsSelectField
-          label="Theme"
-          :model-value="themePreference"
-          :options="themeOptions"
-          @update:model-value="onThemeChange"
-        />
-
-        <SettingsSelectField
-          class="mt-3"
-          label="Background"
-          :model-value="backgroundPreference"
-          :options="BACKGROUND_OPTIONS"
-          @update:model-value="onBackgroundChange"
-        />
-
-        <SettingsSelectField
-          class="mt-3"
-          label="Performance"
-          description="Auto lowers scene quality if rendering remains slow."
-          :model-value="backgroundPerformance.mode"
-          :options="performanceOptions"
-          :disabled="controlsDisabled"
-          @update:model-value="onPerformanceModeChange"
-        />
-
-        <SettingsToggleField
-          class="mt-3"
-          label="Performance stats"
-          description="Show diagnostics for the active background."
-          :checked="backgroundPerformance.showStats"
-          :disabled="controlsDisabled"
-          @change="setBackgroundPerformanceStatsEnabled"
-        />
-
-        <fieldset class="mt-4 grid gap-3 border-t border-line pt-4">
-          <legend class="sr-only">Background animations</legend>
-          <SettingsToggleField
-            v-for="option in animationOptions"
-            :key="option.key"
-            :label="option.label"
-            :description="option.description"
-            :checked="backgroundAnimations[option.key]"
-            :disabled="controlsDisabled"
-            @change="setBackgroundAnimationEnabled(option.key, $event)"
-          />
-        </fieldset>
-
-        <details
-          v-if="activeBackground === 'wave'"
-          class="mt-4 border-t border-line pt-4"
+        <div
+          class="max-h-[calc(100vh-4.75rem)] overflow-x-hidden overflow-y-auto overscroll-contain px-6 py-4 md:-mr-4 md:max-h-[min(44rem,calc(100vh-5rem))] md:w-[calc(100%+1rem)] md:p-0"
         >
-          <summary class="cursor-pointer font-mono text-[0.65rem] font-semibold text-foreground">
-            Wave Grid advanced settings
-          </summary>
+          <div class="md:w-[20rem] md:p-4">
+            <div class="mb-4 flex items-center justify-between gap-4 border-b border-line pb-3">
+              <strong class="font-display text-sm tracking-[0.04em] text-foreground uppercase">Display</strong>
+              <span class="font-mono text-[0.58rem] text-muted">Preferences</span>
+            </div>
 
-          <p class="mt-[0.6rem] mb-[0.85rem] font-mono text-[0.56rem] leading-[1.45] text-muted">
-            Visual density, ripple capacity and render resolution.
-          </p>
-
-          <div class="grid gap-3">
-            <SettingsNumberField
-              v-for="control in WAVE_SETTING_CONTROLS"
-              :key="control.key"
-              :label="control.label"
-              :description="control.description"
-              :model-value="backgroundAdvancedSettings.wave[control.key]"
-              :min="control.min"
-              :max="control.max"
-              :step="control.step"
-              :disabled="controlsDisabled"
-              @update:model-value="setWaveSetting(control.key as WaveSetting, $event)"
+            <SharedSelectField
+              label="Theme"
+              :model-value="themePreference"
+              :options="themeOptions"
+              @update:model-value="onThemeChange"
             />
-          </div>
-        </details>
+            <SharedSelectField
+              class="mt-3"
+              label="Background"
+              :model-value="backgroundPreference"
+              :options="backgroundOptions"
+              @update:model-value="onBackgroundChange"
+            />
+            <SharedSelectField
+              class="mt-3"
+              label="Background performance"
+              :model-value="backgroundPerformance.mode"
+              :options="performanceOptions"
+              :disabled="controlsDisabled"
+              @update:model-value="onPerformanceModeChange"
+            />
 
-        <button
-          class="mt-4 w-full cursor-pointer border border-line px-3 py-2 font-mono text-[0.6rem] text-muted transition-colors hover:border-line-strong hover:text-foreground focus-visible:border-line-strong focus-visible:text-foreground"
-          type="button"
-          @click="restoreDefaultSettings"
-        >
-          Restore default settings
-        </button>
+            <SharedAccordionGroup class="mt-4">
+              <SharedAccordion
+                label="Advanced background settings"
+                flush
+              >
+                <SharedToggleField
+                  label="Performance stats"
+                  description="Show diagnostics for the active background."
+                  :checked="backgroundPerformance.showStats"
+                  :disabled="controlsDisabled"
+                  @change="setBackgroundPerformanceStatsEnabled"
+                />
+
+                <SharedAccordionGroup
+                  class="mt-4"
+                  :end-border="false"
+                >
+                  <SharedAccordion label="Animations">
+                    <fieldset class="grid gap-3">
+                      <legend class="sr-only">Animations</legend>
+                      <SharedToggleField
+                        v-for="option in animationOptions"
+                        :key="option.key"
+                        :label="option.label"
+                        :description="option.description"
+                        :checked="backgroundAnimations[option.key]"
+                        :disabled="controlsDisabled"
+                        @change="setBackgroundAnimationEnabled(option.key, $event)"
+                      />
+                    </fieldset>
+                  </SharedAccordion>
+
+                  <SharedAccordion
+                    label="Configure active background"
+                    :meta="activeBackgroundLabel"
+                    flush
+                  >
+                    <SettingsBackgroundFields
+                      v-if="activeBackground !== 'none'"
+                      :controls="activeSettingsControls"
+                      :values="activeSettingsValues"
+                      :overrides="activeSettingOverrides"
+                      :performance-preset="activePerformancePreset"
+                      @change="onBackgroundSettingChange"
+                      @reset="onBackgroundSettingReset"
+                    />
+                  </SharedAccordion>
+                </SharedAccordionGroup>
+              </SharedAccordion>
+            </SharedAccordionGroup>
+
+            <button
+              class="mt-4 w-full cursor-pointer border border-line px-3 py-2 font-mono text-[0.6rem] text-muted transition-colors hover:border-line-strong hover:text-foreground focus-visible:border-line-strong focus-visible:text-foreground"
+              type="button"
+              @click="restoreDefaultSettings"
+            >
+              Restore default settings
+            </button>
+          </div>
+        </div>
       </div>
     </Transition>
   </div>

@@ -5,12 +5,12 @@
 -->
 <script setup lang="ts">
 import type {
-  BackgroundAdvancedSettings,
   BackgroundAnimationSettings,
   BackgroundId,
   BackgroundPerformanceSettings,
   BackgroundPerformanceStats,
   BackgroundPreference,
+  BackgroundSettingOverridesMap,
 } from '@/types/background';
 import { resolveBackground } from '@/config/backgrounds';
 import ParticleBackground from '@/components/backgrounds/particles/ParticleBackground.vue';
@@ -22,14 +22,14 @@ import PerformanceStatsOverlay from '@/components/backgrounds/shared/Performance
 const props = defineProps<{
   preference: BackgroundPreference;
   animations: BackgroundAnimationSettings;
-  advancedSettings: BackgroundAdvancedSettings;
+  settingOverrides: BackgroundSettingOverridesMap;
   performance: BackgroundPerformanceSettings;
 }>();
 
 const route = useRoute();
 
 const selectedBackground = computed(() => resolveBackground(route.path, props.preference));
-const performanceStats = shallowRef<BackgroundPerformanceStats | null>(null);
+const { performanceStats } = useBackgroundRuntimeStatus();
 
 function isSceneActive(background: BackgroundId): boolean {
   return selectedBackground.value === background;
@@ -52,7 +52,7 @@ watch(selectedBackground, () => {
     :class="{ 'background-scene-active': isSceneActive('wave') }"
     :active="isSceneActive('wave')"
     :animations="animations"
-    :settings="advancedSettings.wave"
+    :setting-overrides="settingOverrides.wave"
     :performance="performance"
     @performance-stats="setPerformanceStats('wave', $event)"
   />
@@ -62,6 +62,7 @@ watch(selectedBackground, () => {
     :class="{ 'background-scene-active': isSceneActive('triangles') }"
     :active="isSceneActive('triangles')"
     :animations="animations"
+    :setting-overrides="settingOverrides.triangles"
     :performance="performance"
     @performance-stats="setPerformanceStats('triangles', $event)"
   />
@@ -71,6 +72,7 @@ watch(selectedBackground, () => {
     :class="{ 'background-scene-active': isSceneActive('particles') }"
     :active="isSceneActive('particles')"
     :animations="animations"
+    :setting-overrides="settingOverrides.particles"
     :performance="performance"
     @performance-stats="setPerformanceStats('particles', $event)"
   />
@@ -80,6 +82,7 @@ watch(selectedBackground, () => {
     :class="{ 'background-scene-active': isSceneActive('mesh') }"
     :active="isSceneActive('mesh')"
     :animations="animations"
+    :setting-overrides="settingOverrides.mesh"
     :performance="performance"
     @performance-stats="setPerformanceStats('mesh', $event)"
   />

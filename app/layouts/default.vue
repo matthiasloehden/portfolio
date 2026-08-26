@@ -7,11 +7,11 @@
 const {
   backgroundPreference,
   backgroundAnimations,
-  backgroundAdvancedSettings,
+  backgroundSettingOverrides,
   backgroundPerformance,
   initializePreferences,
   disposePreferences,
-} = usePreferences();
+} = useDisplayPreferences();
 
 onMounted(initializePreferences);
 onBeforeUnmount(disposePreferences);
@@ -48,7 +48,7 @@ useHead({
     <LayoutBackgroundOrchestrator
       :preference="backgroundPreference"
       :animations="backgroundAnimations"
-      :advanced-settings="backgroundAdvancedSettings"
+      :setting-overrides="backgroundSettingOverrides"
       :performance="backgroundPerformance"
     />
 

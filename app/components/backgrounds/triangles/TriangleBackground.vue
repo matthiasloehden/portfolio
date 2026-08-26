@@ -15,13 +15,12 @@
 
 import { onBeforeUnmount, onMounted, watch } from 'vue';
 
+import { createRuntimeBackgroundSettings } from '@/components/backgrounds/settings/registry';
 import {
   createDefaultBackgroundAnimationSettings,
   createDefaultBackgroundPerformanceSettings,
-  type BackgroundSceneEmits,
-  type BackgroundSceneProps,
-  type BackgroundTheme,
-} from '@/types/background';
+} from '@/config/backgrounds';
+import { type BackgroundSceneEmits, type BackgroundTheme, type TriangleBackgroundProps } from '@/types/background';
 
 import { AnimationFrameScheduler } from '../shared/AnimationFrameScheduler';
 import { BackgroundEnvironment } from '../shared/BackgroundEnvironment';
@@ -33,10 +32,11 @@ import { TRIANGLE_CONFIG, TRIANGLE_QUALITY_PRESETS } from './config';
 import { TriangleRenderer } from './TriangleRenderer';
 import type { TrianglePosition } from './types';
 
-const props = withDefaults(defineProps<BackgroundSceneProps>(), {
+const props = withDefaults(defineProps<TriangleBackgroundProps>(), {
   active: true,
   animations: createDefaultBackgroundAnimationSettings,
   performance: createDefaultBackgroundPerformanceSettings,
+  settingOverrides: () => ({}),
 });
 const emit = defineEmits<BackgroundSceneEmits>();
 
@@ -57,6 +57,11 @@ let pointerScreenY = 0;
 let lastPointerPosition: TrianglePosition | null = null;
 let lastPointerPointTime = 0;
 let previousScrollOffset = 0;
+
+function getRuntimeSettings() {
+  const preset = performanceRuntime?.currentPreset ?? TRIANGLE_QUALITY_PRESETS[0];
+  return createRuntimeBackgroundSettings('triangles', props.settingOverrides, preset.id);
+}
 
 function scheduleFrame(): void {
   frameScheduler?.request();
@@ -86,9 +91,7 @@ function renderFrame(now: number): void {
   const qualityChange = props.active ? performanceRuntime?.recordFrame(now) : null;
 
   if (qualityChange) {
-    runtime.setQuality(qualityChange);
-    runtime.setScrollOffset(window.scrollY);
-    updatePerformanceStats(now, true);
+    applyTriangleSettings();
   }
 
   if (props.active) updatePerformanceStats(now);
@@ -97,10 +100,10 @@ function renderFrame(now: number): void {
 }
 
 function resize(): void {
-  if (!runtime || !performanceRuntime) return;
+  if (!runtime) return;
 
   runtime.setScrollOffset(window.scrollY);
-  runtime.resize(performanceRuntime.currentPreset);
+  runtime.resize();
   previousScrollOffset = window.scrollY;
   lastFrameTime = 0;
   scheduleFrame();
@@ -237,9 +240,12 @@ function updatePerformanceStats(now: number, force = false): void {
 function applyPerformanceMode(): void {
   if (!performanceRuntime) return;
 
-  const quality = performanceRuntime.setMode(props.performance.mode);
+  performanceRuntime.setMode(props.performance.mode);
+  applyTriangleSettings();
+}
 
-  runtime?.setQuality(quality);
+function applyTriangleSettings(): void {
+  runtime?.setSettings(getRuntimeSettings());
   runtime?.setScrollOffset(window.scrollY);
   lastFrameTime = 0;
   scheduleFrame();
@@ -248,12 +254,10 @@ function applyPerformanceMode(): void {
 
 function initialize(): void {
   const element = canvas.value;
-  const quality = performanceRuntime?.currentPreset;
-
-  if (!element || !quality) return;
+  if (!element) return;
 
   try {
-    runtime = TriangleRenderer.create(element, quality, environment?.theme ?? 'dark');
+    runtime = TriangleRenderer.create(element, environment?.theme ?? 'dark', getRuntimeSettings());
     runtime.setScrollOffset(window.scrollY);
     previousScrollOffset = window.scrollY;
     runtime.resize();
@@ -300,6 +304,8 @@ useBackgroundPerformanceSettings(() => props.performance, {
   onModeChange: applyPerformanceMode,
   onStatsRequested: () => updatePerformanceStats(performance.now(), true),
 });
+
+watch(() => props.settingOverrides, applyTriangleSettings, { deep: true, flush: 'post' });
 
 onMounted(() => {
   frameScheduler = new AnimationFrameScheduler(renderFrame);

@@ -7,7 +7,7 @@
 import * as THREE from 'three';
 import { GPUComputationRenderer, type Variable } from 'three/addons/misc/GPUComputationRenderer.js';
 
-import type { BackgroundAnimationSettings } from '@/types/background';
+import type { BackgroundAnimationSettings, ParticleSettings } from '@/types/background';
 
 import { PARTICLE_CONFIG, type ParticleQualityPreset } from './config';
 import type { InteractionState } from './InteractionManager';
@@ -28,7 +28,8 @@ export class ParticleSimulation {
   constructor(
     private readonly renderer: THREE.WebGLRenderer,
     private readonly scene: THREE.Scene,
-    private readonly quality: ParticleQualityPreset,
+    quality: ParticleQualityPreset,
+    private settings: ParticleSettings,
     aspect: number,
     color: string,
   ) {
@@ -51,24 +52,24 @@ export class ParticleSimulation {
     velocityUniforms.uDelta = { value: 0 };
     velocityUniforms.uAmbientStrength = { value: PARTICLE_CONFIG.ambientStrength };
     velocityUniforms.uNoiseScale = { value: PARTICLE_CONFIG.noiseScale };
-    velocityUniforms.uNoiseSpeed = { value: PARTICLE_CONFIG.noiseSpeed };
+    velocityUniforms.uNoiseSpeed = { value: settings.noiseSpeed };
     velocityUniforms.uDamping = { value: PARTICLE_CONFIG.damping };
     velocityUniforms.uInteractionDamping = { value: PARTICLE_CONFIG.interactionDamping };
     velocityUniforms.uInteractionMomentum = { value: 0 };
     velocityUniforms.uInteractionMaxVelocity = { value: PARTICLE_CONFIG.interactionMaxVelocity };
-    velocityUniforms.uPointerRadius = { value: PARTICLE_CONFIG.pointerRadius };
-    velocityUniforms.uPointerRepulsion = { value: PARTICLE_CONFIG.pointerRepulsion };
-    velocityUniforms.uClickAttraction = { value: PARTICLE_CONFIG.clickAttraction };
+    velocityUniforms.uPointerRadius = { value: settings.interactionRadius };
+    velocityUniforms.uPointerRepulsion = { value: settings.repulsionStrength };
+    velocityUniforms.uClickAttraction = { value: settings.clickStrength };
     velocityUniforms.uClickInfluence = { value: 0 };
     velocityUniforms.uPointerVelocityTransfer = { value: PARTICLE_CONFIG.pointerVelocityTransfer };
-    velocityUniforms.uPointerVortexStrength = { value: PARTICLE_CONFIG.pointerVortexStrength };
+    velocityUniforms.uPointerVortexStrength = { value: settings.vortexStrength };
     velocityUniforms.uPointerInfluence = { value: 0 };
     velocityUniforms.uIdleRingRadius = { value: PARTICLE_CONFIG.idleRingRadius };
     velocityUniforms.uIdleRingThickness = { value: PARTICLE_CONFIG.idleRingThickness };
     velocityUniforms.uIdleAttraction = { value: PARTICLE_CONFIG.idleAttraction };
     velocityUniforms.uIdleOrbitStrength = { value: PARTICLE_CONFIG.idleOrbitStrength };
     velocityUniforms.uScrollVelocity = { value: 0 };
-    velocityUniforms.uScrollStrength = { value: PARTICLE_CONFIG.scrollStrength };
+    velocityUniforms.uScrollStrength = { value: settings.scrollStrength };
     velocityUniforms.uMaxVelocity = { value: PARTICLE_CONFIG.maxVelocity };
     velocityUniforms.uAspect = { value: aspect };
     velocityUniforms.uPointer = { value: this.pointer };
@@ -87,10 +88,10 @@ export class ParticleSimulation {
       uniforms: {
         uPositionTexture: { value: this.compute.getCurrentRenderTarget(this.positionVariable).texture },
         uVelocityTexture: { value: this.compute.getCurrentRenderTarget(this.velocityVariable).texture },
-        uPointSize: { value: PARTICLE_CONFIG.particleSize },
-        uDpr: { value: Math.min(window.devicePixelRatio, quality.pixelRatioCap) },
+        uPointSize: { value: settings.pointSize },
+        uDpr: { value: Math.min(window.devicePixelRatio, settings.pixelRatioCap) },
         uColor: { value: new THREE.Color(color) },
-        uOpacity: { value: PARTICLE_CONFIG.particleOpacity },
+        uOpacity: { value: settings.opacity },
       },
       vertexShader: particleVertexShader,
       fragmentShader: particleFragmentShader,
@@ -114,17 +115,21 @@ export class ParticleSimulation {
     this.pointerVelocity.set(interaction.pointerVelocityX, interaction.pointerVelocityY);
     this.getUniform(velocityUniforms, 'uTime').value = time;
     this.getUniform(velocityUniforms, 'uDelta').value = delta;
-    this.getUniform(velocityUniforms, 'uAmbientStrength').value = animations.idle ? PARTICLE_CONFIG.ambientStrength : 0;
-    this.getUniform(velocityUniforms, 'uIdleAttraction').value = animations.idle ? PARTICLE_CONFIG.idleAttraction : 0;
+    this.getUniform(velocityUniforms, 'uAmbientStrength').value = animations.idle
+      ? PARTICLE_CONFIG.ambientStrength * this.settings.idleStrength
+      : 0;
+    this.getUniform(velocityUniforms, 'uIdleAttraction').value = animations.idle
+      ? PARTICLE_CONFIG.idleAttraction * this.settings.idleStrength
+      : 0;
     this.getUniform(velocityUniforms, 'uIdleOrbitStrength').value = animations.idle
-      ? PARTICLE_CONFIG.idleOrbitStrength
+      ? PARTICLE_CONFIG.idleOrbitStrength * this.settings.idleStrength
       : 0;
     this.getUniform(velocityUniforms, 'uPointerRadius').value = touch
-      ? PARTICLE_CONFIG.touchRadius
-      : PARTICLE_CONFIG.pointerRadius;
+      ? this.settings.interactionRadius * PARTICLE_CONFIG.touchRadiusScale
+      : this.settings.interactionRadius;
     this.getUniform(velocityUniforms, 'uPointerRepulsion').value = touch
-      ? PARTICLE_CONFIG.pointerRepulsion * PARTICLE_CONFIG.touchStrength
-      : PARTICLE_CONFIG.pointerRepulsion;
+      ? this.settings.repulsionStrength * PARTICLE_CONFIG.touchStrength
+      : this.settings.repulsionStrength;
     this.getUniform(velocityUniforms, 'uPointerInfluence').value = interaction.pointerInfluence;
     this.getUniform(velocityUniforms, 'uClickInfluence').value = interaction.clickInfluence;
     this.getUniform(velocityUniforms, 'uScrollVelocity').value = interaction.scrollVelocity;
@@ -143,12 +148,24 @@ export class ParticleSimulation {
   resize(aspect: number, dpr: number): void {
     this.getUniform(this.velocityVariable.material.uniforms, 'uAspect').value = aspect;
     this.getUniform(this.positionVariable.material.uniforms, 'uAspect').value = aspect;
-    this.getUniform(this.material.uniforms, 'uDpr').value = Math.min(dpr, this.quality.pixelRatioCap);
+    this.getUniform(this.material.uniforms, 'uDpr').value = dpr;
   }
 
   setColor(color: string): void {
     const uniformColor: unknown = this.getUniform(this.material.uniforms, 'uColor').value;
     if (uniformColor instanceof THREE.Color) uniformColor.set(color);
+  }
+
+  setSettings(settings: ParticleSettings): void {
+    this.settings = settings;
+    this.getUniform(this.material.uniforms, 'uPointSize').value = settings.pointSize;
+    this.getUniform(this.material.uniforms, 'uOpacity').value = settings.opacity;
+    this.getUniform(this.velocityVariable.material.uniforms, 'uPointerRadius').value = settings.interactionRadius;
+    this.getUniform(this.velocityVariable.material.uniforms, 'uPointerRepulsion').value = settings.repulsionStrength;
+    this.getUniform(this.velocityVariable.material.uniforms, 'uNoiseSpeed').value = settings.noiseSpeed;
+    this.getUniform(this.velocityVariable.material.uniforms, 'uPointerVortexStrength').value = settings.vortexStrength;
+    this.getUniform(this.velocityVariable.material.uniforms, 'uClickAttraction').value = settings.clickStrength;
+    this.getUniform(this.velocityVariable.material.uniforms, 'uScrollStrength').value = settings.scrollStrength;
   }
 
   dispose(): void {

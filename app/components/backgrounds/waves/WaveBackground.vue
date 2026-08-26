@@ -3,7 +3,7 @@
  * Vue controller for the Wave Grid background.
  *
  * This component translates pointer, touch, click and scroll events into a
- * short-lived trail of wave points. It also owns reactive advanced settings,
+ * short-lived trail of wave points. It also applies reactive setting overrides,
  * resize/context recovery, adaptive quality and the animation-frame lifecycle.
  * WaveRenderer receives already-normalized settings and trail data and remains
  * responsible only for the Three.js scene and GPU resources.
@@ -16,11 +16,12 @@
 
 import { onBeforeUnmount, onMounted, watch } from 'vue';
 
+import { createRuntimeBackgroundSettings } from '@/components/backgrounds/settings/registry';
 import {
   createDefaultBackgroundAnimationSettings,
   createDefaultBackgroundPerformanceSettings,
-  createDefaultWaveSettings,
-  WAVE_MAX_TRAIL_POINTS,
+} from '@/config/backgrounds';
+import {
   type BackgroundSceneEmits,
   type BackgroundTheme,
   type WaveBackgroundProps,
@@ -41,6 +42,7 @@ import {
   TOUCH_RIPPLE_THROTTLE,
   WAVE_QUALITY_PRESETS,
 } from './config';
+import { WAVE_MAX_TRAIL_POINTS } from './settings';
 import type { WavePosition, TrailPoint } from './types';
 import { WaveRenderer } from './WaveRenderer';
 
@@ -48,7 +50,7 @@ const props = withDefaults(defineProps<WaveBackgroundProps>(), {
   active: true,
   animations: createDefaultBackgroundAnimationSettings,
   performance: createDefaultBackgroundPerformanceSettings,
-  settings: createDefaultWaveSettings,
+  settingOverrides: () => ({}),
 });
 const emit = defineEmits<BackgroundSceneEmits>();
 
@@ -56,7 +58,7 @@ const { canvas, failed, failureReason, clearFailure, setFailure } = useBackgroun
 
 let runtime: WaveRenderer | null = null;
 let performanceRuntime: BackgroundPerformanceRuntime<(typeof WAVE_QUALITY_PRESETS)[number]> | null = null;
-let runtimeSettings: WaveSettings = props.settings;
+let runtimeSettings: WaveSettings = createRuntimeBackgroundSettings('wave', props.settingOverrides, 'high');
 let environment: BackgroundEnvironment | null = null;
 let resizeController: BackgroundResizeController | null = null;
 let webglContext: WebGLContextLifecycle | null = null;
@@ -84,13 +86,7 @@ function applyTheme(theme: BackgroundTheme): void {
 
 function syncRuntimeSettings(): void {
   const quality = performanceRuntime?.currentPreset ?? WAVE_QUALITY_PRESETS[0];
-
-  runtimeSettings = {
-    ...props.settings,
-    vertexStep: props.settings.vertexStep * quality.vertexStepScale,
-    trailLength: Math.min(props.settings.trailLength, quality.trailLengthCap),
-    pixelRatioCap: Math.min(props.settings.pixelRatioCap, quality.pixelRatioCap),
-  };
+  runtimeSettings = createRuntimeBackgroundSettings('wave', props.settingOverrides, quality.id);
 }
 
 function addRipple(position: WavePosition, now: number, velocity: number, layers: number): void {
@@ -166,10 +162,11 @@ function applyWaveSettings(): void {
 
   if (!runtime) return;
 
-  runtime.applySettings(runtimeSettings);
+  const resizeRequired = runtime.applySettings(runtimeSettings);
   trimTrail();
-  resize();
-  setAnimationState();
+
+  if (resizeRequired) resize();
+  else setAnimationState();
 }
 
 function updatePointerPosition(clientX: number, clientY: number): WavePosition | null {
@@ -435,19 +432,7 @@ useBackgroundPerformanceSettings(() => props.performance, {
   onStatsRequested: () => updatePerformanceStats(performance.now(), true),
 });
 
-watch(
-  () => [
-    props.settings.gridWidth,
-    props.settings.gridDepth,
-    props.settings.gridSpacing,
-    props.settings.vertexStep,
-    props.settings.trailLength,
-    props.settings.trailLifetime,
-    props.settings.pixelRatioCap,
-  ],
-  applyWaveSettings,
-  { flush: 'post' },
-);
+watch(() => props.settingOverrides, applyWaveSettings, { deep: true, flush: 'post' });
 
 onMounted(() => {
   performanceRuntime = new BackgroundPerformanceRuntime(WAVE_QUALITY_PRESETS, props.performance.mode);

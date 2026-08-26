@@ -1,24 +1,25 @@
 <script setup lang="ts">
+interface SelectFieldOption {
+  value: string;
+  label: string;
+}
+
 defineProps<{
   label: string;
   description?: string;
-  modelValue: number;
-  min: number;
-  max: number;
-  step: number;
+  modelValue: string;
+  options: readonly SelectFieldOption[];
   disabled?: boolean;
 }>();
 
 const descriptionId = useId();
 
 const emit = defineEmits<{
-  'update:modelValue': [value: number];
+  'update:modelValue': [value: string];
 }>();
 
 function onChange(event: Event): void {
-  const value = Number((event.target as HTMLInputElement).value);
-
-  if (Number.isFinite(value)) emit('update:modelValue', value);
+  emit('update:modelValue', (event.target as HTMLSelectElement).value);
 }
 </script>
 
@@ -34,17 +35,21 @@ function onChange(event: Event): void {
         {{ description }}
       </small>
     </span>
-    <input
-      class="min-h-[2.4rem] w-full rounded-none border border-line bg-background px-[0.7rem] text-[0.65rem] text-foreground outline-none focus-visible:border-line-strong disabled:cursor-not-allowed disabled:opacity-45"
-      type="number"
+    <select
+      class="min-h-[2.4rem] w-full rounded-none border border-line bg-background py-0 pr-8 pl-[0.7rem] text-[0.65rem] text-foreground outline-none focus-visible:border-line-strong disabled:cursor-not-allowed disabled:opacity-45"
       :value="modelValue"
-      :min="min"
-      :max="max"
-      :step="step"
       :disabled="disabled"
       :aria-label="label"
       :aria-describedby="description ? descriptionId : undefined"
       @change="onChange"
-    />
+    >
+      <option
+        v-for="option in options"
+        :key="option.value"
+        :value="option.value"
+      >
+        {{ option.label }}
+      </option>
+    </select>
   </label>
 </template>

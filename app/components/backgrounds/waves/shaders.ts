@@ -12,7 +12,9 @@ export function createWaveVertexShader(maxTrailPoints: number): string {
     uniform float uTrailCount;
     uniform float uTime;
     uniform float uIdleMotion;
+    uniform float uIdleStrength;
     uniform float uInteractionMotion;
+    uniform float uRippleStrength;
     uniform vec2 uGridSize;
 
     attribute float aLineStrength;
@@ -138,11 +140,11 @@ export function createWaveVertexShader(maxTrailPoints: number): string {
         idleSweep * 0.045;
 
       displaced.y +=
-        min(wave, 1.15) * 0.38 * uInteractionMotion +
-        ambient * uIdleMotion;
+        min(wave, 1.15) * 0.38 * uInteractionMotion * uRippleStrength +
+        ambient * uIdleMotion * uIdleStrength;
 
       vLineStrength = aLineStrength;
-      vWave = min(wave, 1.0) * uInteractionMotion;
+      vWave = min(wave, 1.0) * uInteractionMotion * uRippleStrength;
 
       vIdle =
         max(
@@ -153,7 +155,8 @@ export function createWaveVertexShader(maxTrailPoints: number): string {
           ),
           idleSweep * 0.9
         ) *
-        uIdleMotion;
+        uIdleMotion *
+        uIdleStrength;
 
       vDepth =
         smoothstep(
@@ -174,6 +177,7 @@ export const waveFragmentShader = /* glsl */ `
   uniform vec3 uColor;
   uniform vec3 uWaveColor;
   uniform float uOpacity;
+  uniform float uOpacityScale;
 
   varying float vLineStrength;
   varying float vWave;
@@ -213,6 +217,7 @@ export const waveFragmentShader = /* glsl */ `
         waveGlow
       ) *
       uOpacity *
+      uOpacityScale *
       vDepth;
 
     gl_FragColor =

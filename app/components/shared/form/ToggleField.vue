@@ -24,8 +24,9 @@ function onChange(event: Event): void {
       <small
         :id="descriptionId"
         class="font-mono text-[0.56rem] leading-[1.45] text-muted"
-        >{{ description }}</small
       >
+        {{ description }}
+      </small>
     </span>
     <input
       class="h-[1.3rem] w-[2.35rem] shrink-0 cursor-pointer accent-primary disabled:cursor-not-allowed disabled:opacity-45"

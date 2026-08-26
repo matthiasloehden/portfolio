@@ -2,18 +2,15 @@ import type { BackgroundQualityPreset, BackgroundTheme } from '@/types/backgroun
 
 import type { MeshPalette } from './types';
 
-export interface MeshQualityPreset extends BackgroundQualityPreset {
-  spacingScale: number;
-}
+export type MeshQualityPreset = BackgroundQualityPreset;
 
 export const MESH_QUALITY_PRESETS = [
-  { id: 'high', slowFrameThreshold: 22, spacingScale: 0.85, pixelRatioCap: 1.5 },
-  { id: 'medium', slowFrameThreshold: 27, spacingScale: 1, pixelRatioCap: 1.25 },
-  { id: 'low', slowFrameThreshold: 34, spacingScale: 1.3, pixelRatioCap: 1 },
+  { id: 'high', slowFrameThreshold: 22 },
+  { id: 'medium', slowFrameThreshold: 27 },
+  { id: 'low', slowFrameThreshold: 34 },
 ] as const satisfies readonly MeshQualityPreset[];
 
 export const MESH_CONFIG = {
-  pointerWakeDuration: 3_200,
   pointerWakeAttackRate: 7.5,
   pointerActivityHold: 160,
   pointerWakeRadius: 320,

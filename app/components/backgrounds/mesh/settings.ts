@@ -1,0 +1,71 @@
+import { defineBackgroundSettings } from '@/components/backgrounds/settings/definition';
+import type { MeshSettings } from '@/types/background';
+
+export const meshSettingsDefinition = defineBackgroundSettings<MeshSettings>({
+  densityScale: {
+    group: 'appearance',
+    label: 'Mesh density',
+    description: 'Number of mesh points relative to the default scene.',
+    defaultValue: 1,
+    recommended: { min: 0.5, max: 1.5, step: 0.01 },
+    runtime: { min: 0.1, max: 3 },
+    presetValues: { high: 1.18, medium: 1, low: 0.77 },
+  },
+  opacity: {
+    group: 'appearance',
+    label: 'Mesh opacity',
+    description: 'Visibility of mesh lines, fills and highlights.',
+    defaultValue: 1,
+    recommended: { min: 0.25, max: 1.5, step: 0.05 },
+    runtime: { min: 0, max: 3 },
+  },
+  idleStrength: {
+    group: 'appearance',
+    label: 'Idle movement',
+    description: 'Distance travelled by ambient mesh movement.',
+    defaultValue: 1,
+    recommended: { min: 0, max: 2, step: 0.05 },
+    runtime: { min: 0, max: 5 },
+  },
+  idleSpeed: {
+    group: 'appearance',
+    label: 'Idle speed',
+    description: 'Speed of the ambient mesh movement.',
+    defaultValue: 1,
+    recommended: { min: 0, max: 2, step: 0.05 },
+    runtime: { min: 0, max: 5 },
+  },
+  pixelRatioCap: {
+    group: 'appearance',
+    label: 'Pixel-ratio cap',
+    description: 'Maximum render resolution; lower values improve GPU performance.',
+    defaultValue: 1.5,
+    recommended: { min: 1, max: 2, step: 0.25 },
+    runtime: { min: 0.5, max: 3 },
+    presetValues: { high: 1.5, medium: 1.25, low: 1 },
+  },
+  interactionRadiusScale: {
+    group: 'interaction',
+    label: 'Interaction radius',
+    description: 'Size of the pointer wake and glow.',
+    defaultValue: 1,
+    recommended: { min: 0.5, max: 2, step: 0.05 },
+    runtime: { min: 0.1, max: 5 },
+  },
+  interactionStrength: {
+    group: 'interaction',
+    label: 'Interaction strength',
+    description: 'Intensity of the pointer wake, glow and highlighted nodes.',
+    defaultValue: 1,
+    recommended: { min: 0, max: 2, step: 0.05 },
+    runtime: { min: 0, max: 5 },
+  },
+  interactionDuration: {
+    group: 'interaction',
+    label: 'Interaction duration',
+    description: 'How long the pointer wake fades out in milliseconds.',
+    defaultValue: 3_200,
+    recommended: { min: 800, max: 6_000, step: 100 },
+    runtime: { min: 50, max: 30_000 },
+  },
+});
