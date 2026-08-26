@@ -8,22 +8,24 @@ import {
   servicePanel,
   streamingPanel,
 } from '@/data/academic';
-import { expect, expectHeadingInViewport, expectPageContract, getPageHeroTitle, test } from './support/app-test';
+import { expect, expectHeadingInViewport, expectPageContract, getDisplayHeadingText, test } from './support/app-test';
 
 test.describe('Academic page', () => {
   test('presents all university projects and their essential system information', async ({ page }) => {
     await expectPageContract(page, {
       path: '/academic',
       title: academicMeta.title,
-      heading: getPageHeroTitle(academicHero),
-      background: '.particle-background',
+      heading: getDisplayHeadingText(academicHero.titleLines),
+      background: '.mesh-background',
     });
 
     const overview = page.locator(`#${academicOverview.id}`);
     await expect(overview.getByRole('link')).toHaveCount(academicOverview.items.length);
 
     for (const project of academicCases) {
-      await expect(page.getByRole('heading', { name: project.title, exact: true })).toBeAttached();
+      await expect(
+        page.getByRole('heading', { name: getDisplayHeadingText(project.titleLines), exact: true }),
+      ).toBeAttached();
     }
 
     await expect(page.getByLabel(streamingPanel.ariaLabel, { exact: true })).toBeAttached();
@@ -32,6 +34,6 @@ test.describe('Academic page', () => {
 
     await overview.getByRole('link', { name: passkeysCase.listTitle }).click();
     await expect(page).toHaveURL((url) => url.hash === `#${passkeysCase.id}`);
-    await expectHeadingInViewport(page, passkeysCase.title);
+    await expectHeadingInViewport(page, getDisplayHeadingText(passkeysCase.titleLines));
   });
 });

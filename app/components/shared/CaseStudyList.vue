@@ -1,12 +1,11 @@
 <script setup lang="ts">
-import type { CaseStudyListItem } from '@/types/content';
+import type { CaseStudyListItem, DisplayHeadingLine } from '@/types/content';
 
 defineProps<{
   id: string;
   titleId: string;
   label: string;
-  title: string;
-  titleLines?: string[];
+  titleLines: DisplayHeadingLine[];
   items: CaseStudyListItem[];
 }>();
 
@@ -32,17 +31,8 @@ const revealDelayClasses = [
       <SharedDisplayHeading
         :id="titleId"
         size="overview"
-      >
-        <template v-if="titleLines">
-          <template
-            v-for="(line, index) in titleLines"
-            :key="line"
-          >
-            {{ line }}<br v-if="index < titleLines.length - 1" />
-          </template>
-        </template>
-        <template v-else>{{ title }}</template>
-      </SharedDisplayHeading>
+        :lines="titleLines"
+      />
     </div>
     <ol class="m-0 list-none border-t border-line p-0">
       <li

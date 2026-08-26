@@ -1,12 +1,12 @@
 import { clientCase, workCases, workClosing, workHero, workMeta, workOverview } from '@/data/work';
-import { expect, expectHeadingInViewport, expectPageContract, getPageHeroTitle, test } from './support/app-test';
+import { expect, expectHeadingInViewport, expectPageContract, getDisplayHeadingText, test } from './support/app-test';
 
 test.describe('Work page', () => {
   test('presents all professional case studies and links the overview to them', async ({ page }) => {
     await expectPageContract(page, {
       path: '/work',
       title: workMeta.title,
-      heading: getPageHeroTitle(workHero),
+      heading: getDisplayHeadingText(workHero.titleLines),
       background: '.triangle-background',
     });
 
@@ -14,13 +14,17 @@ test.describe('Work page', () => {
     await expect(overview.getByRole('link')).toHaveCount(workOverview.items.length);
 
     for (const caseStudy of workCases) {
-      await expect(page.getByRole('heading', { name: caseStudy.title, exact: true })).toBeAttached();
+      await expect(
+        page.getByRole('heading', { name: getDisplayHeadingText(caseStudy.titleLines), exact: true }),
+      ).toBeAttached();
     }
 
     await overview.getByRole('link', { name: clientCase.listTitle }).click();
     await expect(page).toHaveURL((url) => url.hash === `#${clientCase.id}`);
-    await expectHeadingInViewport(page, clientCase.title);
+    await expectHeadingInViewport(page, getDisplayHeadingText(clientCase.titleLines));
 
-    await expect(page.getByRole('heading', { name: workClosing.title, exact: true })).toBeAttached();
+    await expect(
+      page.getByRole('heading', { name: getDisplayHeadingText(workClosing.titleLines), exact: true }),
+    ).toBeAttached();
   });
 });

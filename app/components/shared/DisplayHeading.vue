@@ -1,14 +1,15 @@
 <script setup lang="ts">
-import type { PageHeroTitleLine } from '@/types/content';
+import type { DisplayHeadingLine } from '@/types/content';
+import { getDisplayHeadingText } from '@/utils/displayHeading';
 
 type HeadingLevel = 'h1' | 'h2' | 'h3';
 type HeadingSize = 'hero' | 'page' | 'overview' | 'section' | 'case' | 'closing' | 'card' | 'panel' | 'label';
 
-withDefaults(
+const props = withDefaults(
   defineProps<{
     level?: HeadingLevel;
     size?: HeadingSize;
-    lines?: PageHeroTitleLine[];
+    lines?: DisplayHeadingLine[];
   }>(),
   {
     level: 'h2',
@@ -16,7 +17,7 @@ withDefaults(
   },
 );
 
-const slots = useSlots();
+const linesLabel = computed(() => (props.lines ? getDisplayHeadingText(props.lines) : undefined));
 
 const accentClasses =
   'text-primary-bright not-italic [text-shadow:0_0_3rem_color-mix(in_srgb,var(--primary)_18%,transparent)]';
@@ -42,6 +43,7 @@ const sizeClasses: Record<HeadingSize, string> = {
   <component
     :is="level"
     :class="['font-display font-bold text-balance uppercase [font-stretch:condensed]', sizeClasses[size]]"
+    :aria-label="linesLabel"
   >
     <template v-if="lines">
       <template
@@ -57,15 +59,5 @@ const sizeClasses: Record<HeadingSize, string> = {
       </template>
     </template>
     <slot v-else />
-    <em
-      v-if="!lines && slots.accent"
-      :class="accentClasses"
-    >
-      <slot name="accent" />
-    </em>
-    <slot
-      v-if="!lines && slots.afterAccent"
-      name="afterAccent"
-    />
   </component>
 </template>

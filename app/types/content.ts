@@ -6,6 +6,16 @@ interface NavigationItemBase {
 
 export type NavigationItem = NavigationItemBase & ({ to: string; href?: never } | { href: string; to?: never });
 
+export interface DisplayHeadingLine {
+  text: string;
+  accent?: boolean;
+  suffix?: string;
+}
+
+export interface DisplayHeadingContent {
+  titleLines: DisplayHeadingLine[];
+}
+
 export interface CaseStudyListItem {
   href: string;
   number: string;
@@ -13,12 +23,10 @@ export interface CaseStudyListItem {
   category: string;
 }
 
-export interface CaseStudyOverviewContent {
+export interface CaseStudyOverviewContent extends DisplayHeadingContent {
   id: string;
   titleId: string;
   label: string;
-  title: string;
-  titleLines?: string[];
   items: CaseStudyListItem[];
 }
 
@@ -51,30 +59,24 @@ export interface DeveloperProfile {
   location: string;
 }
 
-export interface HomeHeroContent {
+export interface HomeHeroContent extends DisplayHeadingContent {
   kicker: string;
-  title: string;
-  titleAccent: string;
   introduction: string[];
   actions: HomeAction[];
   profile: DeveloperProfile;
   highlights: HomeHighlight[];
 }
 
-export interface HomeAboutContent {
+export interface HomeAboutContent extends DisplayHeadingContent {
   number: string;
   label: string;
-  title: string;
-  titleAccent: string;
   paragraphs: string[];
   principles: string[];
 }
 
-export interface HomeCapabilitiesContent {
+export interface HomeCapabilitiesContent extends DisplayHeadingContent {
   number: string;
   label: string;
-  title: string;
-  titleAccent: string;
   introduction: string;
   items: Capability[];
 }
@@ -84,14 +86,13 @@ export interface CaseNote {
   text: string;
 }
 
-export interface CaseStudyIdentityContent {
+export interface CaseStudyIdentityContent extends DisplayHeadingContent {
   id: string;
   number: string;
   listTitle: string;
   listCategory: string;
   category: string;
   type: string;
-  title: string;
 }
 
 export interface AcademicCaseStudyContent extends CaseStudyIdentityContent {
@@ -105,16 +106,9 @@ export interface LabeledValue {
   value: string;
 }
 
-export interface PageHeroTitleLine {
-  text: string;
-  accent?: boolean;
-  suffix?: string;
-}
-
-export interface PageHeroContent {
+export interface PageHeroContent extends DisplayHeadingContent {
   kickerPrefix: string;
   kicker: string;
-  titleLines: PageHeroTitleLine[];
   introduction: string[];
   facts: LabeledValue[];
   scrollLabel: string;
@@ -137,18 +131,16 @@ export type WorkHeroContent = PageHeroContent;
 
 export type WorkOverviewContent = CaseStudyOverviewContent;
 
-export interface WorkContextContent {
+export interface WorkContextContent extends DisplayHeadingContent {
   kicker: string;
-  title: string;
   stack: Record<string, string[]>;
   highlightsLabel: string;
   highlights: string[];
 }
 
-export interface PageClosingContent {
+export interface PageClosingContent extends DisplayHeadingContent {
   kickerPrefix: string;
   kicker: string;
-  title: string;
   description: string;
   actions: HomeAction[];
 }

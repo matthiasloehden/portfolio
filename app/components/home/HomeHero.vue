@@ -24,11 +24,9 @@ defineProps<{
           level="h1"
           size="hero"
           class="[--reveal-delay:75ms]"
+          :lines="content.titleLines"
           data-reveal="up"
-        >
-          {{ content.title }}
-          <template #accent> {{ content.titleAccent }}</template>
-        </SharedDisplayHeading>
+        />
         <div
           class="mt-9 max-w-[38rem] space-y-4 text-base leading-7 text-muted [--reveal-delay:150ms] lg:text-[1.15rem] lg:leading-8"
           data-reveal="up"

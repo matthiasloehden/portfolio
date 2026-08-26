@@ -3,8 +3,7 @@ import { site } from '@/data/site';
 
 export const homeHero = {
   kicker: 'Software Engineer · CS Student · Germany',
-  title: 'I build',
-  titleAccent: 'applications.',
+  titleLines: [{ text: 'I build' }, { text: 'applications.', accent: true }],
   introduction: [
     'I’m Matthias, a trained application developer with three years of professional experience, currently studying computer science at IU.',
     'My background spans production applications, backend and frontend development, databases, integrations, system maintenance, and DevOps.',
@@ -31,8 +30,11 @@ export const homeHero = {
 export const homeAbout = {
   number: '01',
   label: 'About',
-  title: 'Practical experience, backed by',
-  titleAccent: 'strong fundamentals.',
+  titleLines: [
+    { text: 'Practical experience,' },
+    { text: 'backed by' },
+    { text: 'strong fundamentals.', accent: true },
+  ],
   paragraphs: [
     'I completed my application-development apprenticeship at TopRed Media from 2019 to 2022 and continued there as a full-stack developer until 2025. Since 2022, I have paired that hands-on experience with computer science studies at IU, with coursework in distributed systems, security and software design.',
     'I like understanding how systems work and why they are built the way they are. I want to understand the actual problem, make deliberate technical decisions, and build solutions that are reliable, maintainable, and fit for purpose.',
@@ -43,8 +45,7 @@ export const homeAbout = {
 export const homeCapabilities = {
   number: '02',
   label: 'Capabilities',
-  title: 'Experience,',
-  titleAccent: 'in context.',
+  titleLines: [{ text: 'Experience,' }, { text: 'in context.', accent: true }],
   introduction:
     'Technologies grouped by where I have used them: in production, through academic work, and in projects I pursue independently.',
   items: [

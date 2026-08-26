@@ -17,7 +17,7 @@ const factDelayClasses = ['[--reveal-delay:0ms]', '[--reveal-delay:55ms]', '[--r
     :number="number"
     :category="category"
     :type="type"
-    :title="title"
+    :title-lines="titleLines"
     :summary="summary"
     :reverse="reverse"
   >

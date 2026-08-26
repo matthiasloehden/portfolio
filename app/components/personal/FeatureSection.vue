@@ -16,7 +16,7 @@ const paragraphDelayClasses = ['[--reveal-delay:70ms]', '[--reveal-delay:135ms]'
     :number="number"
     :category="category"
     :type="type"
-    :title="title"
+    :title-lines="titleLines"
     :reverse="reverse"
   >
     <template #copy>

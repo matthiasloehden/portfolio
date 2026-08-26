@@ -24,10 +24,10 @@ const revealDelayClasses = ['', '[--reveal-delay:100ms]'];
         variant="line"
         :reveal="false"
       />
-      <SharedDisplayHeading id="about-title">
-        {{ content.title }}
-        <template #accent> {{ content.titleAccent }}</template>
-      </SharedDisplayHeading>
+      <SharedDisplayHeading
+        id="about-title"
+        :lines="content.titleLines"
+      />
     </div>
     <div class="grid content-center gap-6 text-base leading-[1.8] text-muted sm:text-[1.06rem] lg:text-[1.12rem]">
       <p

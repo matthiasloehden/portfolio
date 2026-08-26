@@ -39,10 +39,9 @@ const copyWidthClasses: Record<ClosingWidth, string> = {
       :id="`${id}-title`"
       :class="['motion-hover mx-0 sm:mx-auto', titleWidthClasses[width]]"
       size="closing"
+      :lines="content.titleLines"
       data-reveal="scale"
-    >
-      {{ content.title }}
-    </SharedDisplayHeading>
+    />
     <p
       :class="['motion-hover mt-7 leading-[1.7] text-muted [--reveal-delay:100ms] sm:mx-auto', copyWidthClasses[width]]"
       data-reveal="up"

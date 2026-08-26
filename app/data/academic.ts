@@ -18,7 +18,11 @@ export const streamingCase: AcademicCaseStudyContent = {
   listCategory: 'Scalability & big data',
   category: 'Scalability & big data',
   type: 'Streaming architecture',
-  title: 'From raw events to a live operational view.',
+  titleLines: [
+    { text: 'From raw events' },
+    { text: 'to a live' },
+    { text: 'operational', accent: true, suffix: ' view.' },
+  ],
   lead: 'A distributed event-processing prototype for ingesting, transforming, and analyzing streaming data in real time.',
   description:
     'Kafka decoupled event producers from downstream consumers. Flink validated, enriched, and aggregated the stream before writing query-ready records to ClickHouse. Grafana turned that data into an operational dashboard for inspecting volume, trends, and processing health.',
@@ -41,7 +45,7 @@ export const passkeysCase: AcademicCaseStudyContent = {
   listCategory: 'Security design',
   category: 'Security design',
   type: 'Authentication architecture',
-  title: 'Passwordless sign-in with FIDO2 passkeys.',
+  titleLines: [{ text: 'Passwordless', accent: true, suffix: ' sign-in' }, { text: 'with FIDO2 passkeys.' }],
   lead: 'A proof of concept exploring secure system design and modern authentication, built around a FIDO2-based passwordless sign-in system.',
   description:
     'Rather than treating security as an additional layer, the system was designed around authentication flows, credentials, trust boundaries, and sensitive operations. Registration associated a public key with the user, while authentication used a scoped challenge-response ceremony protected by the browser and authenticator.',
@@ -64,7 +68,7 @@ export const softwareEngineeringCase: AcademicCaseStudyContent = {
   listCategory: 'Lifecycle & quality',
   category: 'Software engineering',
   type: 'Team project',
-  title: 'From requirements to a tested release.',
+  titleLines: [{ text: 'From requirements' }, { text: 'to a' }, { text: 'tested', accent: true, suffix: ' release.' }],
   lead: 'A completed group project bringing methods from earlier software-engineering courses together across the full development lifecycle.',
   description:
     'Our team developed a TypeScript web application for planning and tracking learning time, organizing the work through tickets and milestones. We collaborated on requirements, specification, design, implementation, testing, and documentation. I contributed across these stages while taking primary responsibility for architecture and quality management.',
@@ -87,7 +91,11 @@ export const itsmCase: AcademicCaseStudyContent = {
   listCategory: 'Service operations',
   category: 'Service operations',
   type: 'Operating model',
-  title: 'Designing a lightweight IT service management model.',
+  titleLines: [
+    { text: 'Designing a' },
+    { text: 'lightweight', accent: true, suffix: ' IT service' },
+    { text: 'management model.' },
+  ],
   lead: 'A service-management concept based on ITIL and FitSM, defining ownership, incident and request flows, escalation paths, and continual improvement.',
   description:
     'The model translated broader framework guidance into a lightweight and auditable operating approach. ITIL provided the practice context, while FitSM helped define a practical minimum for repeatable service quality.',
@@ -125,15 +133,19 @@ export const academicOverview: AcademicOverviewContent = {
   id: 'academic-list',
   titleId: 'academic-list-title',
   label: 'Selected university projects',
-  title: 'Four selected university projects.',
-  titleLines: ['Four selected', 'university', 'projects.'],
+  titleLines: [{ text: 'Four selected' }, { text: 'university', accent: true }, { text: 'projects.' }],
   items: createCaseStudyListItems(academicCases),
 };
 
 export const academicClosing: PageClosingContent = {
   kickerPrefix: '/',
   kicker: 'Academic scope',
-  title: 'Computer science beyond the application layer.',
+  titleLines: [
+    { text: 'Computer science' },
+    { text: 'beyond the' },
+    { text: 'application', accent: true },
+    { text: 'layer.' },
+  ],
   description:
     'These projects connect my professional experience with academic work across the complete software lifecycle, distributed data processing, authentication and system security, and IT service operations.',
   actions: [

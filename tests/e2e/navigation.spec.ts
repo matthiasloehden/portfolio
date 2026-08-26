@@ -1,6 +1,6 @@
 import { siteNavigation } from '@/data/site';
 import { workHero, workMeta } from '@/data/work';
-import { expect, expectPageContract, getPageHeroTitle, test, waitForApp } from './support/app-test';
+import { expect, expectPageContract, getDisplayHeadingText, test, waitForApp } from './support/app-test';
 
 function routeAt(index: number): { label: string; to: string } {
   const route = siteNavigation.filter((item) => item.to)[index];
@@ -20,7 +20,7 @@ test.describe('Shared navigation', () => {
     await expectPageContract(page, {
       path: workRoute.to,
       title: workMeta.title,
-      heading: getPageHeroTitle(workHero),
+      heading: getDisplayHeadingText(workHero.titleLines),
       background: '.triangle-background',
     });
 

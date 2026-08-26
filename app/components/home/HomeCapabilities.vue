@@ -23,11 +23,9 @@ const revealDelayClasses = ['', '[--reveal-delay:75ms]', '[--reveal-delay:150ms]
       <SharedDisplayHeading
         id="capabilities-title"
         class="motion-hover"
+        :lines="content.titleLines"
         data-reveal="left"
-      >
-        {{ content.title }}<br />
-        <template #accent>{{ content.titleAccent }}</template>
-      </SharedDisplayHeading>
+      />
       <p
         class="motion-hover border-l border-primary pl-5 text-[0.88rem] leading-[1.7] text-muted [--reveal-delay:100ms]"
         data-reveal="right"

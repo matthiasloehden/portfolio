@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { PageHeroContent } from '@/types/content';
 
-const props = withDefaults(
+withDefaults(
   defineProps<{
     titleId: string;
     content: PageHeroContent;
@@ -11,8 +11,6 @@ const props = withDefaults(
     desktopAlignment: 'end',
   },
 );
-
-const titleLabel = computed(() => props.content.titleLines.map((line) => `${line.text}${line.suffix ?? ''}`).join(' '));
 </script>
 
 <template>
@@ -38,7 +36,6 @@ const titleLabel = computed(() => props.content.titleLines.map((line) => `${line
         size="page"
         class="motion-hover"
         :lines="content.titleLines"
-        :aria-label="titleLabel"
         data-reveal="left"
       />
 

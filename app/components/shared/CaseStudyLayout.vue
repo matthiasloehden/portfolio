@@ -1,10 +1,12 @@
 <script setup lang="ts">
+import type { DisplayHeadingLine } from '@/types/content';
+
 defineProps<{
   id: string;
   number: string;
   category: string;
   type: string;
-  title: string;
+  titleLines: DisplayHeadingLine[];
   summary?: string;
   reverse?: boolean;
 }>();
@@ -37,9 +39,8 @@ defineProps<{
         <SharedDisplayHeading
           :id="`${id}-title`"
           size="case"
-        >
-          {{ title }}
-        </SharedDisplayHeading>
+          :lines="titleLines"
+        />
         <p
           v-if="summary"
           class="mt-5 max-w-2xl text-base leading-[1.7] text-muted xl:text-[1.12rem]"

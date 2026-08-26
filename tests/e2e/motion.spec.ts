@@ -1,6 +1,6 @@
 import { streamingCase } from '@/data/academic';
 import { hardwareSection } from '@/data/personal';
-import { expect, test, waitForApp } from './support/app-test';
+import { expect, getDisplayHeadingText, test, waitForApp } from './support/app-test';
 
 test.describe('Motion preferences and scroll reveal', () => {
   test('reveals content again whenever it re-enters the viewport', async ({ page }) => {
@@ -27,6 +27,8 @@ test.describe('Motion preferences and scroll reveal', () => {
     await waitForApp(page);
 
     await expect.poll(() => page.locator('[data-reveal]:not(.is-revealed)').count()).toBe(0);
-    await expect(page.getByRole('heading', { name: hardwareSection.title, exact: true })).toBeAttached();
+    await expect(
+      page.getByRole('heading', { name: getDisplayHeadingText(hardwareSection.titleLines), exact: true }),
+    ).toBeAttached();
   });
 });

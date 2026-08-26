@@ -20,9 +20,8 @@ defineProps<{
         id="work-context-title"
         class="max-w-[10ch]!"
         size="overview"
-      >
-        {{ content.title }}
-      </SharedDisplayHeading>
+        :lines="content.titleLines"
+      />
 
       <div class="mt-8 flex flex-col gap-2">
         <ul

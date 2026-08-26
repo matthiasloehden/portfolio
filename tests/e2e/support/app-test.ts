@@ -1,5 +1,4 @@
 import { expect, test as base, type Page } from '@playwright/test';
-import type { PageHeroContent } from '@/types/content';
 
 type AppFixtures = {
   runtimeErrorGuard: void;
@@ -47,10 +46,7 @@ export const test = base.extend<AppFixtures>({
 });
 
 export { expect } from '@playwright/test';
-
-export function getPageHeroTitle(content: PageHeroContent): string {
-  return content.titleLines.map((line) => `${line.text}${line.suffix ?? ''}`).join(' ');
-}
+export { getDisplayHeadingText } from '@/utils/displayHeading';
 
 /** Waits for Nuxt hydration and the client-side preference setup. */
 export async function waitForApp(page: Page): Promise<void> {
