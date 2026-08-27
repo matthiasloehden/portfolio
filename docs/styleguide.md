@@ -23,14 +23,15 @@ an explicit visitor choice.
 
 ## Typography and layout
 
-- `font-sans`: body copy and interface text
-- `font-display`: editorial headings
+- `font-sans`: configurable body copy and general interface text
+- `font-display`: configurable narrow display headings
 - `font-mono`: navigation, labels, metadata, and technical details
 - `site-container`: shared maximum page width and horizontal gutters
 - `xs` (420px), `sm` (620px), and `md` (820px): project breakpoints
 
-Keep headings short and editorial. Use uppercase display type for page and section statements, mono type for structural
-labels, and sentence case for body copy.
+Keep headings short. Use uppercase display type for page and section statements, mono type for structural labels, and
+sentence case for body copy. The available display families must remain narrow enough for the established heading sizes;
+broader reading faces belong in the body-font registry instead.
 
 ## Implementation rules
 

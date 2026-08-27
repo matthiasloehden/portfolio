@@ -1,6 +1,7 @@
 import type { BackgroundQualityPreset, BackgroundTheme } from '@/types/background';
 
 import type { MeshPalette } from './types';
+import { getBackgroundThemeColor, getBackgroundThemeRgb } from '../shared/themeColors';
 
 export type MeshQualityPreset = BackgroundQualityPreset;
 
@@ -35,20 +36,20 @@ export const MESH_CONFIG = {
 export function getMeshPalette(theme: BackgroundTheme): MeshPalette {
   if (theme === 'light') {
     return {
-      line: '#4a6f9e',
-      glow: '#075fd7',
-      node: '#075fd7',
-      ambient: '7, 95, 215',
+      line: getBackgroundThemeColor('--muted', '#4a6f9e'),
+      glow: getBackgroundThemeColor('--primary', '#075fd7'),
+      node: getBackgroundThemeColor('--primary', '#075fd7'),
+      ambient: getBackgroundThemeRgb('--primary', '7, 95, 215'),
       baseLineAlpha: 0.22,
       baseFillAlpha: 0.032,
     };
   }
 
   return {
-    line: '#668bbd',
-    glow: '#72aaff',
-    node: '#9bc4ff',
-    ambient: '50, 132, 255',
+    line: getBackgroundThemeColor('--muted', '#668bbd'),
+    glow: getBackgroundThemeColor('--primary-bright', '#72aaff'),
+    node: getBackgroundThemeColor('--primary-bright', '#9bc4ff'),
+    ambient: getBackgroundThemeRgb('--primary', '50, 132, 255'),
     baseLineAlpha: 0.19,
     baseFillAlpha: 0.024,
   };

@@ -17,6 +17,13 @@ import {
   createDefaultBackgroundPerformanceSettings,
 } from '@/config/backgrounds';
 import {
+  THEME_COLOR_CONTROLS,
+  createDefaultThemeSettings,
+  getThemeBodyFont,
+  getThemeDisplayFont,
+  resolveThemePalette,
+} from '@/config/themes';
+import {
   clearStoredDisplayPreferences,
   readDisplayPreferences,
   readThemePreference,
@@ -34,6 +41,15 @@ import type {
   BackgroundSettingOverridesMap,
 } from '@/types/background';
 import type { DisplayPreferencesState, ThemePreference } from '@/types/display';
+import type {
+  ThemeBodyFontId,
+  ThemeColorToken,
+  ThemeDisplayFontId,
+  ThemeMode,
+  ThemePresetId,
+  ThemeSettings,
+} from '@/types/theme';
+import { normalizeHexColor } from '@/utils/color';
 
 // Renderer updates stay immediate; only rapid slider-driven storage writes are coalesced.
 const BACKGROUND_SETTINGS_PERSIST_DELAY = 100;
@@ -71,6 +87,8 @@ function scheduleDisplayPreferencesWrite(preferences: DisplayPreferencesState): 
 
 export function useDisplayPreferences() {
   const themePreference = useState<ThemePreference>('portfolio-theme-preference', () => 'system');
+  const resolvedThemeMode = useState<ThemeMode>('portfolio-resolved-theme-mode', () => 'dark');
+  const themeSettings = useState<ThemeSettings>('portfolio-theme-settings', createDefaultThemeSettings);
   const backgroundPreference = useState<BackgroundPreference>('portfolio-background-preference', () => 'auto');
   const backgroundAnimations = useState<BackgroundAnimationSettings>(
     'portfolio-background-animations',
@@ -87,6 +105,7 @@ export function useDisplayPreferences() {
 
   function currentDisplayPreferences(): DisplayPreferencesState {
     return {
+      themeSettings: themeSettings.value,
       backgroundPreference: backgroundPreference.value,
       backgroundAnimations: backgroundAnimations.value,
       backgroundPerformance: backgroundPerformance.value,
@@ -110,8 +129,22 @@ export function useDisplayPreferences() {
 
     const isDark =
       themePreference.value === 'dark' || (themePreference.value === 'system' && colorSchemeQuery?.matches === true);
+    const mode: ThemeMode = isDark ? 'dark' : 'light';
+    const root = document.documentElement;
+    const palette = resolveThemePalette(themeSettings.value, mode);
+    const displayFont = getThemeDisplayFont(themeSettings.value.fonts.display);
+    const bodyFont = getThemeBodyFont(themeSettings.value.fonts.body);
 
-    document.documentElement.dataset.theme = isDark ? 'dark' : 'light';
+    resolvedThemeMode.value = mode;
+    root.dataset.theme = mode;
+    root.dataset.themePreset = themeSettings.value.preset;
+    root.dataset.displayFont = themeSettings.value.fonts.display;
+    root.dataset.bodyFont = themeSettings.value.fonts.body;
+
+    for (const control of THEME_COLOR_CONTROLS) root.style.setProperty(control.cssVariable, palette[control.key]);
+
+    root.style.setProperty('--display-font', displayFont.family);
+    root.style.setProperty('--body-font', bodyFont.family);
     window.dispatchEvent(new CustomEvent('portfolio-theme-change'));
   }
 
@@ -126,6 +159,57 @@ export function useDisplayPreferences() {
     themePreference.value = preference;
     applyTheme();
     if (import.meta.client) writeThemePreference(preference);
+  }
+
+  function setThemePreset(preset: ThemePresetId): void {
+    themeSettings.value = { ...themeSettings.value, preset };
+    applyTheme();
+    persistDisplayPreferences();
+  }
+
+  function setThemeDisplayFont(display: ThemeDisplayFontId): void {
+    themeSettings.value = { ...themeSettings.value, fonts: { ...themeSettings.value.fonts, display } };
+    applyTheme();
+    persistDisplayPreferences();
+  }
+
+  function setThemeBodyFont(body: ThemeBodyFontId): void {
+    themeSettings.value = { ...themeSettings.value, fonts: { ...themeSettings.value.fonts, body } };
+    applyTheme();
+    persistDisplayPreferences();
+  }
+
+  function setThemeColor(token: ThemeColorToken, color: string): void {
+    const normalizedColor = normalizeHexColor(color);
+    if (!normalizedColor) return;
+
+    const mode = resolvedThemeMode.value;
+    themeSettings.value = {
+      ...themeSettings.value,
+      colorOverrides: {
+        ...themeSettings.value.colorOverrides,
+        [mode]: { ...themeSettings.value.colorOverrides[mode], [token]: normalizedColor },
+      },
+    };
+    applyTheme();
+    persistDisplayPreferences();
+  }
+
+  function resetThemeColor(token: ThemeColorToken): void {
+    const mode = resolvedThemeMode.value;
+    const { [token]: _removed, ...modeOverrides } = themeSettings.value.colorOverrides[mode];
+    themeSettings.value = {
+      ...themeSettings.value,
+      colorOverrides: { ...themeSettings.value.colorOverrides, [mode]: modeOverrides },
+    };
+    applyTheme();
+    persistDisplayPreferences();
+  }
+
+  function resetThemeCustomizations(): void {
+    themeSettings.value = createDefaultThemeSettings();
+    applyTheme();
+    persistDisplayPreferences();
   }
 
   function setBackgroundPreference(preference: BackgroundPreference): void {
@@ -179,6 +263,7 @@ export function useDisplayPreferences() {
 
   function restoreDefaultSettings(): void {
     themePreference.value = 'system';
+    themeSettings.value = createDefaultThemeSettings();
     backgroundPreference.value = 'auto';
     backgroundAnimations.value = createDefaultBackgroundAnimationSettings();
     backgroundPerformance.value = createDefaultBackgroundPerformanceSettings();
@@ -203,6 +288,7 @@ export function useDisplayPreferences() {
     const stored = readDisplayPreferences();
 
     themePreference.value = readThemePreference();
+    themeSettings.value = stored.themeSettings;
     backgroundPreference.value = stored.backgroundPreference;
     backgroundAnimations.value = stored.backgroundAnimations;
     backgroundPerformance.value = stored.backgroundPerformance;
@@ -227,11 +313,19 @@ export function useDisplayPreferences() {
 
   return {
     themePreference,
+    resolvedThemeMode,
+    themeSettings,
     backgroundPreference,
     backgroundAnimations,
     backgroundPerformance,
     backgroundSettingOverrides,
     setThemePreference,
+    setThemePreset,
+    setThemeDisplayFont,
+    setThemeBodyFont,
+    setThemeColor,
+    resetThemeColor,
+    resetThemeCustomizations,
     setBackgroundPreference,
     setBackgroundAnimationEnabled,
     setBackgroundSetting,

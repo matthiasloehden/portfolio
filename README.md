@@ -12,6 +12,7 @@ Live site: [matthiasloehden.github.io/portfolio](https://matthiasloehden.github.
 | --- | --- |
 | background orchestration | [`app/components/layout/BackgroundOrchestrator.vue`](app/components/layout/BackgroundOrchestrator.vue) selects the active scene and provides smooth transitions between backgrounds. |
 | typed background settings | [`app/components/backgrounds/settings/registry.ts`](app/components/backgrounds/settings/registry.ts) connects scene-owned definitions to the editor, versioned persistence, performance presets, and runtime validation. |
+| theme system | [`app/config/themes.ts`](app/config/themes.ts) defines typed light/dark palettes, semantic Tailwind tokens, safe color overrides, and independently configurable heading and body fonts.  |
 | Wave Grid | [`app/components/backgrounds/waves/WaveRenderer.ts`](app/components/backgrounds/waves/WaveRenderer.ts) renders an interactive, GPU-accelerated line grid. |
 | Triangles | [`app/components/backgrounds/triangles/TriangleRenderer.ts`](app/components/backgrounds/triangles/TriangleRenderer.ts) renders an animated geometric Canvas2D background. |
 | Particles | [`app/components/backgrounds/particles/ParticleRenderer.ts`](app/components/backgrounds/particles/ParticleRenderer.ts) renders a GPU-accelerated particle field with cursor, click, and scroll interaction. |

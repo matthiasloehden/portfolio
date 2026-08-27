@@ -5,7 +5,12 @@ type AppFixtures = {
 };
 
 const LOW_PERFORMANCE_DISPLAY_PREFERENCES = {
-  version: 1,
+  version: 3,
+  themeSettings: {
+    preset: 'arctic',
+    fonts: { display: 'barlow-condensed', body: 'inter' },
+    colorOverrides: { dark: {}, light: {} },
+  },
   backgroundPreference: 'auto',
   backgroundAnimations: {
     idle: true,

@@ -123,7 +123,7 @@ const sliderValueText = computed(
     <legend class="sr-only">{{ label }}</legend>
     <div class="grid gap-[0.2rem]">
       <span class="flex items-start justify-between gap-2">
-        <span class="text-foreground">{{ label }}</span>
+        <span class="text-[0.62rem] font-semibold text-foreground">{{ label }}</span>
         <button
           v-if="overridden"
           class="cursor-pointer text-[0.54rem] text-muted underline decoration-line underline-offset-2 transition-colors hover:text-foreground focus-visible:text-foreground"

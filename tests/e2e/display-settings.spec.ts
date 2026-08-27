@@ -10,7 +10,16 @@ async function openTriangleAppearanceSettings(dialog: Locator): Promise<void> {
 }
 
 function getPerformanceSelect(dialog: Locator): Locator {
-  return dialog.getByRole('combobox', { name: /^Background performance/ });
+  return dialog.getByRole('combobox', { name: 'Background performance' });
+}
+
+function getSelectMeta(select: Locator): Locator {
+  return select.locator('xpath=preceding-sibling::span[1]/span/span[2]');
+}
+
+async function selectThemePreset(dialog: Locator, preset: string | RegExp): Promise<void> {
+  await dialog.getByRole('button', { name: /^Color scheme:/ }).click();
+  await dialog.getByRole('option', { name: preset }).click();
 }
 
 test.describe('Display settings', () => {
@@ -21,8 +30,11 @@ test.describe('Display settings', () => {
   });
 
   test('applies, persists, and restores the selected theme', async ({ page }) => {
-    await page.getByLabel('Theme', { exact: true }).selectOption('dark');
+    const theme = page.getByLabel('Theme', { exact: true });
+    await expect(getSelectMeta(theme)).toHaveText(/Dark|Light/);
+    await theme.selectOption('dark');
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+    await expect(getSelectMeta(theme)).toHaveCount(0);
     await expect.poll(() => page.evaluate(() => localStorage.getItem('portfolio-theme'))).toBe('dark');
 
     await page.reload();
@@ -35,6 +47,87 @@ test.describe('Display settings', () => {
     await dialog.getByRole('button', { name: 'Restore default settings' }).click();
     await expect(dialog.getByLabel('Theme', { exact: true })).toHaveValue('system');
     await expect.poll(() => page.evaluate(() => localStorage.getItem('portfolio-theme'))).toBeNull();
+  });
+
+  test('applies theme presets, typography and mode-specific color overrides', async ({ page }) => {
+    let dialog = page.getByRole('dialog', { name: 'Display settings' });
+    await dialog.getByLabel('Theme', { exact: true }).selectOption('dark');
+
+    await selectThemePreset(dialog, /Crimson signal/);
+    await expect(page.locator('html')).toHaveAttribute('data-theme-preset', 'crimson');
+    await expect
+      .poll(() => page.evaluate(() => document.documentElement.style.getPropertyValue('--primary')))
+      .toBe('#ef4444');
+
+    await expandSettingsAccordion(dialog, /Advanced theme settings/);
+    const headingFont = dialog.getByLabel('Heading font');
+    const bodyFont = dialog.getByLabel('Body font');
+    await expect(headingFont.locator('option')).toHaveText([
+      'Barlow Condensed',
+      'Archivo Narrow',
+      'Cinzel',
+      'Oswald',
+      'Playfair Display',
+      'Roboto Condensed',
+      'Space Grotesk',
+    ]);
+    await expect(bodyFont.locator('option')).toHaveText([
+      'Inter',
+      'IBM Plex Sans',
+      'JetBrains Mono',
+      'Lora',
+      'Merriweather',
+      'Nunito Sans',
+      'Roboto',
+      'Source Sans 3',
+    ]);
+
+    await headingFont.selectOption('roboto-condensed');
+    await bodyFont.selectOption('ibm-plex-sans');
+    await expect(page.locator('html')).toHaveAttribute('data-display-font', 'roboto-condensed');
+    await expect(page.locator('html')).toHaveAttribute('data-body-font', 'ibm-plex-sans');
+    await expect
+      .poll(() =>
+        page.evaluate(() => ({
+          heading: document.fonts.check('700 32px "Roboto Condensed"'),
+          body: document.fonts.check('400 16px "IBM Plex Sans"'),
+          overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+        })),
+      )
+      .toEqual({ heading: true, body: true, overflow: 0 });
+
+    await expandSettingsAccordion(dialog, 'Accents & states');
+    const primary = dialog.getByRole('textbox', { name: 'Primary hex color', exact: true });
+    await primary.fill('#123456');
+    await expect
+      .poll(() => page.evaluate(() => document.documentElement.style.getPropertyValue('--primary')))
+      .toBe('#123456');
+
+    await expect
+      .poll(() =>
+        page.evaluate(() => {
+          const value = localStorage.getItem('portfolio-display-preferences');
+          if (!value) return undefined;
+          return JSON.parse(value).themeSettings?.colorOverrides?.dark?.primary as string | undefined;
+        }),
+      )
+      .toBe('#123456');
+
+    await page.reload();
+    await waitForApp(page);
+    await expect(page.locator('html')).toHaveAttribute('data-theme-preset', 'crimson');
+    await expect(page.locator('html')).toHaveAttribute('data-display-font', 'roboto-condensed');
+    await expect(page.locator('html')).toHaveAttribute('data-body-font', 'ibm-plex-sans');
+
+    dialog = await openDisplaySettings(page);
+    await expandSettingsAccordion(dialog, /Advanced theme settings/);
+    await expandSettingsAccordion(dialog, 'Accents & states');
+    await expect(dialog.getByRole('textbox', { name: 'Primary hex color', exact: true })).toHaveValue('#123456');
+
+    await selectThemePreset(dialog, /Arctic blue/);
+    await expect(dialog.getByRole('textbox', { name: 'Primary hex color', exact: true })).toHaveValue('#123456');
+    await dialog.getByRole('button', { name: 'Primary: Use Arctic blue dark value' }).click();
+    await expect(dialog.getByRole('textbox', { name: 'Primary hex color', exact: true })).toHaveValue('#3284ff');
   });
 
   test('shows the automatic scene and disables irrelevant controls when backgrounds are off', async ({ page }) => {
@@ -93,14 +186,18 @@ test.describe('Display settings', () => {
 
     await expect(performance).toHaveValue('low');
     await expect(performance).toHaveAccessibleName('Background performance');
+    await expect(getSelectMeta(performance)).toHaveCount(0);
     await expect(performance.locator('option[value="auto"]')).toHaveText('Auto');
     await expect(density).toHaveValue('0.48');
     await expect(dialog.getByRole('listitem', { name: 'Low preset: 0.48 (active)' })).toBeVisible();
 
     await performance.selectOption('auto');
-    await expect(performance).toHaveAccessibleName(/^Background performance — Auto: (High|Medium|Low)$/);
+    await expect(performance).toHaveAccessibleName('Background performance');
+    await expect(getSelectMeta(performance)).toHaveText(/High|Medium|Low/);
+    await expect(getSelectMeta(performance)).not.toContainText('Auto:');
     await performance.selectOption('low');
     await expect(performance).toHaveAccessibleName('Background performance');
+    await expect(getSelectMeta(performance)).toHaveCount(0);
 
     await performance.selectOption('high');
     await expect(density).toHaveValue('1');
@@ -188,7 +285,12 @@ test('migrates one representative legacy background override into the versioned 
   });
 
   expect(storedDocument).toMatchObject({
-    version: 1,
+    version: 3,
+    themeSettings: {
+      preset: 'arctic',
+      fonts: { display: 'barlow-condensed', body: 'inter' },
+      colorOverrides: { dark: {}, light: {} },
+    },
     backgroundPreference: 'triangles',
     backgroundPerformance: { mode: 'medium', showStats: false },
     backgroundSettingOverrides: { triangles: { densityScale: 1.3 } },
@@ -203,4 +305,56 @@ test('migrates one representative legacy background override into the versioned 
       ]),
     )
     .toEqual([null, null, null, null]);
+});
+
+test('replaces deprecated font profiles without losing versioned preferences', async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem('portfolio-theme', 'dark');
+    localStorage.setItem(
+      'portfolio-display-preferences',
+      JSON.stringify({
+        version: 2,
+        themeSettings: {
+          preset: 'aurora',
+          font: 'editorial',
+          colorOverrides: { dark: { primary: '#123456' }, light: {} },
+        },
+        backgroundPreference: 'auto',
+        backgroundAnimations: {
+          idle: true,
+          cursorMovement: true,
+          cursorClick: true,
+          scroll: true,
+        },
+        backgroundPerformance: { mode: 'low', showStats: false },
+        backgroundSettingOverrides: { wave: {}, particles: {}, triangles: {}, mesh: {} },
+      }),
+    );
+  });
+
+  await page.goto('/work');
+  await waitForApp(page);
+
+  await expect(page.locator('html')).toHaveAttribute('data-theme-preset', 'aurora');
+  await expect(page.locator('html')).toHaveAttribute('data-display-font', 'barlow-condensed');
+  await expect(page.locator('html')).toHaveAttribute('data-body-font', 'inter');
+  await expect
+    .poll(() => page.evaluate(() => document.documentElement.style.getPropertyValue('--primary')))
+    .toBe('#123456');
+
+  const storedTheme = await page.evaluate(() => {
+    const value = localStorage.getItem('portfolio-display-preferences');
+    if (!value) return null;
+    const preferences = JSON.parse(value);
+    return { version: preferences.version, themeSettings: preferences.themeSettings };
+  });
+
+  expect(storedTheme).toMatchObject({
+    version: 3,
+    themeSettings: {
+      preset: 'aurora',
+      fonts: { display: 'barlow-condensed', body: 'inter' },
+      colorOverrides: { dark: { primary: '#123456' }, light: {} },
+    },
+  });
 });

@@ -93,7 +93,10 @@ function onInput(event: Event): void {
       :aria-describedby="describedBy"
       @input="onInput"
     />
-    <span class="pointer-events-none absolute inset-y-0 inset-x-[0.45rem] z-0" aria-hidden="true">
+    <span
+      class="pointer-events-none absolute inset-x-[0.45rem] inset-y-0 z-0"
+      aria-hidden="true"
+    >
       <span
         v-for="marker in positionedMarkers"
         :key="`${marker.label}-${marker.value}`"

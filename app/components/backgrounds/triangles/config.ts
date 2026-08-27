@@ -1,6 +1,7 @@
 import type { BackgroundQualityPreset, BackgroundTheme } from '@/types/background';
 
 import type { TrianglePalette } from './types';
+import { getBackgroundThemeColor, getBackgroundThemeRgb } from '../shared/themeColors';
 
 export type TriangleQualityPreset = BackgroundQualityPreset;
 
@@ -42,17 +43,17 @@ export const TRIANGLE_CONFIG = {
 export function getTrianglePalette(theme: BackgroundTheme): TrianglePalette {
   if (theme === 'light') {
     return {
-      fill: '68, 96, 134',
-      accent: '7, 95, 215',
-      ambient: '50, 132, 255',
-      background: '#f3f7fc',
+      fill: getBackgroundThemeRgb('--muted', '68, 96, 134'),
+      accent: getBackgroundThemeRgb('--primary', '7, 95, 215'),
+      ambient: getBackgroundThemeRgb('--primary', '50, 132, 255'),
+      background: getBackgroundThemeColor('--background', '#f3f7fc'),
     };
   }
 
   return {
-    fill: '112, 142, 181',
-    accent: '114, 170, 255',
-    ambient: '50, 132, 255',
-    background: '#030509',
+    fill: getBackgroundThemeRgb('--muted', '112, 142, 181'),
+    accent: getBackgroundThemeRgb('--primary-bright', '114, 170, 255'),
+    ambient: getBackgroundThemeRgb('--primary', '50, 132, 255'),
+    background: getBackgroundThemeColor('--background', '#030509'),
   };
 }

@@ -1,10 +1,12 @@
 /**
  * Versioned browser persistence for display settings.
  *
- * The UI state is stored as one document so related values cannot drift across
- * independent localStorage keys. Scene settings contain only explicit user
- * overrides; defaults and performance values remain owned by the registry.
- * Legacy keys are read once and converted to the current document shape.
+ * Rich display settings are stored as one document so related values cannot
+ * drift across independent localStorage keys. The small mode preference keeps
+ * its established scalar key for backwards-compatible first-paint handling.
+ * Scene settings contain only explicit user overrides; defaults and
+ * performance values remain owned by the registry. Legacy keys are read once
+ * and converted to the current document shape.
  */
 
 import {
@@ -13,6 +15,13 @@ import {
   sanitizeBackgroundSettingOverrides,
 } from '@/components/backgrounds/settings/registry';
 import { createBackgroundAnimationSettings, createDefaultBackgroundPerformanceSettings } from '@/config/backgrounds';
+import {
+  DISPLAY_PREFERENCES_STORAGE_KEY,
+  DISPLAY_PREFERENCES_VERSION,
+  THEME_PREFERENCE_STORAGE_KEY,
+  isSupportedDisplayPreferencesVersion,
+} from '@/config/displayPreferences';
+import { createDefaultThemeSettings, sanitizeThemeSettings } from '@/config/themes';
 import {
   BACKGROUND_IDS,
   BACKGROUND_PERFORMANCE_MODES,
@@ -24,10 +33,6 @@ import {
 } from '@/types/background';
 import type { DisplayPreferencesState, ThemePreference } from '@/types/display';
 
-const STORAGE_VERSION = 1;
-const DISPLAY_PREFERENCES_STORAGE_KEY = 'portfolio-display-preferences';
-const THEME_STORAGE_KEY = 'portfolio-theme';
-
 const LEGACY_STORAGE_KEYS = {
   background: 'portfolio-background',
   animations: 'portfolio-background-animations',
@@ -38,7 +43,7 @@ const LEGACY_STORAGE_KEYS = {
 } as const;
 
 interface StoredDisplayPreferences extends DisplayPreferencesState {
-  version: typeof STORAGE_VERSION;
+  version: typeof DISPLAY_PREFERENCES_VERSION;
 }
 
 const BACKGROUND_PREFERENCES = ['auto', ...BACKGROUND_IDS, 'none'] as const;
@@ -175,13 +180,14 @@ function deriveLegacyOverrides(values: BackgroundSettingOverridesMap): Backgroun
 }
 
 function readCurrentDocument(value: unknown): DisplayPreferencesState | undefined {
-  if (!isRecord(value) || value.version !== STORAGE_VERSION) return undefined;
+  if (!isRecord(value) || !isSupportedDisplayPreferencesVersion(value.version)) return undefined;
 
   const animations = readAnimations(value.backgroundAnimations);
   const performance = readPerformance(value.backgroundPerformance);
   if (!isBackgroundPreference(value.backgroundPreference) || !animations || !performance) return undefined;
 
   return {
+    themeSettings: value.version === 1 ? createDefaultThemeSettings() : sanitizeThemeSettings(value.themeSettings),
     backgroundPreference: value.backgroundPreference,
     backgroundAnimations: animations,
     backgroundPerformance: performance,
@@ -204,6 +210,7 @@ function readLegacyPreferences(): DisplayPreferencesState {
     });
 
   return {
+    themeSettings: createDefaultThemeSettings(),
     backgroundPreference: isBackgroundPreference(storedBackground) ? storedBackground : 'auto',
     backgroundAnimations: animations,
     backgroundPerformance:
@@ -221,18 +228,24 @@ function removeLegacyPreferences(): void {
 }
 
 export function readThemePreference(): ThemePreference {
-  const stored = readStorage(THEME_STORAGE_KEY);
+  const stored = readStorage(THEME_PREFERENCE_STORAGE_KEY);
   return isThemePreference(stored) ? stored : 'system';
 }
 
 export function writeThemePreference(preference: ThemePreference): void {
-  if (preference === 'system') removeStorage(THEME_STORAGE_KEY);
-  else writeStorage(THEME_STORAGE_KEY, preference);
+  if (preference === 'system') removeStorage(THEME_PREFERENCE_STORAGE_KEY);
+  else writeStorage(THEME_PREFERENCE_STORAGE_KEY, preference);
 }
 
 export function readDisplayPreferences(): DisplayPreferencesState {
-  const current = readCurrentDocument(parseJson(readStorage(DISPLAY_PREFERENCES_STORAGE_KEY)));
-  if (current) return current;
+  const parsedDocument = parseJson(readStorage(DISPLAY_PREFERENCES_STORAGE_KEY));
+  const current = readCurrentDocument(parsedDocument);
+  if (current) {
+    if (isRecord(parsedDocument) && parsedDocument.version !== DISPLAY_PREFERENCES_VERSION) {
+      writeDisplayPreferences(current);
+    }
+    return current;
+  }
 
   const migrated = readLegacyPreferences();
   writeDisplayPreferences(migrated);
@@ -241,12 +254,12 @@ export function readDisplayPreferences(): DisplayPreferencesState {
 }
 
 export function writeDisplayPreferences(preferences: DisplayPreferencesState): void {
-  const document: StoredDisplayPreferences = { version: STORAGE_VERSION, ...preferences };
+  const document: StoredDisplayPreferences = { version: DISPLAY_PREFERENCES_VERSION, ...preferences };
   writeStorage(DISPLAY_PREFERENCES_STORAGE_KEY, JSON.stringify(document));
 }
 
 export function clearStoredDisplayPreferences(): void {
-  removeStorage(THEME_STORAGE_KEY);
+  removeStorage(THEME_PREFERENCE_STORAGE_KEY);
   removeStorage(DISPLAY_PREFERENCES_STORAGE_KEY);
   removeLegacyPreferences();
 }

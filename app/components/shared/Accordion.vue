@@ -23,7 +23,7 @@ const panelId = useId();
 <template>
   <section>
     <button
-      class="flex w-full cursor-pointer items-center justify-between gap-3 py-3 text-left font-mono text-[0.62rem] font-semibold text-foreground transition-colors"
+      class="flex w-full cursor-pointer items-center justify-between gap-3 py-3 text-left font-mono text-[0.6rem] text-foreground transition-colors"
       type="button"
       :id="triggerId"
       :aria-expanded="open"

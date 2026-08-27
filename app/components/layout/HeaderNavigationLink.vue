@@ -16,8 +16,8 @@ const linkAttributes = computed(() => (props.item.to ? { to: props.item.to } : {
     :is="linkComponent"
     v-bind="linkAttributes"
     :class="[
-      'group relative -mx-2 block border-l-2 px-3 py-3 font-mono text-[0.69rem] tracking-[0.03em] transition-[color,background-color,border-color] hover:bg-primary/5 hover:text-foreground focus-visible:bg-primary/5 focus-visible:text-foreground md:mx-0 md:border-l-0 md:px-0 md:py-2 md:hover:bg-transparent md:focus-visible:bg-transparent',
-      active ? 'border-primary bg-primary/10 text-foreground md:bg-transparent' : 'border-transparent text-muted',
+      'group relative -mx-2 block px-3 py-3 font-mono text-[0.69rem] tracking-[0.03em] transition-[color,background-color] hover:bg-primary/5 hover:text-foreground focus-visible:bg-primary/5 focus-visible:text-foreground md:mx-0 md:px-0 md:py-2 md:hover:bg-transparent md:focus-visible:bg-transparent',
+      active ? 'bg-primary/10 text-foreground md:bg-transparent' : 'text-muted',
     ]"
     :aria-current="active ? 'page' : undefined"
   >

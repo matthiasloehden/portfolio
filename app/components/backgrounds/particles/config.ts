@@ -1,4 +1,5 @@
 import type { BackgroundQualityPreset, BackgroundTheme } from '@/types/background';
+import { getBackgroundThemeColor } from '../shared/themeColors';
 
 export interface ParticleQualityPreset extends BackgroundQualityPreset {
   resolution: number;
@@ -38,5 +39,7 @@ export const PARTICLE_CONFIG = {
 } as const;
 
 export function getParticleColor(theme: BackgroundTheme): string {
-  return theme === 'light' ? PARTICLE_CONFIG.lightColor : PARTICLE_CONFIG.darkColor;
+  return theme === 'light'
+    ? getBackgroundThemeColor('--primary', PARTICLE_CONFIG.lightColor)
+    : getBackgroundThemeColor('--primary-bright', PARTICLE_CONFIG.darkColor);
 }

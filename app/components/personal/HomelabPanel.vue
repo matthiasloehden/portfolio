@@ -18,7 +18,7 @@ const nodeClasses = 'grid min-h-[7.5rem] content-between border border-line bg-s
       <div
         :class="[
           nodeClasses,
-          'min-h-[7.5rem] border-line-strong bg-[linear-gradient(145deg,rgb(50_132_255/12%),transparent_60%),var(--surface)] sm:min-h-56',
+          'min-h-[7.5rem] border-line-strong bg-[linear-gradient(145deg,color-mix(in_srgb,var(--primary)_12%,transparent),transparent_60%),var(--surface)] sm:min-h-56',
         ]"
         data-panel-item
       >

@@ -1,6 +1,7 @@
 import type { BackgroundQualityPreset, BackgroundTheme } from '@/types/background';
 
 import type { WavePalette } from './types';
+import { getBackgroundThemeColor } from '../shared/themeColors';
 
 export type WaveQualityPreset = BackgroundQualityPreset;
 
@@ -28,15 +29,15 @@ export const DEFAULT_RIPPLE_LAYERS = 2;
 export function getWavePalette(theme: BackgroundTheme): WavePalette {
   if (theme === 'light') {
     return {
-      color: '#37628f',
-      waveColor: '#075fd7',
+      color: getBackgroundThemeColor('--muted', '#37628f'),
+      waveColor: getBackgroundThemeColor('--primary', '#075fd7'),
       opacity: 0.72,
     };
   }
 
   return {
-    color: '#38679e',
-    waveColor: '#72aaff',
+    color: getBackgroundThemeColor('--muted', '#38679e'),
+    waveColor: getBackgroundThemeColor('--primary-bright', '#72aaff'),
     opacity: 0.82,
   };
 }

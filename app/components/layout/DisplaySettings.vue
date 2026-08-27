@@ -12,21 +12,19 @@ import type {
   BackgroundQualityId,
   BackgroundSettingKey,
 } from '@/types/background';
-import type { ThemePreference } from '@/types/display';
 import SharedAccordion from '@/components/shared/Accordion.vue';
 import SharedAccordionGroup from '@/components/shared/AccordionGroup.vue';
 import SharedPanelTrigger from '@/components/shared/PanelTrigger.vue';
 import SharedSelectField from '@/components/shared/form/SelectField.vue';
 import SharedToggleField from '@/components/shared/form/ToggleField.vue';
 import SettingsBackgroundFields from './display-settings/BackgroundSettingsFields.vue';
+import ThemeSettingsSection from './display-settings/ThemeSettingsSection.vue';
 
 const {
-  themePreference,
   backgroundPreference,
   backgroundAnimations,
   backgroundPerformance,
   backgroundSettingOverrides,
-  setThemePreference,
   setBackgroundPreference,
   setBackgroundAnimationEnabled,
   setBackgroundSetting,
@@ -40,12 +38,6 @@ const root = ref<HTMLElement | null>(null);
 const open = defineModel<boolean>('open', { default: false });
 const route = useRoute();
 const { performanceStats } = useBackgroundRuntimeStatus();
-
-const themeOptions: readonly { value: ThemePreference; label: string }[] = [
-  { value: 'system', label: 'System' },
-  { value: 'dark', label: 'Dark' },
-  { value: 'light', label: 'Light' },
-];
 
 const animationOptions: readonly {
   key: BackgroundAnimation;
@@ -84,11 +76,11 @@ const activePerformancePreset = computed<BackgroundQualityId>(() => {
   return performanceStats.value?.mode === 'auto' ? performanceStats.value.preset : 'high';
 });
 
-const performanceLabel = computed(() => {
-  if (backgroundPerformance.value.mode !== 'auto') return 'Background performance';
+const performanceMeta = computed(() => {
+  if (backgroundPerformance.value.mode !== 'auto') return undefined;
 
   const preset = activePerformancePreset.value;
-  return `Background performance — Auto: ${preset.charAt(0).toUpperCase()}${preset.slice(1)}`;
+  return `${preset.charAt(0).toUpperCase()}${preset.slice(1)}`;
 });
 
 const activeSettingsControls = computed(() =>
@@ -109,16 +101,12 @@ const activeSettingOverrides = computed<Readonly<Record<string, number | undefin
   activeBackground.value === 'none' ? {} : backgroundSettingOverrides.value[activeBackground.value],
 );
 
-function onThemeChange(value: string): void {
-  setThemePreference(value as ThemePreference);
+function onBackgroundChange(value: BackgroundPreference): void {
+  setBackgroundPreference(value);
 }
 
-function onBackgroundChange(value: string): void {
-  setBackgroundPreference(value as BackgroundPreference);
-}
-
-function onPerformanceModeChange(value: string): void {
-  setBackgroundPerformanceMode(value as BackgroundPerformanceMode);
+function onPerformanceModeChange(value: BackgroundPerformanceMode): void {
+  setBackgroundPerformanceMode(value);
 }
 
 function getActiveSetting(setting: string): {
@@ -210,12 +198,7 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onDocumentPoin
               <span class="font-mono text-[0.58rem] text-muted">Preferences</span>
             </div>
 
-            <SharedSelectField
-              label="Theme"
-              :model-value="themePreference"
-              :options="themeOptions"
-              @update:model-value="onThemeChange"
-            />
+            <ThemeSettingsSection />
             <SharedSelectField
               class="mt-3"
               label="Background"
@@ -225,7 +208,8 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onDocumentPoin
             />
             <SharedSelectField
               class="mt-3"
-              :label="performanceLabel"
+              label="Background performance"
+              :meta="performanceMeta"
               :model-value="backgroundPerformance.mode"
               :options="performanceOptions"
               :disabled="controlsDisabled"
