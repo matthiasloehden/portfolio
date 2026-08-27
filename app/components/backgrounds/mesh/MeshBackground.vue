@@ -170,12 +170,18 @@ function applyPerformanceMode(): void {
   if (!performanceRuntime) return;
 
   performanceRuntime.setMode(props.performance.mode);
+  if (!props.active) return;
+
   applyMeshSettings();
 }
 
-function applyMeshSettings(): void {
+function syncMeshRendererSettings(): void {
   runtime?.setSettings(getRuntimeSettings());
   runtime?.setScrollOffset(window.scrollY, false);
+}
+
+function applyMeshSettings(): void {
+  syncMeshRendererSettings();
   requestRender();
   updatePerformanceStats(performance.now(), true);
 }
@@ -213,12 +219,13 @@ watch(
     props.animations.cursorClick,
     props.animations.scroll,
   ],
-  ([active, , cursorMovement, cursorClick, scroll]) => {
+  ([active, , cursorMovement, cursorClick, scroll], [wasActive]) => {
     if (!active || (!cursorMovement && !cursorClick && !scroll)) {
       runtime?.resetInteractions();
     }
 
     if (!active) performanceRuntime?.resetMeasurements();
+    else if (!wasActive) syncMeshRendererSettings();
 
     runtime?.setScrollOffset(window.scrollY, false);
     requestRender();
@@ -233,7 +240,13 @@ useBackgroundPerformanceSettings(() => props.performance, {
   onStatsRequested: () => updatePerformanceStats(performance.now(), true),
 });
 
-watch(() => props.settingOverrides, applyMeshSettings, { deep: true, flush: 'post' });
+watch(
+  () => props.settingOverrides,
+  () => {
+    if (props.active) applyMeshSettings();
+  },
+  { deep: true, flush: 'post' },
+);
 
 onMounted(() => {
   frameScheduler = new AnimationFrameScheduler(renderFrame);

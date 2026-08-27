@@ -93,21 +93,17 @@ function onInput(event: Event): void {
       :aria-describedby="describedBy"
       @input="onInput"
     />
-    <span
-      v-for="marker in positionedMarkers"
-      :key="`${marker.label}-${marker.value}`"
-      :class="[
-        'pointer-events-none absolute top-1/2 z-0 -translate-x-1/2 -translate-y-1/2',
-        marker.active
-          ? 'h-4 w-0.5 bg-primary-bright shadow-[0_0_0.35rem_color-mix(in_srgb,var(--primary)_55%,transparent)]'
-          : 'h-3 w-px bg-foreground/45',
-      ]"
-      :style="{ left: marker.position }"
-      aria-hidden="true"
-    >
+    <span class="pointer-events-none absolute inset-y-0 inset-x-[0.45rem] z-0" aria-hidden="true">
       <span
-        v-if="marker.active"
-        class="absolute -top-0.5 left-1/2 size-1 -translate-x-1/2 rounded-full bg-primary-bright"
+        v-for="marker in positionedMarkers"
+        :key="`${marker.label}-${marker.value}`"
+        :class="[
+          'absolute top-1/2 -translate-x-1/2 -translate-y-1/2',
+          marker.active
+            ? 'h-4 w-0.5 bg-primary-bright shadow-[0_0_0.35rem_color-mix(in_srgb,var(--primary)_55%,transparent)]'
+            : 'h-3 w-px bg-foreground/45',
+        ]"
+        :style="{ left: marker.position }"
       />
     </span>
   </span>
@@ -139,9 +135,10 @@ function onInput(event: Event): void {
 }
 
 .range-control::-webkit-slider-thumb {
+  box-sizing: border-box;
   width: 0.9rem;
   height: 0.9rem;
-  margin-top: -0.4rem;
+  margin-top: -0.325rem;
   appearance: none;
   border: 2px solid var(--raised);
   border-radius: 50%;
@@ -150,8 +147,9 @@ function onInput(event: Event): void {
 }
 
 .range-control::-moz-range-thumb {
-  width: 0.7rem;
-  height: 0.7rem;
+  box-sizing: border-box;
+  width: 0.9rem;
+  height: 0.9rem;
   border: 2px solid var(--raised);
   border-radius: 50%;
   background: var(--primary-bright);

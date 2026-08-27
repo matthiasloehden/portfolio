@@ -9,6 +9,10 @@ async function openTriangleAppearanceSettings(dialog: Locator): Promise<void> {
   await expandSettingsAccordion(dialog, 'Appearance');
 }
 
+function getPerformanceSelect(dialog: Locator): Locator {
+  return dialog.getByRole('combobox', { name: /^Background performance/ });
+}
+
 test.describe('Display settings', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/work');
@@ -43,13 +47,13 @@ test.describe('Display settings', () => {
 
     await background.selectOption('none');
     await expect(page.locator('.background-scene-active')).toHaveCount(0);
-    await expect(dialog.getByLabel('Background performance', { exact: true })).toBeDisabled();
+    await expect(getPerformanceSelect(dialog)).toBeDisabled();
     await expect(dialog.getByRole('checkbox', { name: 'Performance stats' })).toBeDisabled();
     await expect(dialog.getByRole('checkbox', { name: 'Idle motion' })).toBeDisabled();
 
     await dialog.getByRole('button', { name: 'Restore default settings' }).click();
     await expect(background).toHaveValue('auto');
-    await expect(dialog.getByLabel('Background performance', { exact: true })).toBeEnabled();
+    await expect(getPerformanceSelect(dialog)).toBeEnabled();
     await expect(page.locator('.triangle-background.background-scene-active')).toBeVisible();
   });
 
@@ -84,12 +88,19 @@ test.describe('Display settings', () => {
     let dialog = page.getByRole('dialog', { name: 'Display settings' });
     await openTriangleAppearanceSettings(dialog);
 
-    const performance = dialog.getByLabel('Background performance', { exact: true });
+    const performance = getPerformanceSelect(dialog);
     let density = dialog.getByRole('spinbutton', { name: 'Triangle density value' });
 
     await expect(performance).toHaveValue('low');
+    await expect(performance).toHaveAccessibleName('Background performance');
+    await expect(performance.locator('option[value="auto"]')).toHaveText('Auto');
     await expect(density).toHaveValue('0.48');
     await expect(dialog.getByRole('listitem', { name: 'Low preset: 0.48 (active)' })).toBeVisible();
+
+    await performance.selectOption('auto');
+    await expect(performance).toHaveAccessibleName(/^Background performance — Auto: (High|Medium|Low)$/);
+    await performance.selectOption('low');
+    await expect(performance).toHaveAccessibleName('Background performance');
 
     await performance.selectOption('high');
     await expect(density).toHaveValue('1');
@@ -108,13 +119,13 @@ test.describe('Display settings', () => {
     await openTriangleAppearanceSettings(dialog);
     density = dialog.getByRole('spinbutton', { name: 'Triangle density value' });
 
-    await expect(dialog.getByLabel('Background performance', { exact: true })).toHaveValue('high');
+    await expect(getPerformanceSelect(dialog)).toHaveValue('high');
     await expect(density).toHaveValue('1.2');
 
     await dialog.getByRole('button', { name: 'Triangle density: Use high performance value' }).click();
     await expect(density).toHaveValue('1');
 
-    await dialog.getByLabel('Background performance', { exact: true }).selectOption('low');
+    await getPerformanceSelect(dialog).selectOption('low');
     await expect(density).toHaveValue('0.48');
   });
 
@@ -168,7 +179,7 @@ test('migrates one representative legacy background override into the versioned 
   await openTriangleAppearanceSettings(dialog);
 
   await expect(dialog.getByLabel('Background', { exact: true })).toHaveValue('triangles');
-  await expect(dialog.getByLabel('Background performance', { exact: true })).toHaveValue('medium');
+  await expect(getPerformanceSelect(dialog)).toHaveValue('medium');
   await expect(dialog.getByRole('spinbutton', { name: 'Triangle density value' })).toHaveValue('1.3');
 
   const storedDocument = await page.evaluate(() => {

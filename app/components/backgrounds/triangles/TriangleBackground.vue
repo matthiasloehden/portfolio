@@ -241,12 +241,18 @@ function applyPerformanceMode(): void {
   if (!performanceRuntime) return;
 
   performanceRuntime.setMode(props.performance.mode);
+  if (!props.active) return;
+
   applyTriangleSettings();
 }
 
-function applyTriangleSettings(): void {
+function syncTriangleRendererSettings(): void {
   runtime?.setSettings(getRuntimeSettings());
   runtime?.setScrollOffset(window.scrollY);
+}
+
+function applyTriangleSettings(): void {
+  syncTriangleRendererSettings();
   lastFrameTime = 0;
   scheduleFrame();
   updatePerformanceStats(performance.now(), true);
@@ -288,9 +294,10 @@ watch(
     props.animations.cursorClick,
     props.animations.scroll,
   ],
-  ([active, , cursorMovement, cursorClick, scroll]) => {
+  ([active, , cursorMovement, cursorClick, scroll], [wasActive]) => {
     if (!active || (!cursorMovement && !cursorClick && !scroll)) resetInteractions();
     if (!active) performanceRuntime?.resetMeasurements();
+    else if (!wasActive) syncTriangleRendererSettings();
 
     lastFrameTime = 0;
     scheduleFrame();
@@ -305,7 +312,13 @@ useBackgroundPerformanceSettings(() => props.performance, {
   onStatsRequested: () => updatePerformanceStats(performance.now(), true),
 });
 
-watch(() => props.settingOverrides, applyTriangleSettings, { deep: true, flush: 'post' });
+watch(
+  () => props.settingOverrides,
+  () => {
+    if (props.active) applyTriangleSettings();
+  },
+  { deep: true, flush: 'post' },
+);
 
 onMounted(() => {
   frameScheduler = new AnimationFrameScheduler(renderFrame);

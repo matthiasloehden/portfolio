@@ -126,12 +126,19 @@ function updatePerformanceStats(now: number, force = false): void {
 function applyPerformanceMode(): void {
   if (!performanceRuntime) return;
 
-  const quality = performanceRuntime.setMode(props.performance.mode);
+  performanceRuntime.setMode(props.performance.mode);
+  if (!props.active) return;
+
+  syncParticlePerformancePreset();
+  updatePerformanceStats(performance.now(), true);
+}
+
+function syncParticlePerformancePreset(): void {
+  if (!performanceRuntime) return;
 
   runtime?.setSettings(getRuntimeSettings());
-  runtime?.setQuality(quality, environment?.theme ?? 'dark');
+  runtime?.setQuality(performanceRuntime.currentPreset, environment?.theme ?? 'dark');
   resize();
-  updatePerformanceStats(performance.now(), true);
 }
 
 function applyParticleSettings(): void {
@@ -202,11 +209,11 @@ watch(
     props.animations.cursorClick,
     props.animations.scroll,
   ],
-  ([active]) => {
+  ([active], [wasActive]) => {
     interaction?.setAnimations(props.animations);
 
     if (!active) performanceRuntime?.resetMeasurements();
-    if (active) resize();
+    if (active && !wasActive) syncParticlePerformancePreset();
 
     setAnimationState();
     if (active) updatePerformanceStats(performance.now(), true);
@@ -219,7 +226,13 @@ useBackgroundPerformanceSettings(() => props.performance, {
   onStatsRequested: () => updatePerformanceStats(performance.now(), true),
 });
 
-watch(() => props.settingOverrides, applyParticleSettings, { deep: true, flush: 'post' });
+watch(
+  () => props.settingOverrides,
+  () => {
+    if (props.active) applyParticleSettings();
+  },
+  { deep: true, flush: 'post' },
+);
 
 onMounted(() => {
   performanceRuntime = new BackgroundPerformanceRuntime(PARTICLE_QUALITY_PRESETS, props.performance.mode, {

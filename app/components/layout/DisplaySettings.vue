@@ -72,29 +72,23 @@ const backgroundOptions = computed(() =>
   })),
 );
 
-const performanceOptions = computed<readonly { value: BackgroundPerformanceMode; label: string }[]>(() => {
-  const activePreset =
-    backgroundPerformance.value.mode === 'auto' && performanceStats.value?.mode === 'auto'
-      ? performanceStats.value.preset
-      : undefined;
-  const autoLabel =
-    backgroundPerformance.value.mode !== 'auto'
-      ? 'Auto'
-      : activePreset
-        ? `Auto — ${activePreset.charAt(0).toUpperCase()}${activePreset.slice(1)}`
-        : 'Auto — detecting…';
-
-  return [
-    { value: 'auto', label: autoLabel },
-    { value: 'high', label: 'High' },
-    { value: 'medium', label: 'Medium' },
-    { value: 'low', label: 'Low' },
-  ];
-});
+const performanceOptions: readonly { value: BackgroundPerformanceMode; label: string }[] = [
+  { value: 'auto', label: 'Auto' },
+  { value: 'high', label: 'High' },
+  { value: 'medium', label: 'Medium' },
+  { value: 'low', label: 'Low' },
+];
 
 const activePerformancePreset = computed<BackgroundQualityId>(() => {
   if (backgroundPerformance.value.mode !== 'auto') return backgroundPerformance.value.mode;
   return performanceStats.value?.mode === 'auto' ? performanceStats.value.preset : 'high';
+});
+
+const performanceLabel = computed(() => {
+  if (backgroundPerformance.value.mode !== 'auto') return 'Background performance';
+
+  const preset = activePerformancePreset.value;
+  return `Background performance — Auto: ${preset.charAt(0).toUpperCase()}${preset.slice(1)}`;
 });
 
 const activeSettingsControls = computed(() =>
@@ -231,7 +225,7 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onDocumentPoin
             />
             <SharedSelectField
               class="mt-3"
-              label="Background performance"
+              :label="performanceLabel"
               :model-value="backgroundPerformance.mode"
               :options="performanceOptions"
               :disabled="controlsDisabled"

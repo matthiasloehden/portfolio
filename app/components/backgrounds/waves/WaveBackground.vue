@@ -157,13 +157,19 @@ function resize(): void {
   runtime.render(performance.now(), trail, runtimeSettings);
 }
 
-function applyWaveSettings(): void {
+function syncWaveRendererSettings(): boolean {
   syncRuntimeSettings();
 
-  if (!runtime) return;
+  if (!runtime) return false;
 
   const resizeRequired = runtime.applySettings(runtimeSettings);
   trimTrail();
+
+  return resizeRequired;
+}
+
+function applyWaveSettings(): void {
+  const resizeRequired = syncWaveRendererSettings();
 
   if (resizeRequired) resize();
   else setAnimationState();
@@ -360,6 +366,8 @@ function applyPerformanceMode(): void {
   if (!performanceRuntime) return;
 
   performanceRuntime.setMode(props.performance.mode);
+  if (!props.active) return;
+
   applyWaveSettings();
   updatePerformanceStats(performance.now(), true);
 }
@@ -412,8 +420,11 @@ watch(
     props.animations.cursorClick,
     props.animations.scroll,
   ],
-  ([active, , cursorMovement, cursorClick, scroll]) => {
-    if (active) resize();
+  ([active, , cursorMovement, cursorClick, scroll], [wasActive]) => {
+    if (active && !wasActive) {
+      syncWaveRendererSettings();
+      resize();
+    }
 
     if (!active) performanceRuntime?.resetMeasurements();
 
@@ -432,7 +443,13 @@ useBackgroundPerformanceSettings(() => props.performance, {
   onStatsRequested: () => updatePerformanceStats(performance.now(), true),
 });
 
-watch(() => props.settingOverrides, applyWaveSettings, { deep: true, flush: 'post' });
+watch(
+  () => props.settingOverrides,
+  () => {
+    if (props.active) applyWaveSettings();
+  },
+  { deep: true, flush: 'post' },
+);
 
 onMounted(() => {
   performanceRuntime = new BackgroundPerformanceRuntime(WAVE_QUALITY_PRESETS, props.performance.mode);

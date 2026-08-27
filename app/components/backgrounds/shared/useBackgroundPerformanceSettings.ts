@@ -1,8 +1,9 @@
 /**
  * Registers the performance-setting watchers shared by all scene controllers.
  *
- * A mode change asks the scene to apply its newly selected preset. Enabling the
- * overlay requests an immediate sample so users do not wait for the normal
+ * A mode change asks the scene to record its newly selected preset; inactive
+ * scenes may defer the corresponding renderer work until activation. Enabling
+ * the overlay requests an immediate sample so users do not wait for the normal
  * diagnostics interval. The callbacks stay scene-owned because applying quality
  * and collecting renderer details differ between backgrounds.
  */
