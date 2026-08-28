@@ -82,7 +82,7 @@ const ports = [
   right: 0;
   left: 0;
   height: 0.5cqw;
-  background: var(--primary);
+  background: var(--line-strong);
   content: '';
   animation: ram-level var(--ram-duration) ease-in-out var(--ram-delay) infinite alternate;
 }

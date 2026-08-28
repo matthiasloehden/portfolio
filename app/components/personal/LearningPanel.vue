@@ -24,21 +24,35 @@ const secondarySources = computed(() => props.content.groups.slice(1).flatMap((g
           <li
             v-for="(source, sourceIndex) in sources"
             :key="source.name"
-            class="grid min-h-26 grid-cols-[1.8rem_1fr] gap-[0.7rem] border-b border-line p-4 last:border-b-0"
+            class="border-b border-line last:border-b-0"
             data-panel-item
           >
-            <span class="font-mono text-[0.58rem] text-primary">
-              {{ String(sourceIndex + 1).padStart(2, '0') }}
-            </span>
-            <div>
-              <SharedDisplayHeading
-                level="h3"
-                size="label"
+            <a
+              class="group relative grid min-h-26 grid-cols-[1.8rem_1fr] gap-[0.7rem] p-4 transition-colors hover:bg-primary/4 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary"
+              :href="source.href"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <span class="font-mono text-[0.58rem] text-primary">
+                {{ String(sourceIndex + 1).padStart(2, '0') }}
+              </span>
+              <div>
+                <SharedDisplayHeading
+                  level="h3"
+                  size="label"
+                  class="min-[32.5rem]:whitespace-nowrap"
+                >
+                  {{ source.name }}
+                </SharedDisplayHeading>
+                <p class="mt-[0.7rem] font-mono text-[0.55rem] leading-[1.5] text-muted">{{ source.focus }}</p>
+                <span class="sr-only"> on YouTube (opens in a new tab)</span>
+              </div>
+              <span
+                class="absolute top-4 right-4 font-mono text-sm text-primary transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                aria-hidden="true"
+                >↗</span
               >
-                {{ source.name }}
-              </SharedDisplayHeading>
-              <p class="mt-[0.7rem] font-mono text-[0.55rem] leading-[1.5] text-muted">{{ source.focus }}</p>
-            </div>
+            </a>
           </li>
         </ol>
       </section>

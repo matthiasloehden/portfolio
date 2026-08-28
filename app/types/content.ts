@@ -289,11 +289,11 @@ export interface OpenSourceContribution {
 export interface LearningSource {
   name: string;
   focus: string;
+  href: string;
 }
 
 export interface LearningGroup {
   category: string;
-  description: string;
   sources: LearningSource[];
 }
 

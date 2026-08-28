@@ -59,8 +59,8 @@ export const learningSection: PersonalSectionContent = {
   ],
   lead: 'I enjoy understanding technology from the lowest levels up.',
   paragraphs: [
-    'The channels I follow cover digital electronics, computer architecture, operating systems, algorithms, mathematics, and engineering.',
-    'Across those topics, I keep coming back to the same question: how does the system actually work? That takes me from individual transistors and logic gates all the way to complex software architectures.',
+    'Understanding software abstractions often requires examining the layers beneath them. The creators I follow explore that stack through digital logic, computer architecture, operating systems, algorithms, mathematics, and engineering.',
+    'The subjects vary, but the question stays the same: how does the system actually work? Following it from transistors and logic gates upward helps me make more deliberate decisions in software design and architecture.',
   ],
   tags: ['Computer science', 'Engineering', 'Mathematics'],
 };
@@ -159,27 +159,47 @@ export const contributions: OpenSourceContribution[] = [
 export const learningGroups: LearningGroup[] = [
   {
     category: 'Computer science',
-    description:
-      'How computers work beneath the abstractions, from digital logic and architecture to operating systems, algorithms, simulations, and graphics.',
     sources: [
-      { name: 'Ben Eater', focus: 'Digital electronics, computer architecture & networking' },
-      { name: 'Core Dumped', focus: 'Operating systems & low-level computer science' },
-      { name: 'Sebastian Lague', focus: 'Algorithms, simulations & computer graphics' },
+      {
+        name: 'Ben Eater',
+        focus: 'Electrical engineering, digital logic, and computer architecture through breadboard computers',
+        href: 'https://www.youtube.com/@BenEater',
+      },
+      {
+        name: 'Core Dumped',
+        focus: 'Operating systems, memory management, compilers, and other low-level software concepts',
+        href: 'https://www.youtube.com/@CoreDumpped',
+      },
+      {
+        name: 'Sebastian Lague',
+        focus: 'Algorithms, simulations, and computer graphics explored through programming projects',
+        href: 'https://www.youtube.com/@SebastianLague',
+      },
     ],
   },
   {
     category: 'Mathematics',
-    description:
-      'Building visual intuition for mathematical ideas across linear algebra, calculus, probability, and beyond.',
-    sources: [{ name: '3Blue1Brown', focus: 'Visual intuition for higher mathematics' }],
+    sources: [
+      {
+        name: '3Blue1Brown',
+        focus: 'Visual approaches to the mathematical foundations of algorithms, graphics, and machine learning',
+        href: 'https://www.youtube.com/@3blue1brown',
+      },
+    ],
   },
   {
     category: 'Engineering',
-    description:
-      'Understanding how physical infrastructure, electronics, and engineered systems work from the inside out.',
     sources: [
-      { name: 'Branch Education', focus: 'Hardware, electronics & engineering systems' },
-      { name: 'Practical Engineering', focus: 'Civil infrastructure & public works' },
+      {
+        name: 'Branch Education',
+        focus: 'Animated explanations of how processors, memory, and other hardware execute software',
+        href: 'https://www.youtube.com/@BranchEducation',
+      },
+      {
+        name: 'Practical Engineering',
+        focus: 'How engineering constraints, trade-offs, failure modes, and maintenance shape infrastructure',
+        href: 'https://www.youtube.com/@PracticalEngineeringChannel',
+      },
     ],
   },
 ];
