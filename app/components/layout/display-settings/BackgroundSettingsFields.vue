@@ -97,6 +97,7 @@ function getResetLabel(control: BackgroundNumericSettingDefinition): string {
         v-for="group in settingGroups"
         :key="group.key"
         :label="group.label"
+        :heading-level="5"
       >
         <div class="grid gap-3">
           <BackgroundNumericSettingField
@@ -122,7 +123,7 @@ function getResetLabel(control: BackgroundNumericSettingDefinition): string {
     </SharedAccordionGroup>
 
     <SharedSettingsResetButton
-      class="mt-4"
+      class="my-4"
       label="Reset current background settings"
       :disabled="!hasOverrides"
       disabled-reason="No settings have been changed for the current background."

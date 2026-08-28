@@ -77,6 +77,7 @@ function onBodyFontChange(font: ThemeBodyFontId): void {
       <SharedAccordion
         label="Configure active color scheme"
         :meta="selectedPreset.label"
+        :heading-level="4"
         flush
       >
         <p class="py-2 font-mono text-[0.54rem] leading-[1.4] text-muted">
@@ -88,6 +89,7 @@ function onBodyFontChange(font: ThemeBodyFontId): void {
             v-for="group in groupedControls"
             :key="group.key"
             :label="group.label"
+            :heading-level="5"
           >
             <div class="grid gap-4">
               <SharedHexColorInput
@@ -106,7 +108,7 @@ function onBodyFontChange(font: ThemeBodyFontId): void {
         </SharedAccordionGroup>
 
         <SharedSettingsResetButton
-          class="mt-4"
+          class="my-4"
           label="Reset current theme colors"
           :disabled="!hasCurrentThemeColorOverrides"
           disabled-reason="No colors have been changed for the current theme."
