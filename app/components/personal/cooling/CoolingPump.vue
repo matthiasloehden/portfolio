@@ -45,7 +45,7 @@ withDefaults(
 
 .pump-code {
   position: absolute;
-  top: 15%;
+  top: 23%;
   left: 50%;
   transform: translateX(-50%);
   color: var(--primary);

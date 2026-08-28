@@ -104,7 +104,7 @@ const ports = [
 
 @keyframes ram-level {
   to {
-    transform: translate3d(0, 1.8cqw, 0);
+    transform: translate3d(0, 1.2cqw, 0);
   }
 }
 

@@ -1,4 +1,4 @@
-import type { Locator } from '@playwright/test';
+import type { Locator, Page } from '@playwright/test';
 
 import { expect, test, waitForApp } from './support/app-test';
 import { expandSettingsAccordion, openDisplaySettings } from './support/display-settings';
@@ -13,8 +13,12 @@ function getPerformanceSelect(dialog: Locator): Locator {
   return dialog.getByRole('combobox', { name: 'Background performance' });
 }
 
+function getSelect(scope: Locator | Page, name: string): Locator {
+  return scope.getByRole('combobox', { name, exact: true });
+}
+
 function getSelectMeta(select: Locator): Locator {
-  return select.locator('xpath=preceding-sibling::span[1]/span/span[2]');
+  return select.locator('xpath=preceding-sibling::span[1]/span/span');
 }
 
 function getSelectListbox(select: Locator): Locator {
@@ -33,7 +37,7 @@ async function chooseSelectOption(select: Locator, option: string | RegExp): Pro
 }
 
 async function selectThemePreset(dialog: Locator, preset: string | RegExp): Promise<void> {
-  await chooseSelectOption(dialog.getByLabel('Color scheme', { exact: true }), preset);
+  await chooseSelectOption(getSelect(dialog, 'Color scheme'), preset);
 }
 
 test.describe('Display settings', () => {
@@ -52,7 +56,7 @@ test.describe('Display settings', () => {
   });
 
   test('applies, persists, and restores the selected theme', async ({ page }) => {
-    const theme = page.getByLabel('Theme', { exact: true });
+    const theme = getSelect(page, 'Theme');
     const restoreDefaults = page.getByRole('button', { name: 'Restore default settings' });
     await expect(getSelectMeta(theme)).toHaveText(/Dark|Light/);
     await chooseSelectOption(theme, 'Dark');
@@ -66,7 +70,7 @@ test.describe('Display settings', () => {
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
 
     const dialog = await openDisplaySettings(page);
-    await expect(dialog.getByLabel('Theme', { exact: true })).toHaveText('Dark');
+    await expect(getSelect(dialog, 'Theme')).toHaveText('Dark');
 
     const reloadedRestoreDefaults = dialog.getByRole('button', { name: 'Restore default settings' });
     await reloadedRestoreDefaults.click();
@@ -78,12 +82,12 @@ test.describe('Display settings', () => {
     await reloadedRestoreDefaults.press('Escape');
     await expect(dialog.getByRole('tooltip')).toHaveCount(0);
     await expect(dialog).toBeVisible();
-    await expect(dialog.getByLabel('Theme', { exact: true })).toHaveText('System');
+    await expect(getSelect(dialog, 'Theme')).toHaveText('System');
     await expect.poll(() => page.evaluate(() => localStorage.getItem('portfolio-theme'))).toBeNull();
   });
 
   test('exposes selection state and supports keyboard navigation', async ({ page }) => {
-    const theme = page.getByLabel('Theme', { exact: true });
+    const theme = getSelect(page, 'Theme');
 
     await expect(theme).toHaveAttribute('aria-expanded', 'false');
     await theme.press('Enter');
@@ -111,7 +115,7 @@ test.describe('Display settings', () => {
 
   test('applies theme presets, typography and mode-specific color overrides', async ({ page }) => {
     let dialog = page.getByRole('dialog', { name: 'Display settings' });
-    await chooseSelectOption(dialog.getByLabel('Theme', { exact: true }), 'Dark');
+    await chooseSelectOption(getSelect(dialog, 'Theme'), 'Dark');
 
     await selectThemePreset(dialog, /Crimson signal/);
     await expect(page.locator('html')).toHaveAttribute('data-theme-preset', 'crimson');
@@ -120,8 +124,8 @@ test.describe('Display settings', () => {
       .toBe('#ef4444');
 
     await expandSettingsAccordion(dialog, /Advanced theme settings/);
-    const headingFont = dialog.getByLabel('Heading font');
-    const bodyFont = dialog.getByLabel('Body font');
+    const headingFont = getSelect(dialog, 'Heading font');
+    const bodyFont = getSelect(dialog, 'Body font');
     await headingFont.click();
     await expect(getSelectOptions(headingFont)).toHaveText([
       'Barlow Condensed',
@@ -257,7 +261,7 @@ test.describe('Display settings', () => {
 
   test('shows the automatic scene and disables irrelevant controls when backgrounds are off', async ({ page }) => {
     const dialog = page.getByRole('dialog', { name: 'Display settings' });
-    const background = dialog.getByLabel('Background', { exact: true });
+    const background = getSelect(dialog, 'Background');
 
     await expect(background).toHaveText('Automatic per page — Triangles');
     await expandSettingsAccordion(dialog, 'Advanced background settings');
@@ -423,7 +427,7 @@ test('migrates one representative legacy background override into the versioned 
   const dialog = await openDisplaySettings(page);
   await openTriangleAppearanceSettings(dialog);
 
-  await expect(dialog.getByLabel('Background', { exact: true })).toHaveText('Triangles');
+  await expect(getSelect(dialog, 'Background')).toHaveText('Triangles');
   await expect(getPerformanceSelect(dialog)).toHaveText('Medium');
   await expect(dialog.getByRole('spinbutton', { name: 'Triangle density value' })).toHaveValue('1.3');
 
