@@ -1,11 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import {
-  createDefaultThemeSettings,
-  getThemePreset,
-  resolveThemePalette,
-  sanitizeThemeSettings,
-} from '@/config/themes';
+import { getThemePreset } from '@/config/themes/definitions';
+import { createDefaultThemeSettings, resolveThemePalette, sanitizeThemeSettings } from '@/domain/themeSettings';
 
 describe('theme configuration', () => {
   it('sanitizes IDs and accepts only known, normalized color tokens', () => {

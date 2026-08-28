@@ -3,7 +3,7 @@ import {
   createDefaultBackgroundAnimationSettings,
   createDefaultBackgroundPerformanceSettings,
 } from '@/config/backgrounds';
-import { createDefaultThemeSettings } from '@/config/themes';
+import { createDefaultThemeSettings } from '@/domain/themeSettings';
 import type { DisplayPreferencesState, ThemePreference } from '@/types/display';
 
 /**

@@ -6,7 +6,7 @@ import {
   DISPLAY_PREFERENCES_VERSION,
   THEME_PREFERENCE_STORAGE_KEY,
 } from '@/config/displayPreferences';
-import { createDefaultThemeSettings } from '@/config/themes';
+import { createDefaultThemeSettings } from '@/domain/themeSettings';
 import {
   createDisplayPreferencesStorage,
   type DisplayPreferencesStorageAdapter,

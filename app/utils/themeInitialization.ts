@@ -10,7 +10,7 @@ import {
   THEME_COLOR_CONTROLS,
   THEME_DISPLAY_FONTS,
   THEME_PRESETS,
-} from '@/config/themes';
+} from '@/config/themes/definitions';
 
 /**
  * Applies persisted theme tokens before Vue hydrates to avoid a flash of the

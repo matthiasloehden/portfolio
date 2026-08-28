@@ -16,13 +16,8 @@ import {
   createDefaultBackgroundAnimationSettings,
   createDefaultBackgroundPerformanceSettings,
 } from '@/config/backgrounds';
-import {
-  THEME_COLOR_CONTROLS,
-  createDefaultThemeSettings,
-  getThemeBodyFont,
-  getThemeDisplayFont,
-  resolveThemePalette,
-} from '@/config/themes';
+import { THEME_COLOR_CONTROLS, getThemeBodyFont, getThemeDisplayFont } from '@/config/themes/definitions';
+import { createDefaultThemeSettings, resolveThemePalette } from '@/domain/themeSettings';
 import { createDisplayPreferencesStorage } from '@/utils/displayPreferencesStorage';
 import { createDefaultDisplayPreferences, hasCustomDisplayPreferences } from '@/domain/displayPreferences/defaults';
 import type {

@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
-import { createDefaultThemeSettings } from '@/config/themes';
 import { createDefaultDisplayPreferences } from '@/domain/displayPreferences/defaults';
 import { decodeDisplayPreferences, encodeDisplayPreferences } from '@/domain/displayPreferences/schema';
+import { createDefaultThemeSettings } from '@/domain/themeSettings';
 
 describe('display preferences schema', () => {
   it('round-trips a current domain document', () => {

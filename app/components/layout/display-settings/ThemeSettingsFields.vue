@@ -1,5 +1,10 @@
 <script setup lang="ts">
-import { THEME_BODY_FONTS, THEME_COLOR_CONTROLS, THEME_DISPLAY_FONTS, getThemePreset } from '@/config/themes';
+import {
+  THEME_BODY_FONTS,
+  THEME_COLOR_CONTROLS,
+  THEME_DISPLAY_FONTS,
+  getThemePreset,
+} from '@/config/themes/definitions';
 import type {
   ThemeBodyFontId,
   ThemeColorToken,

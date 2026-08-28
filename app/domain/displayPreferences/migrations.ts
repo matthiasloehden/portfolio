@@ -4,7 +4,7 @@ import {
   sanitizeBackgroundSettingOverrides,
 } from '@/components/backgrounds/settings/registry';
 import { createBackgroundAnimationSettings, createDefaultBackgroundPerformanceSettings } from '@/config/backgrounds';
-import { createDefaultThemeSettings } from '@/config/themes';
+import { createDefaultThemeSettings } from '@/domain/themeSettings';
 import { BACKGROUND_IDS, type BackgroundSettingOverridesMap } from '@/types/background';
 import type { DisplayPreferencesState } from '@/types/display';
 

@@ -1,7 +1,7 @@
 import { sanitizeBackgroundSettingOverrides } from '@/components/backgrounds/settings/registry';
 import { createBackgroundAnimationSettings } from '@/config/backgrounds';
 import { DISPLAY_PREFERENCES_VERSION, isSupportedDisplayPreferencesVersion } from '@/config/displayPreferences';
-import { createDefaultThemeSettings, sanitizeThemeSettings } from '@/config/themes';
+import { createDefaultThemeSettings, sanitizeThemeSettings } from '@/domain/themeSettings';
 import {
   BACKGROUND_IDS,
   BACKGROUND_PERFORMANCE_MODES,

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { THEME_PRESETS, getThemePreset } from '@/config/themes';
+import { THEME_PRESETS, getThemePreset } from '@/config/themes/definitions';
 import type { ThemeMode, ThemePalette, ThemePresetId } from '@/types/theme';
 import SharedSelectField from '@/components/shared/form/SelectField.vue';
 
