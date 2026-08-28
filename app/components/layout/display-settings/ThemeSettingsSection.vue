@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { getThemePreset, resolveThemePalette } from '@/config/themes';
+import { resolveThemePalette } from '@/config/themes';
 import type { ThemePreference } from '@/types/display';
 import SharedAccordion from '@/components/shared/Accordion.vue';
 import SharedAccordionGroup from '@/components/shared/AccordionGroup.vue';
@@ -17,7 +17,7 @@ const {
   setThemeBodyFont,
   setThemeColor,
   resetThemeColor,
-  resetThemeCustomizations,
+  resetCurrentThemeColors,
 } = useDisplayPreferences();
 
 const themeOptions: readonly { value: ThemePreference; label: string }[] = [
@@ -27,7 +27,6 @@ const themeOptions: readonly { value: ThemePreference; label: string }[] = [
 ];
 
 const activePalette = computed(() => resolveThemePalette(themeSettings.value, resolvedThemeMode.value));
-const activePresetLabel = computed(() => getThemePreset(themeSettings.value.preset).label);
 const resolvedModeLabel = computed(() => {
   if (themePreference.value !== 'system') return undefined;
 
@@ -54,7 +53,8 @@ const resolvedModeLabel = computed(() => {
     <SharedAccordionGroup class="mt-3">
       <SharedAccordion
         label="Advanced theme settings"
-        :meta="activePresetLabel"
+        :heading-level="3"
+        landmark
         flush
       >
         <ThemeSettingsFields
@@ -65,7 +65,7 @@ const resolvedModeLabel = computed(() => {
           @body-font-change="setThemeBodyFont"
           @color-change="setThemeColor"
           @color-reset="resetThemeColor"
-          @reset="resetThemeCustomizations"
+          @reset="resetCurrentThemeColors"
         />
       </SharedAccordion>
     </SharedAccordionGroup>

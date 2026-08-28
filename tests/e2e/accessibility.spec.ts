@@ -55,7 +55,7 @@ test.describe('Accessibility', () => {
     await waitForApp(page);
 
     const dialog = await openDisplaySettings(page);
-    const colorScheme = dialog.getByRole('button', { name: /^Color scheme:/ });
+    const colorScheme = dialog.getByRole('combobox', { name: 'Color scheme' });
     await colorScheme.click();
     await expect(dialog.getByRole('listbox', { name: 'Color scheme' })).toBeVisible();
     await expectNoAccessibilityViolations(page, testInfo, '#display-settings');
@@ -63,6 +63,7 @@ test.describe('Accessibility', () => {
     await expect(dialog.getByRole('listbox', { name: 'Color scheme' })).toHaveCount(0);
 
     await expandSettingsAccordion(dialog, /Advanced theme settings/);
+    await expandSettingsAccordion(dialog, /Configure active color scheme/);
     await expandSettingsAccordion(dialog, 'Canvas & surfaces');
     await expandSettingsAccordion(dialog, 'Text');
     await expandSettingsAccordion(dialog, 'Accents & states');

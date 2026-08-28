@@ -102,6 +102,36 @@ export function useDisplayPreferences() {
     'portfolio-background-setting-overrides',
     createBackgroundSettingOverrides,
   );
+  const hasDisplayPreferenceChanges = computed(() => {
+    const defaultTheme = createDefaultThemeSettings();
+    const defaultAnimations = createDefaultBackgroundAnimationSettings();
+    const defaultPerformance = createDefaultBackgroundPerformanceSettings();
+    const hasThemeChanges =
+      themePreference.value !== 'system' ||
+      themeSettings.value.preset !== defaultTheme.preset ||
+      themeSettings.value.fonts.display !== defaultTheme.fonts.display ||
+      themeSettings.value.fonts.body !== defaultTheme.fonts.body ||
+      Object.values(themeSettings.value.colorOverrides).some((overrides) => Object.keys(overrides).length > 0);
+    const hasAnimationChanges =
+      backgroundAnimations.value.idle !== defaultAnimations.idle ||
+      backgroundAnimations.value.cursorMovement !== defaultAnimations.cursorMovement ||
+      backgroundAnimations.value.cursorClick !== defaultAnimations.cursorClick ||
+      backgroundAnimations.value.scroll !== defaultAnimations.scroll;
+    const hasPerformanceChanges =
+      backgroundPerformance.value.mode !== defaultPerformance.mode ||
+      backgroundPerformance.value.showStats !== defaultPerformance.showStats;
+    const hasBackgroundSettingChanges = Object.values(backgroundSettingOverrides.value).some(
+      (overrides) => Object.keys(overrides).length > 0,
+    );
+
+    return (
+      hasThemeChanges ||
+      backgroundPreference.value !== 'auto' ||
+      hasAnimationChanges ||
+      hasPerformanceChanges ||
+      hasBackgroundSettingChanges
+    );
+  });
 
   function currentDisplayPreferences(): DisplayPreferencesState {
     return {
@@ -206,8 +236,14 @@ export function useDisplayPreferences() {
     persistDisplayPreferences();
   }
 
-  function resetThemeCustomizations(): void {
-    themeSettings.value = createDefaultThemeSettings();
+  function resetCurrentThemeColors(): void {
+    const mode = resolvedThemeMode.value;
+    if (Object.keys(themeSettings.value.colorOverrides[mode]).length === 0) return;
+
+    themeSettings.value = {
+      ...themeSettings.value,
+      colorOverrides: { ...themeSettings.value.colorOverrides, [mode]: {} },
+    };
     applyTheme();
     persistDisplayPreferences();
   }
@@ -248,6 +284,13 @@ export function useDisplayPreferences() {
       background,
       setting,
     );
+    persistDisplayPreferences();
+  }
+
+  function resetBackgroundSettings(background: BackgroundId): void {
+    if (Object.keys(backgroundSettingOverrides.value[background]).length === 0) return;
+
+    backgroundSettingOverrides.value = { ...backgroundSettingOverrides.value, [background]: {} };
     persistDisplayPreferences();
   }
 
@@ -319,17 +362,19 @@ export function useDisplayPreferences() {
     backgroundAnimations,
     backgroundPerformance,
     backgroundSettingOverrides,
+    hasDisplayPreferenceChanges,
     setThemePreference,
     setThemePreset,
     setThemeDisplayFont,
     setThemeBodyFont,
     setThemeColor,
     resetThemeColor,
-    resetThemeCustomizations,
+    resetCurrentThemeColors,
     setBackgroundPreference,
     setBackgroundAnimationEnabled,
     setBackgroundSetting,
     resetBackgroundSetting,
+    resetBackgroundSettings,
     setBackgroundPerformanceMode,
     setBackgroundPerformanceStatsEnabled,
     restoreDefaultSettings,

@@ -8,6 +8,7 @@ export async function openDisplaySettings(page: Page): Promise<Locator> {
 
   const dialog = page.getByRole('dialog', { name: 'Display settings' });
   await expect(dialog).toBeVisible();
+  await expect(dialog).toBeFocused();
   await expect(page.getByRole('button', { name: 'Close display settings' })).toHaveAttribute('aria-expanded', 'true');
 
   return dialog;

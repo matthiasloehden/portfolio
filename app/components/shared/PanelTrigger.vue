@@ -20,11 +20,19 @@ const emit = defineEmits<{
   toggle: [];
 }>();
 
+const button = ref<HTMLButtonElement | null>(null);
 const accessibleLabel = computed(() => (props.expanded ? (props.expandedLabel ?? props.label) : props.label));
+
+function focus(options?: FocusOptions): void {
+  button.value?.focus(options);
+}
+
+defineExpose({ focus });
 </script>
 
 <template>
   <button
+    ref="button"
     :class="[
       'grid size-9 cursor-pointer place-items-center border bg-raised text-muted transition-[color,border-color,background-color,transform] duration-150 ease-out hover:scale-[1.05] hover:border-line-strong hover:text-foreground focus-visible:scale-[1.05] focus-visible:border-line-strong focus-visible:text-foreground motion-reduce:transition-none',
       expanded ? 'scale-[1.05] border-primary/70 bg-primary/10 text-foreground' : 'border-line',

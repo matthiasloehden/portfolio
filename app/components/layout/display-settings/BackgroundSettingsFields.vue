@@ -3,9 +3,11 @@ import type { BackgroundQualityId } from '@/types/background';
 import type { BackgroundNumericSettingDefinition } from '@/components/backgrounds/settings/registry';
 import SharedAccordion from '@/components/shared/Accordion.vue';
 import SharedAccordionGroup from '@/components/shared/AccordionGroup.vue';
+import SharedSettingsResetButton from '@/components/shared/form/SettingsResetButton.vue';
 import BackgroundNumericSettingField from './BackgroundNumericSettingField.vue';
 
 const props = defineProps<{
+  backgroundLabel: string;
   controls: readonly BackgroundNumericSettingDefinition[];
   values: Readonly<Record<string, number>>;
   overrides: Readonly<Record<string, number | undefined>>;
@@ -15,6 +17,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   change: [key: string, value: number];
   reset: [key: string];
+  'reset-all': [];
 }>();
 
 const groupOptions = [
@@ -30,6 +33,7 @@ const settingGroups = computed(() =>
     }))
     .filter((group) => group.controls.length > 0),
 );
+const hasOverrides = computed(() => Object.values(props.overrides).some((value) => value !== undefined));
 
 function getPerformanceMarkers(
   control: BackgroundNumericSettingDefinition,
@@ -60,6 +64,10 @@ function getResetLabel(control: BackgroundNumericSettingDefinition): string {
 
 <template>
   <div>
+    <p class="py-2 font-mono text-[0.54rem] leading-[1.4] text-muted">
+      Editing {{ backgroundLabel }} settings. Overrides stay active when performance presets change.
+    </p>
+
     <div class="flex flex-wrap items-center gap-x-3 gap-y-1 py-2 font-mono text-[0.5rem] text-muted">
       <span class="inline-flex items-center gap-1.5">
         <span
@@ -112,5 +120,13 @@ function getResetLabel(control: BackgroundNumericSettingDefinition): string {
         </div>
       </SharedAccordion>
     </SharedAccordionGroup>
+
+    <SharedSettingsResetButton
+      class="mt-4"
+      label="Reset current background settings"
+      :disabled="!hasOverrides"
+      disabled-reason="No settings have been changed for the current background."
+      @click="emit('reset-all')"
+    />
   </div>
 </template>

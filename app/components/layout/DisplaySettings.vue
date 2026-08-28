@@ -16,6 +16,7 @@ import SharedAccordion from '@/components/shared/Accordion.vue';
 import SharedAccordionGroup from '@/components/shared/AccordionGroup.vue';
 import SharedPanelTrigger from '@/components/shared/PanelTrigger.vue';
 import SharedSelectField from '@/components/shared/form/SelectField.vue';
+import SharedSettingsResetButton from '@/components/shared/form/SettingsResetButton.vue';
 import SharedToggleField from '@/components/shared/form/ToggleField.vue';
 import SettingsBackgroundFields from './display-settings/BackgroundSettingsFields.vue';
 import ThemeSettingsSection from './display-settings/ThemeSettingsSection.vue';
@@ -25,16 +26,25 @@ const {
   backgroundAnimations,
   backgroundPerformance,
   backgroundSettingOverrides,
+  hasDisplayPreferenceChanges,
   setBackgroundPreference,
   setBackgroundAnimationEnabled,
   setBackgroundSetting,
   resetBackgroundSetting,
+  resetBackgroundSettings,
   setBackgroundPerformanceMode,
   setBackgroundPerformanceStatsEnabled,
   restoreDefaultSettings,
 } = useDisplayPreferences();
 
+interface PanelTriggerHandle {
+  focus: (options?: FocusOptions) => void;
+}
+
 const root = ref<HTMLElement | null>(null);
+const panel = ref<HTMLElement | null>(null);
+const panelTrigger = ref<PanelTriggerHandle | null>(null);
+const titleId = useId();
 const open = defineModel<boolean>('open', { default: false });
 const route = useRoute();
 const { performanceStats } = useBackgroundRuntimeStatus();
@@ -130,9 +140,28 @@ function onBackgroundSettingReset(setting: string): void {
   if (activeSetting) resetBackgroundSetting(activeSetting.background, activeSetting.key);
 }
 
-function onDocumentPointerDown(event: PointerEvent): void {
-  if (open.value && !root.value?.contains(event.target as Node)) open.value = false;
+function onActiveBackgroundSettingsReset(): void {
+  const background = activeBackground.value;
+  if (background !== 'none') resetBackgroundSettings(background);
 }
+
+function onDocumentPointerDown(event: PointerEvent): void {
+  if (open.value && event.target instanceof Node && !root.value?.contains(event.target)) open.value = false;
+}
+
+function onEscape(): void {
+  if (!open.value) return;
+
+  open.value = false;
+  nextTick(() => panelTrigger.value?.focus({ preventScroll: true }));
+}
+
+watch(open, async (isOpen) => {
+  if (!isOpen) return;
+
+  await nextTick();
+  panel.value?.focus({ preventScroll: true });
+});
 
 onMounted(() => document.addEventListener('pointerdown', onDocumentPointerDown));
 onBeforeUnmount(() => document.removeEventListener('pointerdown', onDocumentPointerDown));
@@ -142,9 +171,10 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onDocumentPoin
   <div
     ref="root"
     class="static md:relative"
-    @keydown.esc="open = false"
+    @keydown.esc.prevent="onEscape"
   >
     <SharedPanelTrigger
+      ref="panelTrigger"
       :expanded="open"
       controls="display-settings"
       label="Open display settings"
@@ -183,20 +213,26 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onDocumentPoin
       leave-to-class="-translate-y-1 opacity-0"
     >
       <div
-        v-if="open"
+        v-show="open"
         id="display-settings"
+        ref="panel"
         class="absolute top-full right-0 left-0 z-50 origin-top-right border-b border-line bg-raised/95 shadow-2xl backdrop-blur-xl md:top-[calc(100%+0.75rem)] md:left-auto md:w-[min(20rem,calc(100vw-2rem))] md:border"
         role="dialog"
-        aria-label="Display settings"
+        tabindex="-1"
+        :aria-labelledby="titleId"
       >
         <div
           class="max-h-[calc(100vh-4.75rem)] overflow-x-hidden overflow-y-auto overscroll-contain px-6 py-4 md:-mr-4 md:max-h-[min(44rem,calc(100vh-5rem))] md:w-[calc(100%+1rem)] md:p-0"
         >
           <div class="md:w-[20rem] md:p-4">
-            <div class="mb-4 flex items-center justify-between gap-4 border-b border-line pb-3">
-              <strong class="font-display text-sm tracking-[0.04em] text-foreground uppercase">Display</strong>
+            <h2
+              :id="titleId"
+              class="mb-4 flex items-center justify-between gap-4 border-b border-line pb-3"
+              aria-label="Display settings"
+            >
+              <span class="font-display text-sm tracking-[0.04em] text-foreground uppercase">Display</span>
               <span class="font-mono text-[0.58rem] text-muted">Preferences</span>
-            </div>
+            </h2>
 
             <ThemeSettingsSection />
             <SharedSelectField
@@ -219,6 +255,8 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onDocumentPoin
             <SharedAccordionGroup class="mt-4">
               <SharedAccordion
                 label="Advanced background settings"
+                :heading-level="3"
+                landmark
                 flush
               >
                 <SharedToggleField
@@ -233,7 +271,10 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onDocumentPoin
                   class="mt-4"
                   :end-border="false"
                 >
-                  <SharedAccordion label="Animations">
+                  <SharedAccordion
+                    label="Animations"
+                    :heading-level="4"
+                  >
                     <fieldset class="grid gap-3">
                       <legend class="sr-only">Animations</legend>
                       <SharedToggleField
@@ -251,29 +292,32 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onDocumentPoin
                   <SharedAccordion
                     label="Configure active background"
                     :meta="activeBackgroundLabel"
+                    :heading-level="4"
                     flush
                   >
                     <SettingsBackgroundFields
                       v-if="activeBackground !== 'none'"
+                      :background-label="activeBackgroundLabel"
                       :controls="activeSettingsControls"
                       :values="activeSettingsValues"
                       :overrides="activeSettingOverrides"
                       :performance-preset="activePerformancePreset"
                       @change="onBackgroundSettingChange"
                       @reset="onBackgroundSettingReset"
+                      @reset-all="onActiveBackgroundSettingsReset"
                     />
                   </SharedAccordion>
                 </SharedAccordionGroup>
               </SharedAccordion>
             </SharedAccordionGroup>
 
-            <button
-              class="mt-4 w-full cursor-pointer border border-line px-3 py-2 font-mono text-[0.6rem] text-muted transition-colors hover:border-line-strong hover:text-foreground focus-visible:border-line-strong focus-visible:text-foreground"
-              type="button"
+            <SharedSettingsResetButton
+              class="mt-4"
+              label="Restore default settings"
+              :disabled="!hasDisplayPreferenceChanges"
+              disabled-reason="All display settings already use their defaults."
               @click="restoreDefaultSettings"
-            >
-              Restore default settings
-            </button>
+            />
           </div>
         </div>
       </div>

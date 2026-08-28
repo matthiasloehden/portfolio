@@ -12,6 +12,7 @@ import SharedAccordion from '@/components/shared/Accordion.vue';
 import SharedAccordionGroup from '@/components/shared/AccordionGroup.vue';
 import SharedHexColorInput from '@/components/shared/form/HexColorInput.vue';
 import SharedSelectField from '@/components/shared/form/SelectField.vue';
+import SharedSettingsResetButton from '@/components/shared/form/SettingsResetButton.vue';
 
 const props = defineProps<{
   settings: ThemeSettings;
@@ -40,6 +41,9 @@ const groupedControls = colorGroups.map((group) => ({
   controls: THEME_COLOR_CONTROLS.filter((control) => control.group === group.key),
 }));
 const selectedPreset = computed(() => getThemePreset(props.settings.preset));
+const hasCurrentThemeColorOverrides = computed(
+  () => Object.keys(props.settings.colorOverrides[props.mode]).length > 0,
+);
 
 function onDisplayFontChange(font: ThemeDisplayFontId): void {
   emit('display-font-change', font);
@@ -66,46 +70,50 @@ function onBodyFontChange(font: ThemeBodyFontId): void {
       @update:model-value="onBodyFontChange"
     />
 
-    <div class="mt-4 flex items-start justify-between gap-3 border-y border-line py-3 font-mono">
-      <span>
-        <span class="block text-[0.62rem] font-semibold text-foreground">Custom colors</span>
-        <span class="mt-0.5 block text-[0.54rem] leading-[1.4] text-muted">
-          Editing {{ mode }}. Overrides stay active when presets change.
-        </span>
-      </span>
-      <span class="mt-0.5 shrink-0 text-[0.52rem] tracking-[0.08em] text-primary-bright uppercase">
-        {{ selectedPreset.label }}
-      </span>
-    </div>
-
-    <SharedAccordionGroup :end-border="false">
+    <SharedAccordionGroup
+      class="mt-4"
+      :end-border="false"
+    >
       <SharedAccordion
-        v-for="group in groupedControls"
-        :key="group.key"
-        :label="group.label"
+        label="Configure active color scheme"
+        :meta="selectedPreset.label"
+        flush
       >
-        <div class="grid gap-4">
-          <SharedHexColorInput
-            v-for="control in group.controls"
-            :key="control.key"
-            :label="control.label"
-            :description="control.description"
-            :model-value="values[control.key]"
-            :overridden="settings.colorOverrides[mode][control.key] !== undefined"
-            :reset-label="`Use ${selectedPreset.label} ${mode} value`"
-            @update:model-value="emit('color-change', control.key, $event)"
-            @reset="emit('color-reset', control.key)"
-          />
-        </div>
+        <p class="py-2 font-mono text-[0.54rem] leading-[1.4] text-muted">
+          Editing {{ mode }} custom colors. Overrides stay active when color schemes change.
+        </p>
+
+        <SharedAccordionGroup :end-border="false">
+          <SharedAccordion
+            v-for="group in groupedControls"
+            :key="group.key"
+            :label="group.label"
+          >
+            <div class="grid gap-4">
+              <SharedHexColorInput
+                v-for="control in group.controls"
+                :key="control.key"
+                :label="control.label"
+                :description="control.description"
+                :model-value="values[control.key]"
+                :overridden="settings.colorOverrides[mode][control.key] !== undefined"
+                :reset-label="`Use ${selectedPreset.label} ${mode} value`"
+                @update:model-value="emit('color-change', control.key, $event)"
+                @reset="emit('color-reset', control.key)"
+              />
+            </div>
+          </SharedAccordion>
+        </SharedAccordionGroup>
+
+        <SharedSettingsResetButton
+          class="mt-4"
+          label="Reset current theme colors"
+          :disabled="!hasCurrentThemeColorOverrides"
+          disabled-reason="No colors have been changed for the current theme."
+          :aria-label="`Reset current ${mode} theme colors`"
+          @click="emit('reset')"
+        />
       </SharedAccordion>
     </SharedAccordionGroup>
-
-    <button
-      class="mt-4 w-full cursor-pointer border border-line px-3 py-2 font-mono text-[0.56rem] text-muted transition-colors hover:border-line-strong hover:text-foreground focus-visible:border-line-strong focus-visible:text-foreground"
-      type="button"
-      @click="emit('reset')"
-    >
-      Reset theme customizations
-    </button>
   </div>
 </template>
