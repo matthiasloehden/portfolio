@@ -200,7 +200,6 @@ onBeforeUnmount(() => {
       <path
         class="tube tube-flow"
         :d="path"
-        pathLength="100"
       />
     </g>
   </svg>
@@ -231,14 +230,14 @@ onBeforeUnmount(() => {
 .tube-flow {
   stroke: var(--primary-bright);
   stroke-width: 2;
-  stroke-dasharray: 1 7;
+  stroke-dasharray: 2 12;
   filter: drop-shadow(0 0 5px var(--primary));
-  animation: coolant-flow 4s linear infinite;
+  animation: coolant-flow 2s linear infinite;
 }
 
 @keyframes coolant-flow {
   to {
-    stroke-dashoffset: -100;
+    stroke-dashoffset: -98;
   }
 }
 

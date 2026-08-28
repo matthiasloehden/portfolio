@@ -77,9 +77,7 @@ const panelId = useId();
           :class="[
             'transition-[opacity,transform] duration-100 ease-out motion-reduce:transition-none',
             flush ? undefined : 'pb-3',
-            open
-              ? 'opacity-100 delay-[30ms] motion-reduce:delay-0'
-              : '-translate-y-[0.2rem] opacity-0 delay-0',
+            open ? 'opacity-100 delay-[30ms] motion-reduce:delay-0' : '-translate-y-[0.2rem] opacity-0 delay-0',
           ]"
         >
           <slot />

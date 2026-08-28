@@ -28,9 +28,7 @@ function onClick(): void {
       <button
         class="w-full border border-line px-3 py-2 font-mono text-[0.56rem] text-muted transition-colors focus-visible:border-line-strong focus-visible:text-foreground"
         :class="
-          disabled
-            ? 'cursor-not-allowed opacity-45'
-            : 'cursor-pointer hover:border-line-strong hover:text-foreground'
+          disabled ? 'cursor-not-allowed opacity-45' : 'cursor-pointer hover:border-line-strong hover:text-foreground'
         "
         type="button"
         :aria-disabled="disabled || undefined"

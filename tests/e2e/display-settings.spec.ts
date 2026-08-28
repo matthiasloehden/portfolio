@@ -27,7 +27,9 @@ function getSelectOptions(select: Locator): Locator {
 
 async function chooseSelectOption(select: Locator, option: string | RegExp): Promise<void> {
   await select.click();
-  await getSelectListbox(select).getByRole('option', { name: option, exact: typeof option === 'string' }).click();
+  await getSelectListbox(select)
+    .getByRole('option', { name: option, exact: typeof option === 'string' })
+    .click();
 }
 
 async function selectThemePreset(dialog: Locator, preset: string | RegExp): Promise<void> {
@@ -70,7 +72,9 @@ test.describe('Display settings', () => {
     await reloadedRestoreDefaults.click();
     await expect(reloadedRestoreDefaults).toBeDisabled();
     await reloadedRestoreDefaults.focus();
-    await expect(dialog.getByRole('tooltip', { name: 'All display settings already use their defaults.' })).toBeVisible();
+    await expect(
+      dialog.getByRole('tooltip', { name: 'All display settings already use their defaults.' }),
+    ).toBeVisible();
     await reloadedRestoreDefaults.press('Escape');
     await expect(dialog.getByRole('tooltip')).toHaveCount(0);
     await expect(dialog).toBeVisible();
@@ -166,7 +170,10 @@ test.describe('Display settings', () => {
           .first()
           .evaluate((option) => {
             const bounds = option.getBoundingClientRect();
-            const topmostElement = document.elementFromPoint(bounds.left + bounds.width / 2, bounds.top + bounds.height / 2);
+            const topmostElement = document.elementFromPoint(
+              bounds.left + bounds.width / 2,
+              bounds.top + bounds.height / 2,
+            );
             return topmostElement !== null && option.contains(topmostElement);
           }),
       )

@@ -41,9 +41,7 @@ const groupedControls = colorGroups.map((group) => ({
   controls: THEME_COLOR_CONTROLS.filter((control) => control.group === group.key),
 }));
 const selectedPreset = computed(() => getThemePreset(props.settings.preset));
-const hasCurrentThemeColorOverrides = computed(
-  () => Object.keys(props.settings.colorOverrides[props.mode]).length > 0,
-);
+const hasCurrentThemeColorOverrides = computed(() => Object.keys(props.settings.colorOverrides[props.mode]).length > 0);
 
 function onDisplayFontChange(font: ThemeDisplayFontId): void {
   emit('display-font-change', font);

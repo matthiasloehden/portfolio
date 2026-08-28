@@ -74,15 +74,15 @@ function onPickerInput(event: Event): void {
     </span>
 
     <span
-      class="group grid grid-cols-[2.4rem_minmax(0,1fr)] border bg-background transition-[border-color,box-shadow] duration-150 hover:shadow-[0_0_0.65rem_color-mix(in_srgb,var(--primary)_14%,transparent)] focus-within:shadow-[0_0_0.65rem_color-mix(in_srgb,var(--primary)_20%,transparent)] motion-reduce:transition-none"
+      class="group grid grid-cols-[2.4rem_minmax(0,1fr)] border bg-background transition-[border-color,box-shadow] duration-150 focus-within:shadow-[0_0_0.65rem_color-mix(in_srgb,var(--primary)_20%,transparent)] hover:shadow-[0_0_0.65rem_color-mix(in_srgb,var(--primary)_14%,transparent)] motion-reduce:transition-none"
       :class="
         valid
-          ? 'border-line hover:border-primary focus-within:border-primary-bright'
-          : 'border-red-500 hover:border-red-400 focus-within:border-red-400'
+          ? 'border-line focus-within:border-primary-bright hover:border-primary'
+          : 'border-red-500 focus-within:border-red-400 hover:border-red-400'
       "
     >
       <span
-        class="relative border-r border-line bg-background transition-colors duration-150 group-hover:border-primary/60 group-focus-within:border-primary/60 motion-reduce:transition-none"
+        class="relative border-r border-line bg-background transition-colors duration-150 group-focus-within:border-primary/60 group-hover:border-primary/60 motion-reduce:transition-none"
       >
         <input
           class="peer absolute inset-0 z-10 m-0 size-full cursor-pointer opacity-0"
@@ -139,10 +139,8 @@ function onPickerInput(event: Event): void {
 .color-swatch {
   background-color: var(--raised);
   background-image:
-    linear-gradient(45deg, var(--line) 25%, transparent 25%),
-    linear-gradient(-45deg, var(--line) 25%, transparent 25%),
-    linear-gradient(45deg, transparent 75%, var(--line) 75%),
-    linear-gradient(-45deg, transparent 75%, var(--line) 75%);
+    linear-gradient(45deg, var(--line) 25%, transparent 25%), linear-gradient(-45deg, var(--line) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, var(--line) 75%), linear-gradient(-45deg, transparent 75%, var(--line) 75%);
   background-position:
     0 0,
     0 0.25rem,
