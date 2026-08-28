@@ -40,8 +40,13 @@ function shuffledIndices(length: number) {
 
   for (let index = indices.length - 1; index > 0; index--) {
     const target = Math.floor(Math.random() * (index + 1));
+    const currentValue = indices[index];
+    const targetValue = indices[target];
 
-    [indices[index], indices[target]] = [indices[target]!, indices[index]!];
+    if (currentValue === undefined || targetValue === undefined) continue;
+
+    indices[index] = targetValue;
+    indices[target] = currentValue;
   }
 
   return indices;
