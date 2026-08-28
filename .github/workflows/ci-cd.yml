@@ -77,6 +77,9 @@ jobs:
       - name: Format check
         run: yarn format:check
 
+      - name: Unit tests
+        run: yarn test:unit
+
   # ============================================================
   # Build + E2E
   #

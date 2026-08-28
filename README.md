@@ -34,7 +34,8 @@ performance fallbacks, and automated quality gates.
 | Vite | Fast development server and build pipeline, including Tailwind's Vite integration. |
 | `vue-tsc` | Static quality management for Vue and TypeScript correctness. |
 | `oxlint`/`oxfmt` | Static quality management for linting and formatting. |
-| Playwright | Dynamic quality management for browser behavior. |
+| Vitest | Fast unit coverage for domain policy, schema migration, runtime bounds, and performance adaptation. |
+| Playwright | Browser-level coverage for navigation, persistence, responsive behavior, motion, and accessibility. |
 | GitHub Actions | CI/CD pipeline that automates type checking, linting, formatting validation, static generation, browser tests, and automatic deployment to GitHub Pages on successful builds. |
 
 ## My Open Source Contributions 
@@ -58,6 +59,9 @@ yarn check
 yarn generate
 yarn test:e2e
 ```
+
+`yarn check` runs type checking, linting, formatting validation, and the Vitest unit suite. Use
+`yarn test:unit:watch` for focused feedback while developing domain or renderer-support logic.
 
 ## Deployment
 
