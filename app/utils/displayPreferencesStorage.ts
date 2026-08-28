@@ -46,28 +46,38 @@ interface StoredDisplayPreferences extends DisplayPreferencesState {
   version: typeof DISPLAY_PREFERENCES_VERSION;
 }
 
+export type DisplayPreferencesStorageAdapter = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
+
+export interface DisplayPreferencesStorage {
+  readThemePreference: () => ThemePreference;
+  writeThemePreference: (preference: ThemePreference) => void;
+  readPreferences: () => DisplayPreferencesState;
+  writePreferences: (preferences: DisplayPreferencesState) => void;
+  clear: () => void;
+}
+
 const BACKGROUND_PREFERENCES = ['auto', ...BACKGROUND_IDS, 'none'] as const;
 const THEME_PREFERENCES = ['system', 'light', 'dark'] as const;
 
-function readStorage(key: string): string | null {
+function readStorage(storage: DisplayPreferencesStorageAdapter | undefined, key: string): string | null {
   try {
-    return globalThis.localStorage?.getItem(key) ?? null;
+    return storage?.getItem(key) ?? null;
   } catch {
     return null;
   }
 }
 
-function writeStorage(key: string, value: string): void {
+function writeStorage(storage: DisplayPreferencesStorageAdapter | undefined, key: string, value: string): void {
   try {
-    globalThis.localStorage?.setItem(key, value);
+    storage?.setItem(key, value);
   } catch {
     // Preferences are an enhancement; storage restrictions must not break UI.
   }
 }
 
-function removeStorage(key: string): void {
+function removeStorage(storage: DisplayPreferencesStorageAdapter | undefined, key: string): void {
   try {
-    globalThis.localStorage?.removeItem(key);
+    storage?.removeItem(key);
   } catch {
     // See writeStorage: private modes and policies may deny persistence.
   }
@@ -195,10 +205,10 @@ function readCurrentDocument(value: unknown): DisplayPreferencesState | undefine
   };
 }
 
-function readLegacyPreferences(): DisplayPreferencesState {
-  const storedBackground = readStorage(LEGACY_STORAGE_KEYS.background);
-  const parsedAnimations = readAnimations(parseJson(readStorage(LEGACY_STORAGE_KEYS.animations)));
-  const legacyMotion = readStorage(LEGACY_STORAGE_KEYS.motion);
+function readLegacyPreferences(storage: DisplayPreferencesStorageAdapter | undefined): DisplayPreferencesState {
+  const storedBackground = readStorage(storage, LEGACY_STORAGE_KEYS.background);
+  const parsedAnimations = readAnimations(parseJson(readStorage(storage, LEGACY_STORAGE_KEYS.animations)));
+  const legacyMotion = readStorage(storage, LEGACY_STORAGE_KEYS.motion);
   const legacyMotionEnabled = legacyMotion !== 'false';
   const animations =
     parsedAnimations ??
@@ -214,52 +224,74 @@ function readLegacyPreferences(): DisplayPreferencesState {
     backgroundPreference: isBackgroundPreference(storedBackground) ? storedBackground : 'auto',
     backgroundAnimations: animations,
     backgroundPerformance:
-      readPerformance(parseJson(readStorage(LEGACY_STORAGE_KEYS.performance))) ??
+      readPerformance(parseJson(readStorage(storage, LEGACY_STORAGE_KEYS.performance))) ??
       createDefaultBackgroundPerformanceSettings(),
     backgroundSettingOverrides: pickFlaggedLegacyOverrides(
-      parseJson(readStorage(LEGACY_STORAGE_KEYS.settings)),
-      parseJson(readStorage(LEGACY_STORAGE_KEYS.overrideFlags)),
+      parseJson(readStorage(storage, LEGACY_STORAGE_KEYS.settings)),
+      parseJson(readStorage(storage, LEGACY_STORAGE_KEYS.overrideFlags)),
     ),
   };
 }
 
-function removeLegacyPreferences(): void {
-  for (const key of Object.values(LEGACY_STORAGE_KEYS)) removeStorage(key);
+function removeLegacyPreferences(storage: DisplayPreferencesStorageAdapter | undefined): void {
+  for (const key of Object.values(LEGACY_STORAGE_KEYS)) removeStorage(storage, key);
 }
 
-export function readThemePreference(): ThemePreference {
-  const stored = readStorage(THEME_PREFERENCE_STORAGE_KEY);
-  return isThemePreference(stored) ? stored : 'system';
+function resolveBrowserStorage(): DisplayPreferencesStorageAdapter | undefined {
+  try {
+    return globalThis.localStorage;
+  } catch {
+    return undefined;
+  }
 }
 
-export function writeThemePreference(preference: ThemePreference): void {
-  if (preference === 'system') removeStorage(THEME_PREFERENCE_STORAGE_KEY);
-  else writeStorage(THEME_PREFERENCE_STORAGE_KEY, preference);
-}
-
-export function readDisplayPreferences(): DisplayPreferencesState {
-  const parsedDocument = parseJson(readStorage(DISPLAY_PREFERENCES_STORAGE_KEY));
-  const current = readCurrentDocument(parsedDocument);
-  if (current) {
-    if (isRecord(parsedDocument) && parsedDocument.version !== DISPLAY_PREFERENCES_VERSION) {
-      writeDisplayPreferences(current);
-    }
-    return current;
+/**
+ * Creates the persistence boundary used by the display-preferences feature.
+ *
+ * Browser storage is injected so schema migration and failure handling can be
+ * verified without booting Nuxt. The adapter intentionally mirrors only the
+ * three localStorage operations the feature needs, which also keeps a future
+ * package free to provide cookies, native storage or an in-memory backend.
+ */
+export function createDisplayPreferencesStorage(
+  storage: DisplayPreferencesStorageAdapter | undefined = resolveBrowserStorage(),
+): DisplayPreferencesStorage {
+  function writePreferences(preferences: DisplayPreferencesState): void {
+    const document: StoredDisplayPreferences = { version: DISPLAY_PREFERENCES_VERSION, ...preferences };
+    writeStorage(storage, DISPLAY_PREFERENCES_STORAGE_KEY, JSON.stringify(document));
   }
 
-  const migrated = readLegacyPreferences();
-  writeDisplayPreferences(migrated);
-  removeLegacyPreferences();
-  return migrated;
-}
+  function readPreferences(): DisplayPreferencesState {
+    const parsedDocument = parseJson(readStorage(storage, DISPLAY_PREFERENCES_STORAGE_KEY));
+    const current = readCurrentDocument(parsedDocument);
+    if (current) {
+      if (isRecord(parsedDocument) && parsedDocument.version !== DISPLAY_PREFERENCES_VERSION) {
+        writePreferences(current);
+      }
+      return current;
+    }
 
-export function writeDisplayPreferences(preferences: DisplayPreferencesState): void {
-  const document: StoredDisplayPreferences = { version: DISPLAY_PREFERENCES_VERSION, ...preferences };
-  writeStorage(DISPLAY_PREFERENCES_STORAGE_KEY, JSON.stringify(document));
-}
+    const migrated = readLegacyPreferences(storage);
+    writePreferences(migrated);
+    removeLegacyPreferences(storage);
+    return migrated;
+  }
 
-export function clearStoredDisplayPreferences(): void {
-  removeStorage(THEME_PREFERENCE_STORAGE_KEY);
-  removeStorage(DISPLAY_PREFERENCES_STORAGE_KEY);
-  removeLegacyPreferences();
+  return {
+    readThemePreference() {
+      const stored = readStorage(storage, THEME_PREFERENCE_STORAGE_KEY);
+      return isThemePreference(stored) ? stored : 'system';
+    },
+    writeThemePreference(preference) {
+      if (preference === 'system') removeStorage(storage, THEME_PREFERENCE_STORAGE_KEY);
+      else writeStorage(storage, THEME_PREFERENCE_STORAGE_KEY, preference);
+    },
+    readPreferences,
+    writePreferences,
+    clear() {
+      removeStorage(storage, THEME_PREFERENCE_STORAGE_KEY);
+      removeStorage(storage, DISPLAY_PREFERENCES_STORAGE_KEY);
+      removeLegacyPreferences(storage);
+    },
+  };
 }

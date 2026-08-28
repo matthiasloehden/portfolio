@@ -23,13 +23,8 @@ import {
   getThemeDisplayFont,
   resolveThemePalette,
 } from '@/config/themes';
-import {
-  clearStoredDisplayPreferences,
-  readDisplayPreferences,
-  readThemePreference,
-  writeDisplayPreferences,
-  writeThemePreference,
-} from '@/utils/displayPreferencesStorage';
+import { createDisplayPreferencesStorage } from '@/utils/displayPreferencesStorage';
+import { createDefaultDisplayPreferences, hasCustomDisplayPreferences } from '@/domain/displayPreferences';
 import type {
   BackgroundAnimation,
   BackgroundAnimationSettings,
@@ -58,6 +53,7 @@ let colorSchemeQuery: MediaQueryList | null = null;
 let initialized = false;
 let pendingDisplayPreferences: DisplayPreferencesState | null = null;
 let displayPreferencesWriteTimer: ReturnType<typeof setTimeout> | null = null;
+const preferencesStorage = createDisplayPreferencesStorage();
 
 function cancelPendingDisplayPreferencesWrite(): void {
   if (displayPreferencesWriteTimer !== null) clearTimeout(displayPreferencesWriteTimer);
@@ -73,7 +69,7 @@ function flushPendingDisplayPreferencesWrite(): void {
 
   if (!pendingDisplayPreferences) return;
 
-  writeDisplayPreferences(pendingDisplayPreferences);
+  preferencesStorage.writePreferences(pendingDisplayPreferences);
   pendingDisplayPreferences = null;
 }
 
@@ -102,36 +98,9 @@ export function useDisplayPreferences() {
     'portfolio-background-setting-overrides',
     createBackgroundSettingOverrides,
   );
-  const hasDisplayPreferenceChanges = computed(() => {
-    const defaultTheme = createDefaultThemeSettings();
-    const defaultAnimations = createDefaultBackgroundAnimationSettings();
-    const defaultPerformance = createDefaultBackgroundPerformanceSettings();
-    const hasThemeChanges =
-      themePreference.value !== 'system' ||
-      themeSettings.value.preset !== defaultTheme.preset ||
-      themeSettings.value.fonts.display !== defaultTheme.fonts.display ||
-      themeSettings.value.fonts.body !== defaultTheme.fonts.body ||
-      Object.values(themeSettings.value.colorOverrides).some((overrides) => Object.keys(overrides).length > 0);
-    const hasAnimationChanges =
-      backgroundAnimations.value.idle !== defaultAnimations.idle ||
-      backgroundAnimations.value.cursorMovement !== defaultAnimations.cursorMovement ||
-      backgroundAnimations.value.cursorClick !== defaultAnimations.cursorClick ||
-      backgroundAnimations.value.scroll !== defaultAnimations.scroll;
-    const hasPerformanceChanges =
-      backgroundPerformance.value.mode !== defaultPerformance.mode ||
-      backgroundPerformance.value.showStats !== defaultPerformance.showStats;
-    const hasBackgroundSettingChanges = Object.values(backgroundSettingOverrides.value).some(
-      (overrides) => Object.keys(overrides).length > 0,
-    );
-
-    return (
-      hasThemeChanges ||
-      backgroundPreference.value !== 'auto' ||
-      hasAnimationChanges ||
-      hasPerformanceChanges ||
-      hasBackgroundSettingChanges
-    );
-  });
+  const hasDisplayPreferenceChanges = computed(() =>
+    hasCustomDisplayPreferences(currentDisplayPreferences(), themePreference.value),
+  );
 
   function currentDisplayPreferences(): DisplayPreferencesState {
     return {
@@ -147,7 +116,7 @@ export function useDisplayPreferences() {
     if (!import.meta.client) return;
 
     cancelPendingDisplayPreferencesWrite();
-    writeDisplayPreferences(currentDisplayPreferences());
+    preferencesStorage.writePreferences(currentDisplayPreferences());
   }
 
   function persistBackgroundSettings(): void {
@@ -188,7 +157,7 @@ export function useDisplayPreferences() {
   function setThemePreference(preference: ThemePreference): void {
     themePreference.value = preference;
     applyTheme();
-    if (import.meta.client) writeThemePreference(preference);
+    if (import.meta.client) preferencesStorage.writeThemePreference(preference);
   }
 
   function setThemePreset(preset: ThemePresetId): void {
@@ -306,17 +275,18 @@ export function useDisplayPreferences() {
 
   function restoreDefaultSettings(): void {
     themePreference.value = 'system';
-    themeSettings.value = createDefaultThemeSettings();
-    backgroundPreference.value = 'auto';
-    backgroundAnimations.value = createDefaultBackgroundAnimationSettings();
-    backgroundPerformance.value = createDefaultBackgroundPerformanceSettings();
-    backgroundSettingOverrides.value = createBackgroundSettingOverrides();
+    const defaults = createDefaultDisplayPreferences();
+    themeSettings.value = defaults.themeSettings;
+    backgroundPreference.value = defaults.backgroundPreference;
+    backgroundAnimations.value = defaults.backgroundAnimations;
+    backgroundPerformance.value = defaults.backgroundPerformance;
+    backgroundSettingOverrides.value = defaults.backgroundSettingOverrides;
 
     applyTheme();
     applyBackgroundAnimationState();
     if (import.meta.client) {
       cancelPendingDisplayPreferencesWrite();
-      clearStoredDisplayPreferences();
+      preferencesStorage.clear();
     }
   }
 
@@ -328,9 +298,9 @@ export function useDisplayPreferences() {
     if (!import.meta.client || initialized) return;
 
     colorSchemeQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    const stored = readDisplayPreferences();
+    const stored = preferencesStorage.readPreferences();
 
-    themePreference.value = readThemePreference();
+    themePreference.value = preferencesStorage.readThemePreference();
     themeSettings.value = stored.themeSettings;
     backgroundPreference.value = stored.backgroundPreference;
     backgroundAnimations.value = stored.backgroundAnimations;
