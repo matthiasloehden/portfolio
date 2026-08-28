@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { createDefaultDisplayPreferences, hasCustomDisplayPreferences } from '@/domain/displayPreferences';
+import { createDefaultDisplayPreferences, hasCustomDisplayPreferences } from '@/domain/displayPreferences/defaults';
 import type { DisplayPreferencesState } from '@/types/display';
 
 const customizationCases: readonly {

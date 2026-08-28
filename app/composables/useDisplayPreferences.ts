@@ -24,7 +24,7 @@ import {
   resolveThemePalette,
 } from '@/config/themes';
 import { createDisplayPreferencesStorage } from '@/utils/displayPreferencesStorage';
-import { createDefaultDisplayPreferences, hasCustomDisplayPreferences } from '@/domain/displayPreferences';
+import { createDefaultDisplayPreferences, hasCustomDisplayPreferences } from '@/domain/displayPreferences/defaults';
 import type {
   BackgroundAnimation,
   BackgroundAnimationSettings,

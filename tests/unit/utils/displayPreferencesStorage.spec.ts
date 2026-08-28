@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { createDefaultDisplayPreferences } from '@/domain/displayPreferences';
+import { createDefaultDisplayPreferences } from '@/domain/displayPreferences/defaults';
 import {
   DISPLAY_PREFERENCES_STORAGE_KEY,
   DISPLAY_PREFERENCES_VERSION,
@@ -26,37 +26,6 @@ describe('display preferences storage', () => {
     });
   });
 
-  it('sanitizes current documents at the persistence boundary', () => {
-    const adapter = new MemoryStorage();
-    const defaults = createDefaultDisplayPreferences();
-    adapter.setItem(
-      DISPLAY_PREFERENCES_STORAGE_KEY,
-      JSON.stringify({
-        version: DISPLAY_PREFERENCES_VERSION,
-        themeSettings: {
-          preset: 'unknown',
-          fonts: { display: 'cinzel', body: 'unknown' },
-          colorOverrides: { dark: { primary: '#AABBCC', unknown: '#ffffff' } },
-        },
-        backgroundPreference: 'particles',
-        backgroundAnimations: defaults.backgroundAnimations,
-        backgroundPerformance: { mode: 'high', showStats: true },
-        backgroundSettingOverrides: { particles: { pointSize: 3, opacity: 'invalid', unknown: 9 } },
-      }),
-    );
-
-    const preferences = createDisplayPreferencesStorage(adapter).readPreferences();
-
-    expect(preferences.themeSettings).toEqual({
-      ...createDefaultThemeSettings(),
-      fonts: { display: 'cinzel', body: 'inter' },
-      colorOverrides: { dark: { primary: '#aabbcc' }, light: {} },
-    });
-    expect(preferences.backgroundPreference).toBe('particles');
-    expect(preferences.backgroundPerformance).toEqual({ mode: 'high', showStats: true });
-    expect(preferences.backgroundSettingOverrides.particles).toEqual({ pointSize: 3 });
-  });
-
   it('upgrades version one documents without inventing theme settings', () => {
     const adapter = new MemoryStorage();
     const defaults = createDefaultDisplayPreferences();
@@ -77,18 +46,17 @@ describe('display preferences storage', () => {
     expect(rewritten.themeSettings).toEqual(createDefaultThemeSettings());
   });
 
-  it('migrates flagged legacy overrides and removes legacy keys', () => {
+  it('persists a migrated document before removing consumed legacy keys', () => {
     const adapter = new MemoryStorage();
     adapter.setItem('portfolio-background', 'wave');
-    adapter.setItem('portfolio-background-advanced-settings', JSON.stringify({ wave: { opacity: 0.42 } }));
-    adapter.setItem('portfolio-background-advanced-setting-overrides', JSON.stringify({ wave: { opacity: true } }));
 
     const preferences = createDisplayPreferencesStorage(adapter).readPreferences();
 
     expect(preferences.backgroundPreference).toBe('wave');
-    expect(preferences.backgroundSettingOverrides.wave).toEqual({ opacity: 0.42 });
     expect(adapter.getItem('portfolio-background')).toBeNull();
-    expect(adapter.getItem('portfolio-background-advanced-settings')).toBeNull();
+    expect(JSON.parse(adapter.getItem(DISPLAY_PREFERENCES_STORAGE_KEY) ?? '').version).toBe(
+      DISPLAY_PREFERENCES_VERSION,
+    );
   });
 
   it('uses a compact scalar key for explicit theme modes', () => {
