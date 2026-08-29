@@ -13,7 +13,7 @@ Live site: [matthiasloehden.github.io/portfolio](https://matthiasloehden.github.
 | background orchestration | [`app/components/layout/BackgroundOrchestrator.vue`](app/components/layout/BackgroundOrchestrator.vue) selects the active scene and provides smooth transitions between backgrounds. |
 | typed background settings | [`app/config/backgrounds/settingsRegistry.ts`](app/config/backgrounds/settingsRegistry.ts) connects scene definitions to the framework-neutral setting rules in [`app/domain/backgrounds`](app/domain/backgrounds). |
 | theme system | [`app/domain/themes/settings.ts`](app/domain/themes/settings.ts) validates theme settings and resolves the typed palettes, fonts, and semantic color tokens defined in [`app/config/themes/definitions.ts`](app/config/themes/definitions.ts). |
-| Wave Grid | [`app/components/backgrounds/waves/WaveRenderer.ts`](app/components/backgrounds/waves/WaveRenderer.ts) renders an interactive, GPU-accelerated line grid. |
+| Wave Grid | [`app/components/backgrounds/wave/WaveRenderer.ts`](app/components/backgrounds/wave/WaveRenderer.ts) renders an interactive, GPU-accelerated line grid. |
 | Triangles | [`app/components/backgrounds/triangles/TriangleRenderer.ts`](app/components/backgrounds/triangles/TriangleRenderer.ts) renders an animated geometric Canvas2D background. |
 | Particles | [`app/components/backgrounds/particles/ParticleRenderer.ts`](app/components/backgrounds/particles/ParticleRenderer.ts) renders a GPU-accelerated particle field with cursor, click, and scroll interaction. |
 | Living Mesh | [`app/components/backgrounds/mesh/MeshRenderer.ts`](app/components/backgrounds/mesh/MeshRenderer.ts) renders an animated, pointer-reactive Canvas2D mesh. |
