@@ -12,10 +12,11 @@
  * frame scheduling remain in TriangleBackground.
  */
 import type { BackgroundRendererContract, BackgroundTheme, TriangleSettings } from '@/types/background';
+import { seededRandom } from '@/domain/backgrounds/math';
+import { TriangleHighlightTrail, type TrianglePosition } from '@/domain/backgrounds/triangleHighlightTrail';
 
 import { getTrianglePalette, TRIANGLE_CONFIG } from './config';
-import type { TrianglePalette, TrianglePosition, TriangleRendererStats } from './types';
-import { seededRandom, smoothstep } from '../shared/math';
+import type { TrianglePalette, TriangleRendererStats } from './types';
 
 interface TriangleTile {
   column: number;
@@ -31,11 +32,6 @@ interface TileRow {
   rowIndex: number;
   y: number;
   tiles: TriangleTile[];
-}
-
-interface HighlightPoint extends TrianglePosition {
-  time: number;
-  strength: number;
 }
 
 interface GridMetrics {
@@ -68,7 +64,10 @@ export class TriangleRenderer implements BackgroundRendererContract<TriangleRend
   };
 
   private readonly tileRows: TileRow[] = [];
-  private readonly highlightTrail: HighlightPoint[] = [];
+  private readonly highlightTrail = new TriangleHighlightTrail({
+    maxPoints: TRIANGLE_CONFIG.maxHighlightPoints,
+    pointSpacing: TRIANGLE_CONFIG.trailSpacing,
+  });
 
   private trianglePathA: Path2D | null = null;
   private trianglePathB: Path2D | null = null;
@@ -156,56 +155,23 @@ export class TriangleRenderer implements BackgroundRendererContract<TriangleRend
   }
 
   addHighlightPoint(position: TrianglePosition, strength: number, time = performance.now()): void {
-    this.highlightTrail.push({
-      ...position,
-      time,
-      strength,
-    });
-
-    if (this.highlightTrail.length > TRIANGLE_CONFIG.maxHighlightPoints) {
-      this.highlightTrail.splice(0, this.highlightTrail.length - TRIANGLE_CONFIG.maxHighlightPoints);
-    }
+    this.highlightTrail.addPoint(position, strength, time);
   }
 
   addHighlightSegment(from: TrianglePosition, to: TrianglePosition, strength: number, now = performance.now()): void {
-    const distance = Math.hypot(to.x - from.x, to.worldY - from.worldY);
-
-    if (distance < 1) {
-      this.addHighlightPoint(to, strength, now);
-      return;
-    }
-
-    const steps = Math.max(1, Math.ceil(distance / TRIANGLE_CONFIG.trailSpacing));
-
-    for (let index = 1; index <= steps; index += 1) {
-      const progress = index / steps;
-
-      this.addHighlightPoint(
-        {
-          x: from.x + (to.x - from.x) * progress,
-          worldY: from.worldY + (to.worldY - from.worldY) * progress,
-        },
-        strength,
-        now - (steps - index) * 7,
-      );
-    }
+    this.highlightTrail.addSegment(from, to, strength, now);
   }
 
   addClick(position: TrianglePosition, now = performance.now()): void {
-    this.addHighlightPoint(position, 0.82, now - 80);
-    this.addHighlightPoint(position, 1, now);
+    this.highlightTrail.addClick(position, now);
   }
 
   resetInteractions(): void {
-    this.highlightTrail.length = 0;
+    this.highlightTrail.clear();
   }
 
   hasActiveTrail(now: number): boolean {
-    this.cleanupHighlightTrail(now);
-
-    const newest = this.highlightTrail[this.highlightTrail.length - 1];
-
-    return newest !== undefined && now - newest.time < this.settings.highlightLifetime;
+    return this.highlightTrail.hasActivePoint(now, this.settings.highlightLifetime);
   }
 
   render(now: number, elapsedTime: number, idleMotionEnabled: boolean): void {
@@ -213,7 +179,7 @@ export class TriangleRenderer implements BackgroundRendererContract<TriangleRend
 
     if (!context) return;
 
-    this.cleanupHighlightTrail(now);
+    this.highlightTrail.removeExpired(now, this.settings.highlightLifetime);
     this.syncGridForViewport();
 
     context.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
@@ -248,14 +214,14 @@ export class TriangleRenderer implements BackgroundRendererContract<TriangleRend
       height: Math.round(this.height * this.dpr),
       dpr: this.dpr,
       triangleCount: this.tileRows.reduce((count, row) => count + row.tiles.length, 0),
-      trailPointCount: this.highlightTrail.length,
+      trailPointCount: this.highlightTrail.pointCount,
       rotationDegrees: Math.round((TRIANGLE_CONFIG.rotationRadians * 180) / Math.PI),
     };
   }
 
   dispose(): void {
     this.tileRows.length = 0;
-    this.highlightTrail.length = 0;
+    this.highlightTrail.clear();
     this.trianglePathA = null;
     this.trianglePathB = null;
     this.ambientGradient = null;
@@ -431,7 +397,15 @@ export class TriangleRenderer implements BackgroundRendererContract<TriangleRend
     const centerWorldX = x + this.metrics.cellWidth * 0.5;
     const centerWorldY = baseWorldY + this.metrics.cellHeight * 0.5;
     const idle = idleStrength * Math.sin(elapsedTime * tile.speed + tile.phase);
-    const trailInfluence = this.getTrailInfluence(centerWorldX, centerWorldY, now);
+    const radius =
+      this.width < TRIANGLE_CONFIG.viewportBreakpoints.mobile
+        ? TRIANGLE_CONFIG.pointerRadius.mobile
+        : TRIANGLE_CONFIG.pointerRadius.desktop;
+    const trailInfluence = this.highlightTrail.getInfluence({ x: centerWorldX, worldY: centerWorldY }, now, {
+      lifetime: this.settings.highlightLifetime,
+      radius: radius * this.settings.interactionRadiusScale,
+      strength: this.settings.highlightStrength,
+    });
     const baseAlpha = 0.045 + tile.tone * 0.055 + Math.abs(idle) * 0.018;
     const alpha = (baseAlpha + trailInfluence * 0.22) * sceneOpacity;
 
@@ -453,54 +427,6 @@ export class TriangleRenderer implements BackgroundRendererContract<TriangleRend
     }
 
     context.restore();
-  }
-
-  private getTrailInfluence(centerX: number, centerWorldY: number, now: number): number {
-    if (this.highlightTrail.length === 0) return 0;
-
-    const radius =
-      this.width < TRIANGLE_CONFIG.viewportBreakpoints.mobile
-        ? TRIANGLE_CONFIG.pointerRadius.mobile
-        : TRIANGLE_CONFIG.pointerRadius.desktop;
-    const scaledRadius = radius * this.settings.interactionRadiusScale;
-    const radiusSquared = scaledRadius * scaledRadius;
-    let influence = 0;
-
-    for (const point of this.highlightTrail) {
-      const age = now - point.time;
-
-      if (age >= this.settings.highlightLifetime) continue;
-
-      const dx = centerX - point.x;
-      const dy = centerWorldY - point.worldY;
-      const distanceSquared = dx * dx + dy * dy;
-
-      if (distanceSquared >= radiusSquared) continue;
-
-      const distance = Math.sqrt(distanceSquared);
-      const normalizedAge = age / this.settings.highlightLifetime;
-      const fade = (1 - normalizedAge) ** 2;
-      const proximity = smoothstep(scaledRadius, 0, distance);
-
-      influence = Math.max(influence, proximity * fade * point.strength);
-
-      if (influence * this.settings.highlightStrength >= 1) return 1;
-    }
-
-    return Math.min(1, influence * this.settings.highlightStrength);
-  }
-
-  private cleanupHighlightTrail(now: number): void {
-    let firstValidIndex = 0;
-
-    while (firstValidIndex < this.highlightTrail.length) {
-      const point = this.highlightTrail[firstValidIndex];
-
-      if (!point || now - point.time < this.settings.highlightLifetime) break;
-      firstValidIndex += 1;
-    }
-
-    if (firstValidIndex > 0) this.highlightTrail.splice(0, firstValidIndex);
   }
 
   private rebuildAmbientGradient(): void {

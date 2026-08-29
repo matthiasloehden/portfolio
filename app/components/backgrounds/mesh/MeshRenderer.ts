@@ -14,7 +14,7 @@
  */
 import type { BackgroundRendererContract, BackgroundTheme, MeshSettings } from '@/types/background';
 
-import { seededRandom, smoothstep } from '../shared/math';
+import { seededRandom, smoothstep } from '@/domain/backgrounds/math';
 import { getMeshPalette, MESH_CONFIG } from './config';
 import type { MeshPalette, MeshRendererStats, MeshRenderState } from './types';
 
