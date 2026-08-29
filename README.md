@@ -26,15 +26,16 @@ one occupant:
 
 | Directory | Responsibility |
 | --- | --- |
-| `app/domain` | Framework-neutral defaults, validation, migrations, immutable updates, and interaction models. This logic is covered by fast Vitest unit tests. |
+| `app/domain` | Framework-neutral product rules shared across features, including defaults, validation, migrations, and immutable settings updates. |
 | `app/config` | Typed product catalogs for themes and per-scene background settings. Definitions contain metadata; domain functions provide the reusable behavior. |
-| `app/components/backgrounds` | Vue lifecycle controllers and focused Canvas2D/WebGL renderers. Deterministic geometry and trail rules are delegated to the domain layer. |
+| `app/components/backgrounds` | Feature-oriented background implementations. Each scene keeps its Vue controller, renderer, technical resources, and feature-specific models together; shared rendering infrastructure lives in `shared`. |
 | `app/composables` | Reactive application orchestration across domain state, persistence, and browser effects. |
 | `app/utils` | Small browser-boundary adapters and generic helpers, including resilient localStorage access and theme application. |
 | `tests/unit` / `tests/e2e` | Vitest verifies framework-independent policy; Playwright verifies integrated behavior, accessibility, persistence, and responsive flows. |
 
 The dependency direction is deliberate: components and composables consume the typed configuration and domain APIs;
-the domain layer never depends on Vue, Canvas, WebGL, or browser storage.
+the domain layer never depends on Vue, Canvas, WebGL, or browser storage. Pure scene models remain unit-testable without
+being promoted to application-wide domain concepts.
 
 ## Stack
 

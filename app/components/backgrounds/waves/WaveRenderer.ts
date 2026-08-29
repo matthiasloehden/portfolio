@@ -15,13 +15,12 @@ import * as THREE from 'three';
 
 import type { BackgroundRendererContract, BackgroundTheme, WaveSettings } from '@/types/background';
 
-import type { WavePosition, WaveTrailPoint } from '@/domain/backgrounds/waveInteractionTrail';
-
 import { ThreeBackgroundRenderer } from '../shared/ThreeBackgroundRenderer';
 import { getWavePalette } from './config';
 import { createWaveGeometry } from './geometry';
 import { createWaveVertexShader, waveFragmentShader } from './shaders';
 import type { WaveRendererStats } from './types';
+import type { WavePosition, WaveTrailPoint } from './WaveInteractionTrail';
 
 export class WaveRenderer implements BackgroundRendererContract<WaveRendererStats> {
   private renderer: ThreeBackgroundRenderer | null = null;

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { WaveInteractionTrail } from '@/domain/backgrounds/waveInteractionTrail';
+import { WaveInteractionTrail } from '@/components/backgrounds/waves/WaveInteractionTrail';
 
 describe('WaveInteractionTrail', () => {
   it('creates an ordered layered ripple with a full-strength leading point', () => {

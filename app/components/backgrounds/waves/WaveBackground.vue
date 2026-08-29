@@ -4,7 +4,7 @@
  *
  * This component translates pointer, touch, click and scroll events into a
  * short-lived trail of wave points. The trail's bounded lifetime is kept in a
- * DOM-free domain model, while this controller applies reactive setting overrides,
+ * DOM-free feature model, while this controller applies reactive setting overrides,
  * resize/context recovery, adaptive quality and the animation-frame lifecycle.
  * WaveRenderer receives already-normalized settings and trail data and remains
  * responsible only for the Three.js scene and GPU resources.
@@ -23,11 +23,6 @@ import {
   createDefaultBackgroundAnimationSettings,
   createDefaultBackgroundPerformanceSettings,
 } from '@/domain/backgrounds/preferences';
-import {
-  WaveInteractionTrail,
-  type WavePosition,
-  type WaveTrailPoint,
-} from '@/domain/backgrounds/waveInteractionTrail';
 import {
   type BackgroundSceneEmits,
   type BackgroundTheme,
@@ -49,6 +44,7 @@ import {
   TOUCH_RIPPLE_THROTTLE,
   WAVE_QUALITY_PRESETS,
 } from './config';
+import { WaveInteractionTrail, type WavePosition, type WaveTrailPoint } from './WaveInteractionTrail';
 import { WaveRenderer } from './WaveRenderer';
 
 const props = withDefaults(defineProps<WaveBackgroundProps>(), {

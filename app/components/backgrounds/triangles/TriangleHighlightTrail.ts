@@ -1,4 +1,4 @@
-import { smoothstep } from './math';
+import { smoothstep } from '../shared/math';
 
 export interface TrianglePosition {
   x: number;

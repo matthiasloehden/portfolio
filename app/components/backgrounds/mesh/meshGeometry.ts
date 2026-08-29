@@ -1,4 +1,4 @@
-import { seededRandom } from './math';
+import { seededRandom } from '../shared/math';
 
 export interface MeshPoint {
   baseX: number;

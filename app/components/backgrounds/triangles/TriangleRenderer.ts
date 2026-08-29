@@ -12,10 +12,9 @@
  * frame scheduling remain in TriangleBackground.
  */
 import type { BackgroundRendererContract, BackgroundTheme, TriangleSettings } from '@/types/background';
-import { seededRandom } from '@/domain/backgrounds/math';
-import { TriangleHighlightTrail, type TrianglePosition } from '@/domain/backgrounds/triangleHighlightTrail';
-
+import { seededRandom } from '../shared/math';
 import { getTrianglePalette, TRIANGLE_CONFIG } from './config';
+import { TriangleHighlightTrail, type TrianglePosition } from './TriangleHighlightTrail';
 import type { TrianglePalette, TriangleRendererStats } from './types';
 
 interface TriangleTile {

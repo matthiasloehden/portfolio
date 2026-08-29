@@ -30,7 +30,7 @@ import { useBackgroundCanvas } from '../shared/useBackgroundCanvas';
 import { useBackgroundPerformanceSettings } from '../shared/useBackgroundPerformanceSettings';
 import { TRIANGLE_CONFIG, TRIANGLE_QUALITY_PRESETS } from './config';
 import { TriangleRenderer } from './TriangleRenderer';
-import type { TrianglePosition } from '@/domain/backgrounds/triangleHighlightTrail';
+import type { TrianglePosition } from './TriangleHighlightTrail';
 
 const props = withDefaults(defineProps<TriangleBackgroundProps>(), {
   active: true,

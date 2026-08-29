@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { buildMeshGeometryWindow, type MeshGeometryWindowOptions } from '@/domain/backgrounds/meshGeometry';
+import { buildMeshGeometryWindow, type MeshGeometryWindowOptions } from '@/components/backgrounds/mesh/meshGeometry';
 
 const options: MeshGeometryWindowOptions = {
   startRow: 4,

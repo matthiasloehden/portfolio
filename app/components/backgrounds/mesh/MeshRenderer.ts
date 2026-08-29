@@ -7,20 +7,15 @@
  * preserve its visual identity without updating off-screen geometry every frame.
  * Theme, settings, scrolling and interaction enter through explicit methods.
  *
- * Deterministic mesh construction lives in the background domain so it can be
- * verified without a canvas. This class owns only runtime state, viewport
+ * Deterministic mesh construction lives beside this renderer as a feature model
+ * that can be verified without a canvas. This class owns only runtime state, viewport
  * synchronization, influence calculation and drawing. DOM events and scheduling
  * stay in MeshBackground.
  */
 import type { BackgroundRendererContract, BackgroundTheme, MeshSettings } from '@/types/background';
 
-import { smoothstep } from '@/domain/backgrounds/math';
-import {
-  buildMeshGeometryWindow,
-  type MeshEdge,
-  type MeshPoint,
-  type MeshTriangle,
-} from '@/domain/backgrounds/meshGeometry';
+import { buildMeshGeometryWindow, type MeshEdge, type MeshPoint, type MeshTriangle } from './meshGeometry';
+import { smoothstep } from '../shared/math';
 import { getMeshPalette, MESH_CONFIG } from './config';
 import type { MeshPalette, MeshRendererStats, MeshRenderState } from './types';
 

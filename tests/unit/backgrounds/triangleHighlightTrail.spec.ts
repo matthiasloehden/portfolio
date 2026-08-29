@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { TriangleHighlightTrail } from '@/domain/backgrounds/triangleHighlightTrail';
+import { TriangleHighlightTrail } from '@/components/backgrounds/triangles/TriangleHighlightTrail';
 
 function createTrail(maxPoints = 8): TriangleHighlightTrail {
   return new TriangleHighlightTrail({ maxPoints, pointSpacing: 10 });
