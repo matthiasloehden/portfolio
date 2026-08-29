@@ -1,11 +1,6 @@
-import {
-  BACKGROUND_IDS,
-  type BackgroundId,
-  type BackgroundAnimationSettings,
-  type BackgroundPerformanceSettings,
-  type BackgroundPreference,
-} from '@/types/background';
+import { BACKGROUND_IDS, type BackgroundId, type BackgroundPreference } from '@/types/background';
 
+/** Route-aware choices exposed by the display-settings UI. */
 const BACKGROUND_LABELS: Readonly<Record<BackgroundId, string>> = {
   wave: 'Wave Grid',
   particles: 'Particles',
@@ -39,23 +34,4 @@ export function resolveBackground(path: string, preference: BackgroundPreference
 
 export function getBackgroundLabel(background: BackgroundId | 'none'): string {
   return background === 'none' ? 'None' : BACKGROUND_LABELS[background];
-}
-
-export function createBackgroundAnimationSettings(
-  settings: Partial<BackgroundAnimationSettings> = {},
-): BackgroundAnimationSettings {
-  return {
-    idle: settings.idle ?? true,
-    cursorMovement: settings.cursorMovement ?? true,
-    cursorClick: settings.cursorClick ?? true,
-    scroll: settings.scroll ?? true,
-  };
-}
-
-export function createDefaultBackgroundAnimationSettings(): BackgroundAnimationSettings {
-  return createBackgroundAnimationSettings();
-}
-
-export function createDefaultBackgroundPerformanceSettings(): BackgroundPerformanceSettings {
-  return { mode: 'auto', showStats: false };
 }

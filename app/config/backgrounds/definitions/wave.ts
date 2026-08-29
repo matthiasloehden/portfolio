@@ -1,7 +1,7 @@
-import { defineBackgroundSettings } from '@/components/backgrounds/settings/definition';
+import { defineBackgroundSettings } from '@/domain/backgrounds/settingsDefinition';
 import type { WaveSettings } from '@/types/background';
 
-/** Texture capacity used by the Wave Grid shader; trailLength is capped here. */
+/** Texture capacity shared with the Wave Grid shader; trailLength is capped here. */
 export const WAVE_MAX_TRAIL_POINTS = 48;
 
 export const waveSettingsDefinition = defineBackgroundSettings<WaveSettings>({

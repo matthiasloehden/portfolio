@@ -1,7 +1,7 @@
 import type { BackgroundQualityId } from '@/types/background';
 
 /**
- * Declarative description of one editable numeric scene setting.
+ * Framework-neutral description of one editable numeric scene setting.
  *
  * Three ranges serve different purposes:
  * - `recommended` defines the highlighted section of the editor slider.

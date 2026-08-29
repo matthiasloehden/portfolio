@@ -6,7 +6,7 @@ import {
   defineBackgroundSettings,
   resolveSettings,
   sanitizeSettingOverrides,
-} from '@/components/backgrounds/settings/definition';
+} from '@/domain/backgrounds/settingsDefinition';
 
 interface ExampleSettings {
   density: number;

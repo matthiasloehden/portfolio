@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { resolveThemePalette } from '@/domain/themeSettings';
+import { resolveThemePalette } from '@/domain/themes/settings';
 import type { ThemePreference } from '@/types/display';
 import SharedAccordion from '@/components/shared/Accordion.vue';
 import SharedAccordionGroup from '@/components/shared/AccordionGroup.vue';

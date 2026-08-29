@@ -16,11 +16,11 @@
 
 import { onBeforeUnmount, onMounted, watch } from 'vue';
 
-import { createRuntimeBackgroundSettings } from '@/components/backgrounds/settings/registry';
+import { createRuntimeBackgroundSettings } from '@/config/backgrounds/settingsRegistry';
 import {
   createDefaultBackgroundAnimationSettings,
   createDefaultBackgroundPerformanceSettings,
-} from '@/config/backgrounds';
+} from '@/domain/backgrounds/preferences';
 import { type BackgroundSceneEmits, type BackgroundTheme, type ParticleBackgroundProps } from '@/types/background';
 
 import { BackgroundEnvironment } from '../shared/BackgroundEnvironment';

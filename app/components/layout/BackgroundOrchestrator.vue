@@ -12,7 +12,7 @@ import type {
   BackgroundPreference,
   BackgroundSettingOverridesMap,
 } from '@/types/background';
-import { resolveBackground } from '@/config/backgrounds';
+import { resolveBackground } from '@/config/backgrounds/selection';
 import ParticleBackground from '@/components/backgrounds/particles/ParticleBackground.vue';
 import MeshBackground from '@/components/backgrounds/mesh/MeshBackground.vue';
 import TriangleBackground from '@/components/backgrounds/triangles/TriangleBackground.vue';

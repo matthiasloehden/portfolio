@@ -1,13 +1,13 @@
 import {
-  createBackgroundSettingOverrides,
-  getDefaultBackgroundSettingsMap,
-  sanitizeBackgroundSettingOverrides,
-} from '@/components/backgrounds/settings/registry';
-import { createBackgroundAnimationSettings, createDefaultBackgroundPerformanceSettings } from '@/config/backgrounds';
-import { createDefaultThemeSettings } from '@/domain/themeSettings';
+  createBackgroundAnimationSettings,
+  createDefaultBackgroundPerformanceSettings,
+} from '@/domain/backgrounds/preferences';
+import { createDefaultThemeSettings } from '@/domain/themes/settings';
+import { createBackgroundSettingOverrides } from '@/domain/backgrounds/settingOverrides';
 import { BACKGROUND_IDS, type BackgroundSettingOverridesMap } from '@/types/background';
 import type { DisplayPreferencesState } from '@/types/display';
 
+import type { BackgroundSettingsPersistencePolicy } from './contracts';
 import { decodeBackgroundAnimations, decodeBackgroundPerformance, decodeBackgroundPreference } from './schema';
 
 export interface LegacyDisplayPreferencesSource {
@@ -23,8 +23,11 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-function deriveLegacyOverrides(values: BackgroundSettingOverridesMap): BackgroundSettingOverridesMap {
-  const defaults = getDefaultBackgroundSettingsMap();
+function deriveLegacyOverrides(
+  values: BackgroundSettingOverridesMap,
+  backgroundSettings: BackgroundSettingsPersistencePolicy,
+): BackgroundSettingOverridesMap {
+  const defaults = backgroundSettings.getDefaults();
   const overrides = createBackgroundSettingOverrides();
 
   // The earliest documents predate explicit override flags. Values that differ
@@ -41,11 +44,15 @@ function deriveLegacyOverrides(values: BackgroundSettingOverridesMap): Backgroun
   return overrides;
 }
 
-function pickFlaggedLegacyOverrides(values: unknown, flags: unknown): BackgroundSettingOverridesMap {
-  const sanitizedValues = sanitizeBackgroundSettingOverrides(values);
-  if (!isRecord(flags)) return deriveLegacyOverrides(sanitizedValues);
+function pickFlaggedLegacyOverrides(
+  values: unknown,
+  flags: unknown,
+  backgroundSettings: BackgroundSettingsPersistencePolicy,
+): BackgroundSettingOverridesMap {
+  const sanitizedValues = backgroundSettings.sanitizeOverrides(values);
+  if (!isRecord(flags)) return deriveLegacyOverrides(sanitizedValues, backgroundSettings);
 
-  const derivedOverrides = deriveLegacyOverrides(sanitizedValues);
+  const derivedOverrides = deriveLegacyOverrides(sanitizedValues, backgroundSettings);
   const overrides = createBackgroundSettingOverrides();
 
   for (const background of BACKGROUND_IDS) {
@@ -65,7 +72,10 @@ function pickFlaggedLegacyOverrides(values: unknown, flags: unknown): Background
   return overrides;
 }
 
-export function migrateLegacyDisplayPreferences(source: LegacyDisplayPreferencesSource): DisplayPreferencesState {
+export function migrateLegacyDisplayPreferences(
+  source: LegacyDisplayPreferencesSource,
+  backgroundSettings: BackgroundSettingsPersistencePolicy,
+): DisplayPreferencesState {
   const legacyMotionEnabled = source.motion !== 'false';
   const backgroundAnimations =
     decodeBackgroundAnimations(source.animations) ??
@@ -82,6 +92,6 @@ export function migrateLegacyDisplayPreferences(source: LegacyDisplayPreferences
     backgroundAnimations,
     backgroundPerformance:
       decodeBackgroundPerformance(source.performance) ?? createDefaultBackgroundPerformanceSettings(),
-    backgroundSettingOverrides: pickFlaggedLegacyOverrides(source.settings, source.overrideFlags),
+    backgroundSettingOverrides: pickFlaggedLegacyOverrides(source.settings, source.overrideFlags, backgroundSettings),
   };
 }

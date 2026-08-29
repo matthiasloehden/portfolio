@@ -1,6 +1,7 @@
-import { defineBackgroundSettings } from '@/components/backgrounds/settings/definition';
+import { defineBackgroundSettings } from '@/domain/backgrounds/settingsDefinition';
 import type { ParticleSettings } from '@/types/background';
 
+/** Editable, persisted and runtime-safe settings for the particle scene. */
 export const particleSettingsDefinition = defineBackgroundSettings<ParticleSettings>({
   pointSize: {
     group: 'appearance',

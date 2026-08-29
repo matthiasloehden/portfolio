@@ -1,6 +1,7 @@
-import { defineBackgroundSettings } from '@/components/backgrounds/settings/definition';
+import { defineBackgroundSettings } from '@/domain/backgrounds/settingsDefinition';
 import type { TriangleSettings } from '@/types/background';
 
+/** Editable, persisted and runtime-safe settings for the triangle scene. */
 export const triangleSettingsDefinition = defineBackgroundSettings<TriangleSettings>({
   densityScale: {
     group: 'appearance',

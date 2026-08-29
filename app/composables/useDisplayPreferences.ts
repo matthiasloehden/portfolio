@@ -10,14 +10,14 @@ import {
   createBackgroundSettingOverrides,
   removeBackgroundSettingOverride,
   updateBackgroundSettingOverride,
-} from '@/components/backgrounds/settings/registry';
+} from '@/domain/backgrounds/settingOverrides';
 import {
   createBackgroundAnimationSettings,
   createDefaultBackgroundAnimationSettings,
   createDefaultBackgroundPerformanceSettings,
-} from '@/config/backgrounds';
+} from '@/domain/backgrounds/preferences';
 import { THEME_COLOR_CONTROLS, getThemeBodyFont, getThemeDisplayFont } from '@/config/themes/definitions';
-import { createDefaultThemeSettings, resolveThemePalette } from '@/domain/themeSettings';
+import { createDefaultThemeSettings, resolveThemePalette } from '@/domain/themes/settings';
 import { createDisplayPreferencesStorage } from '@/utils/displayPreferencesStorage';
 import { createDefaultDisplayPreferences, hasCustomDisplayPreferences } from '@/domain/displayPreferences/defaults';
 import type {

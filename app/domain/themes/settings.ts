@@ -12,6 +12,7 @@ import {
 } from '@/types/theme';
 import { normalizeHexColor } from '@/utils/color';
 
+/** Runtime policy for persisted and user-edited theme settings. */
 function isKnownId<Id extends string>(ids: readonly Id[], value: unknown): value is Id {
   return typeof value === 'string' && ids.some((id) => id === value);
 }

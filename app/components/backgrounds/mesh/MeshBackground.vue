@@ -15,11 +15,11 @@
 
 import { onBeforeUnmount, onMounted, watch } from 'vue';
 
-import { createRuntimeBackgroundSettings } from '@/components/backgrounds/settings/registry';
+import { createRuntimeBackgroundSettings } from '@/config/backgrounds/settingsRegistry';
 import {
   createDefaultBackgroundAnimationSettings,
   createDefaultBackgroundPerformanceSettings,
-} from '@/config/backgrounds';
+} from '@/domain/backgrounds/preferences';
 import { type BackgroundSceneEmits, type BackgroundTheme, type MeshBackgroundProps } from '@/types/background';
 
 import { AnimationFrameScheduler } from '../shared/AnimationFrameScheduler';

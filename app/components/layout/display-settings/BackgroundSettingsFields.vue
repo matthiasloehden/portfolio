@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { BackgroundQualityId } from '@/types/background';
-import type { BackgroundNumericSettingDefinition } from '@/components/backgrounds/settings/registry';
+import type { BackgroundNumericSettingDefinition } from '@/config/backgrounds/settingsRegistry';
 import SharedAccordion from '@/components/shared/Accordion.vue';
 import SharedAccordionGroup from '@/components/shared/AccordionGroup.vue';
 import SharedSettingsResetButton from '@/components/shared/form/SettingsResetButton.vue';

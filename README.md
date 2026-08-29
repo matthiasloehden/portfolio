@@ -11,8 +11,8 @@ Live site: [matthiasloehden.github.io/portfolio](https://matthiasloehden.github.
 | Area | What to inspect |
 | --- | --- |
 | background orchestration | [`app/components/layout/BackgroundOrchestrator.vue`](app/components/layout/BackgroundOrchestrator.vue) selects the active scene and provides smooth transitions between backgrounds. |
-| typed background settings | [`app/components/backgrounds/settings/registry.ts`](app/components/backgrounds/settings/registry.ts) connects scene-owned definitions to the editor, versioned persistence, performance presets, and runtime validation. |
-| theme system | [`app/domain/themeSettings.ts`](app/domain/themeSettings.ts) validates theme settings and resolves the typed palettes, fonts, and semantic color tokens defined in [`app/config/themes/definitions.ts`](app/config/themes/definitions.ts). |
+| typed background settings | [`app/config/backgrounds/settingsRegistry.ts`](app/config/backgrounds/settingsRegistry.ts) connects scene definitions to the framework-neutral setting rules in [`app/domain/backgrounds`](app/domain/backgrounds). |
+| theme system | [`app/domain/themes/settings.ts`](app/domain/themes/settings.ts) validates theme settings and resolves the typed palettes, fonts, and semantic color tokens defined in [`app/config/themes/definitions.ts`](app/config/themes/definitions.ts). |
 | Wave Grid | [`app/components/backgrounds/waves/WaveRenderer.ts`](app/components/backgrounds/waves/WaveRenderer.ts) renders an interactive, GPU-accelerated line grid. |
 | Triangles | [`app/components/backgrounds/triangles/TriangleRenderer.ts`](app/components/backgrounds/triangles/TriangleRenderer.ts) renders an animated geometric Canvas2D background. |
 | Particles | [`app/components/backgrounds/particles/ParticleRenderer.ts`](app/components/backgrounds/particles/ParticleRenderer.ts) renders a GPU-accelerated particle field with cursor, click, and scroll interaction. |

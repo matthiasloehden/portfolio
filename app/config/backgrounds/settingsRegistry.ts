@@ -1,5 +1,5 @@
 /**
- * Entry point for the background settings system.
+ * Application-level registry for the background settings system.
  *
  * Each scene owns a small declarative definition next to its renderer. Those
  * definitions contain the default value, editor metadata, performance presets
@@ -17,8 +17,8 @@
  * synchronized changes across several switch statements and validation maps.
  */
 
-import { meshSettingsDefinition } from '@/components/backgrounds/mesh/settings';
-import { particleSettingsDefinition } from '@/components/backgrounds/particles/settings';
+import { meshSettingsDefinition } from '@/config/backgrounds/definitions/mesh';
+import { particleSettingsDefinition } from '@/config/backgrounds/definitions/particles';
 import {
   createDefaultSettings,
   createRuntimeSettings,
@@ -26,14 +26,15 @@ import {
   sanitizeSettingOverrides,
   type BackgroundSettingsDefinition,
   type NumericSettingDefinition,
-} from '@/components/backgrounds/settings/definition';
-import { triangleSettingsDefinition } from '@/components/backgrounds/triangles/settings';
-import { waveSettingsDefinition } from '@/components/backgrounds/waves/settings';
+} from '@/domain/backgrounds/settingsDefinition';
+import { createBackgroundSettingOverrides } from '@/domain/backgrounds/settingOverrides';
+import type { BackgroundSettingsPersistencePolicy } from '@/domain/displayPreferences/contracts';
+import { triangleSettingsDefinition } from '@/config/backgrounds/definitions/triangles';
+import { waveSettingsDefinition } from '@/config/backgrounds/definitions/wave';
 import {
   BACKGROUND_IDS,
   type BackgroundId,
   type BackgroundQualityId,
-  type BackgroundSettingKey,
   type BackgroundSettingOverrides,
   type BackgroundSettingOverridesMap,
   type BackgroundSettingsFor,
@@ -63,10 +64,6 @@ function getDefinition<Id extends BackgroundId>(
 
 export function getBackgroundSettingControls(background: BackgroundId): readonly BackgroundNumericSettingDefinition[] {
   return getDefinition(background).controls;
-}
-
-export function createBackgroundSettingOverrides(): BackgroundSettingOverridesMap {
-  return { wave: {}, particles: {}, triangles: {}, mesh: {} };
 }
 
 export function getDefaultBackgroundSettings<Id extends BackgroundId>(background: Id): BackgroundSettingsFor<Id> {
@@ -116,29 +113,6 @@ export function sanitizeBackgroundSettingOverrides(candidate: unknown): Backgrou
   return sanitized;
 }
 
-export function updateBackgroundSettingOverride<Id extends BackgroundId>(
-  overrides: BackgroundSettingOverridesMap,
-  background: Id,
-  setting: BackgroundSettingKey<Id>,
-  value: number,
-): BackgroundSettingOverridesMap {
-  const backgroundOverrides = { ...overrides[background] } as BackgroundSettingOverrides<Id>;
-  (backgroundOverrides as Record<string, number>)[setting] = value;
-
-  return { ...overrides, [background]: backgroundOverrides };
-}
-
-export function removeBackgroundSettingOverride<Id extends BackgroundId>(
-  overrides: BackgroundSettingOverridesMap,
-  background: Id,
-  setting: BackgroundSettingKey<Id>,
-): BackgroundSettingOverridesMap {
-  const backgroundOverrides = { ...overrides[background] } as Record<string, number>;
-  delete backgroundOverrides[setting];
-
-  return { ...overrides, [background]: backgroundOverrides } as BackgroundSettingOverridesMap;
-}
-
 export function getDefaultBackgroundSettingsMap(): BackgroundSettingsMap {
   return {
     wave: getDefaultBackgroundSettings('wave'),
@@ -147,3 +121,8 @@ export function getDefaultBackgroundSettingsMap(): BackgroundSettingsMap {
     mesh: getDefaultBackgroundSettings('mesh'),
   };
 }
+
+export const BACKGROUND_SETTINGS_PERSISTENCE_POLICY = {
+  sanitizeOverrides: sanitizeBackgroundSettingOverrides,
+  getDefaults: getDefaultBackgroundSettingsMap,
+} satisfies BackgroundSettingsPersistencePolicy;

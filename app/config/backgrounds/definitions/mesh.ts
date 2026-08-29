@@ -1,6 +1,7 @@
-import { defineBackgroundSettings } from '@/components/backgrounds/settings/definition';
+import { defineBackgroundSettings } from '@/domain/backgrounds/settingsDefinition';
 import type { MeshSettings } from '@/types/background';
 
+/** Editable, persisted and runtime-safe settings for the Living Mesh scene. */
 export const meshSettingsDefinition = defineBackgroundSettings<MeshSettings>({
   densityScale: {
     group: 'appearance',

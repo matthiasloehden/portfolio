@@ -1,7 +1,6 @@
-import { sanitizeBackgroundSettingOverrides } from '@/components/backgrounds/settings/registry';
-import { createBackgroundAnimationSettings } from '@/config/backgrounds';
-import { DISPLAY_PREFERENCES_VERSION, isSupportedDisplayPreferencesVersion } from '@/config/displayPreferences';
-import { createDefaultThemeSettings, sanitizeThemeSettings } from '@/domain/themeSettings';
+import { createBackgroundAnimationSettings } from '@/domain/backgrounds/preferences';
+import { DISPLAY_PREFERENCES_VERSION, isSupportedDisplayPreferencesVersion } from './versioning';
+import { createDefaultThemeSettings, sanitizeThemeSettings } from '@/domain/themes/settings';
 import {
   BACKGROUND_IDS,
   BACKGROUND_PERFORMANCE_MODES,
@@ -11,6 +10,8 @@ import {
   type BackgroundPreference,
 } from '@/types/background';
 import type { DisplayPreferencesState, ThemePreference } from '@/types/display';
+
+import type { BackgroundSettingsPersistencePolicy } from './contracts';
 
 const BACKGROUND_PREFERENCES = ['auto', ...BACKGROUND_IDS, 'none'] as const;
 const THEME_PREFERENCES = ['system', 'light', 'dark'] as const;
@@ -81,7 +82,10 @@ export function decodeBackgroundPerformance(value: unknown): BackgroundPerforman
   return { mode: mode as BackgroundPerformanceMode, showStats: value.showStats };
 }
 
-export function decodeDisplayPreferences(value: unknown): DecodedDisplayPreferences | undefined {
+export function decodeDisplayPreferences(
+  value: unknown,
+  backgroundSettings: BackgroundSettingsPersistencePolicy,
+): DecodedDisplayPreferences | undefined {
   if (!isRecord(value) || !isSupportedDisplayPreferencesVersion(value.version)) return undefined;
 
   const backgroundPreference = decodeBackgroundPreference(value.backgroundPreference);
@@ -97,7 +101,7 @@ export function decodeDisplayPreferences(value: unknown): DecodedDisplayPreferen
       backgroundPreference,
       backgroundAnimations,
       backgroundPerformance,
-      backgroundSettingOverrides: sanitizeBackgroundSettingOverrides(value.backgroundSettingOverrides),
+      backgroundSettingOverrides: backgroundSettings.sanitizeOverrides(value.backgroundSettingOverrides),
     },
   };
 }

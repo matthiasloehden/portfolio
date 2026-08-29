@@ -2,7 +2,7 @@ import {
   DISPLAY_PREFERENCES_STORAGE_KEY,
   THEME_PREFERENCE_STORAGE_KEY,
   THEME_SETTINGS_STORAGE_VERSIONS,
-} from '@/config/displayPreferences';
+} from '@/domain/displayPreferences/versioning';
 import {
   DEFAULT_THEME_FONTS,
   DEFAULT_THEME_PRESET_ID,

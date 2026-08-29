@@ -2,8 +2,8 @@
 import {
   getBackgroundSettingControls,
   resolveBackgroundSettingsForEditor,
-} from '@/components/backgrounds/settings/registry';
-import { BACKGROUND_OPTIONS, getBackgroundLabel, resolveBackground } from '@/config/backgrounds';
+} from '@/config/backgrounds/settingsRegistry';
+import { BACKGROUND_OPTIONS, getBackgroundLabel, resolveBackground } from '@/config/backgrounds/selection';
 import type {
   BackgroundAnimation,
   BackgroundId,

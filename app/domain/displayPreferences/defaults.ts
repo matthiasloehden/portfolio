@@ -1,9 +1,9 @@
-import { createBackgroundSettingOverrides } from '@/components/backgrounds/settings/registry';
+import { createBackgroundSettingOverrides } from '@/domain/backgrounds/settingOverrides';
 import {
   createDefaultBackgroundAnimationSettings,
   createDefaultBackgroundPerformanceSettings,
-} from '@/config/backgrounds';
-import { createDefaultThemeSettings } from '@/domain/themeSettings';
+} from '@/domain/backgrounds/preferences';
+import { createDefaultThemeSettings } from '@/domain/themes/settings';
 import type { DisplayPreferencesState, ThemePreference } from '@/types/display';
 
 /**

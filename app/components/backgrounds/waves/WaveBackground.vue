@@ -16,11 +16,12 @@
 
 import { onBeforeUnmount, onMounted, watch } from 'vue';
 
-import { createRuntimeBackgroundSettings } from '@/components/backgrounds/settings/registry';
+import { createRuntimeBackgroundSettings } from '@/config/backgrounds/settingsRegistry';
+import { WAVE_MAX_TRAIL_POINTS } from '@/config/backgrounds/definitions/wave';
 import {
   createDefaultBackgroundAnimationSettings,
   createDefaultBackgroundPerformanceSettings,
-} from '@/config/backgrounds';
+} from '@/domain/backgrounds/preferences';
 import {
   type BackgroundSceneEmits,
   type BackgroundTheme,
@@ -42,7 +43,6 @@ import {
   TOUCH_RIPPLE_THROTTLE,
   WAVE_QUALITY_PRESETS,
 } from './config';
-import { WAVE_MAX_TRAIL_POINTS } from './settings';
 import type { WavePosition, TrailPoint } from './types';
 import { WaveRenderer } from './WaveRenderer';
 

@@ -6,7 +6,7 @@ export const SUPPORTED_DISPLAY_PREFERENCES_VERSIONS = [1, 2, DISPLAY_PREFERENCES
 export const THEME_SETTINGS_STORAGE_VERSIONS = [2, DISPLAY_PREFERENCES_VERSION] as const;
 
 /**
- * Storage metadata is shared by the migration layer and the pre-hydration
+ * Version metadata is shared by the persistence adapter and pre-hydration
  * theme script. Keeping it here prevents either startup path from silently
  * falling behind when the persisted document schema changes.
  */

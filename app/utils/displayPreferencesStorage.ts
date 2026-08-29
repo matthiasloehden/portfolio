@@ -12,7 +12,8 @@ import {
   DISPLAY_PREFERENCES_STORAGE_KEY,
   DISPLAY_PREFERENCES_VERSION,
   THEME_PREFERENCE_STORAGE_KEY,
-} from '@/config/displayPreferences';
+} from '@/domain/displayPreferences/versioning';
+import { BACKGROUND_SETTINGS_PERSISTENCE_POLICY } from '@/config/backgrounds/settingsRegistry';
 import { migrateLegacyDisplayPreferences } from '@/domain/displayPreferences/migrations';
 import {
   decodeDisplayPreferences,
@@ -94,20 +95,26 @@ export function createDisplayPreferencesStorage(
   }
 
   function readPreferences(): DisplayPreferencesState {
-    const decoded = decodeDisplayPreferences(parseJson(readStorage(storage, DISPLAY_PREFERENCES_STORAGE_KEY)));
+    const decoded = decodeDisplayPreferences(
+      parseJson(readStorage(storage, DISPLAY_PREFERENCES_STORAGE_KEY)),
+      BACKGROUND_SETTINGS_PERSISTENCE_POLICY,
+    );
     if (decoded) {
       if (decoded.sourceVersion !== DISPLAY_PREFERENCES_VERSION) writePreferences(decoded.preferences);
       return decoded.preferences;
     }
 
-    const migrated = migrateLegacyDisplayPreferences({
-      background: readStorage(storage, LEGACY_STORAGE_KEYS.background),
-      animations: parseJson(readStorage(storage, LEGACY_STORAGE_KEYS.animations)),
-      settings: parseJson(readStorage(storage, LEGACY_STORAGE_KEYS.settings)),
-      overrideFlags: parseJson(readStorage(storage, LEGACY_STORAGE_KEYS.overrideFlags)),
-      performance: parseJson(readStorage(storage, LEGACY_STORAGE_KEYS.performance)),
-      motion: readStorage(storage, LEGACY_STORAGE_KEYS.motion),
-    });
+    const migrated = migrateLegacyDisplayPreferences(
+      {
+        background: readStorage(storage, LEGACY_STORAGE_KEYS.background),
+        animations: parseJson(readStorage(storage, LEGACY_STORAGE_KEYS.animations)),
+        settings: parseJson(readStorage(storage, LEGACY_STORAGE_KEYS.settings)),
+        overrideFlags: parseJson(readStorage(storage, LEGACY_STORAGE_KEYS.overrideFlags)),
+        performance: parseJson(readStorage(storage, LEGACY_STORAGE_KEYS.performance)),
+        motion: readStorage(storage, LEGACY_STORAGE_KEYS.motion),
+      },
+      BACKGROUND_SETTINGS_PERSISTENCE_POLICY,
+    );
 
     writePreferences(migrated);
     removeLegacyPreferences(storage);
