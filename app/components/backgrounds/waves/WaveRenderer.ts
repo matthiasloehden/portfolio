@@ -15,11 +15,13 @@ import * as THREE from 'three';
 
 import type { BackgroundRendererContract, BackgroundTheme, WaveSettings } from '@/types/background';
 
+import type { WavePosition, WaveTrailPoint } from '@/domain/backgrounds/waveInteractionTrail';
+
 import { ThreeBackgroundRenderer } from '../shared/ThreeBackgroundRenderer';
 import { getWavePalette } from './config';
 import { createWaveGeometry } from './geometry';
 import { createWaveVertexShader, waveFragmentShader } from './shaders';
-import type { WavePosition, TrailPoint, WaveRendererStats } from './types';
+import type { WaveRendererStats } from './types';
 
 export class WaveRenderer implements BackgroundRendererContract<WaveRendererStats> {
   private renderer: ThreeBackgroundRenderer | null = null;
@@ -191,7 +193,7 @@ export class WaveRenderer implements BackgroundRendererContract<WaveRendererStat
     this.renderer?.setAnimationLoop(callback);
   }
 
-  render(now: number, trail: readonly TrailPoint[], settings: WaveSettings): void {
+  render(now: number, trail: readonly WaveTrailPoint[], settings: WaveSettings): void {
     if (!this.renderer || !this.scene || !this.camera || !this.material || !this.trailTexture) return;
 
     this.updateTrailTexture(now, trail, settings);
@@ -257,7 +259,7 @@ export class WaveRenderer implements BackgroundRendererContract<WaveRendererStat
     this.settings = null;
   }
 
-  private updateTrailTexture(now: number, trail: readonly TrailPoint[], settings: WaveSettings): void {
+  private updateTrailTexture(now: number, trail: readonly WaveTrailPoint[], settings: WaveSettings): void {
     if (!this.material || !this.trailTexture) return;
 
     this.trailData.fill(0);

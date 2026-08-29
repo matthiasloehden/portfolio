@@ -3,12 +3,13 @@
  * Vue controller for the Wave Grid background.
  *
  * This component translates pointer, touch, click and scroll events into a
- * short-lived trail of wave points. It also applies reactive setting overrides,
+ * short-lived trail of wave points. The trail's bounded lifetime is kept in a
+ * DOM-free domain model, while this controller applies reactive setting overrides,
  * resize/context recovery, adaptive quality and the animation-frame lifecycle.
  * WaveRenderer receives already-normalized settings and trail data and remains
  * responsible only for the Three.js scene and GPU resources.
  *
- * The file is organized in execution order: state, trail creation, event
+ * The file is organized in execution order: state, event
  * handlers, render control, runtime setup/teardown and prop watchers. This keeps
  * the interaction policy visible in one place while the shader implementation
  * stays independent from Vue and browser listeners.
@@ -22,6 +23,11 @@ import {
   createDefaultBackgroundAnimationSettings,
   createDefaultBackgroundPerformanceSettings,
 } from '@/domain/backgrounds/preferences';
+import {
+  WaveInteractionTrail,
+  type WavePosition,
+  type WaveTrailPoint,
+} from '@/domain/backgrounds/waveInteractionTrail';
 import {
   type BackgroundSceneEmits,
   type BackgroundTheme,
@@ -43,7 +49,6 @@ import {
   TOUCH_RIPPLE_THROTTLE,
   WAVE_QUALITY_PRESETS,
 } from './config';
-import type { WavePosition, TrailPoint } from './types';
 import { WaveRenderer } from './WaveRenderer';
 
 const props = withDefaults(defineProps<WaveBackgroundProps>(), {
@@ -63,9 +68,9 @@ let environment: BackgroundEnvironment | null = null;
 let resizeController: BackgroundResizeController | null = null;
 let webglContext: WebGLContextLifecycle | null = null;
 
-const trail: TrailPoint[] = [];
+const interactionTrail = new WaveInteractionTrail();
 
-let lastPoint: TrailPoint | null = null;
+let lastPoint: WaveTrailPoint | null = null;
 let lastWheelEmission = 0;
 let lastTouchEmission = 0;
 let lastScrollOffset = 0;
@@ -81,7 +86,7 @@ function applyTheme(theme: BackgroundTheme): void {
   if (!runtime) return;
 
   runtime.setTheme(theme);
-  runtime.render(performance.now(), trail, runtimeSettings);
+  runtime.render(performance.now(), interactionTrail.points, runtimeSettings);
 }
 
 function syncRuntimeSettings(): void {
@@ -90,39 +95,11 @@ function syncRuntimeSettings(): void {
 }
 
 function addRipple(position: WavePosition, now: number, velocity: number, layers: number): void {
-  for (let layer = layers - 1; layer >= 0; layer -= 1) {
-    trail.push({
-      ...position,
-      createdAt: now - layer * RIPPLE_LAYER_OFFSET,
-      velocity: velocity * (layer === 0 ? 1 : 0.9),
-    });
-  }
-
-  trimTrail();
-}
-
-function trimTrail(): void {
-  while (trail.length > runtimeSettings.trailLength) {
-    trail.shift();
-  }
-}
-
-function removeExpiredTrailPoints(now: number): void {
-  let oldestPoint = trail[0];
-
-  while (oldestPoint && now - oldestPoint.createdAt > runtimeSettings.trailLifetime) {
-    trail.shift();
-    oldestPoint = trail[0];
-  }
-}
-
-function hasActiveTrail(now: number): boolean {
-  removeExpiredTrailPoints(now);
-  return trail.length > 0;
+  interactionTrail.addRipple(position, now, velocity, layers, RIPPLE_LAYER_OFFSET, runtimeSettings.trailLength);
 }
 
 function resetInteractions(): void {
-  trail.length = 0;
+  interactionTrail.clear();
   lastPoint = null;
   lastPointerPosition = null;
   lastTouchSample = null;
@@ -133,8 +110,8 @@ function resetInteractions(): void {
 function renderFrame(now: number): void {
   if (!runtime || webglContext?.lost) return;
 
-  removeExpiredTrailPoints(now);
-  runtime.render(now, trail, runtimeSettings);
+  interactionTrail.removeExpired(now, runtimeSettings.trailLifetime);
+  runtime.render(now, interactionTrail.points, runtimeSettings);
 
   const qualityChange = performanceRuntime?.recordFrame(now);
 
@@ -145,7 +122,7 @@ function renderFrame(now: number): void {
 
   updatePerformanceStats(now);
 
-  if (!props.animations.idle && trail.length === 0) {
+  if (!props.animations.idle && interactionTrail.length === 0) {
     setAnimationState();
   }
 }
@@ -154,7 +131,7 @@ function resize(): void {
   if (!runtime) return;
 
   runtime.resize(runtimeSettings);
-  runtime.render(performance.now(), trail, runtimeSettings);
+  runtime.render(performance.now(), interactionTrail.points, runtimeSettings);
 }
 
 function syncWaveRendererSettings(): boolean {
@@ -163,7 +140,7 @@ function syncWaveRendererSettings(): boolean {
   if (!runtime) return false;
 
   const resizeRequired = runtime.applySettings(runtimeSettings);
-  trimTrail();
+  interactionTrail.trim(runtimeSettings.trailLength);
 
   return resizeRequired;
 }
@@ -204,14 +181,13 @@ function handlePointerMove(event: PointerEvent): void {
 
   if (lastPoint && distance < 0.24 && elapsed < 54) return;
 
-  const point: TrailPoint = {
+  const point: WaveTrailPoint = {
     ...position,
     createdAt: now,
     velocity: Math.min(1, Math.max(0.18, (distance / elapsed) * 72)),
   };
 
-  trail.push(point);
-  trimTrail();
+  interactionTrail.add(point, runtimeSettings.trailLength);
 
   lastPoint = point;
   setAnimationState();
@@ -338,13 +314,16 @@ function setAnimationState(): void {
   const now = performance.now();
   const motionAllowed =
     environment?.documentVisible !== false && !environment?.prefersReducedMotion && !webglContext?.lost;
-  const shouldAnimate = props.active && motionAllowed && (props.animations.idle || hasActiveTrail(now));
+  const shouldAnimate =
+    props.active &&
+    motionAllowed &&
+    (props.animations.idle || interactionTrail.isActive(now, runtimeSettings.trailLifetime));
 
   runtime.setMotion(props.active && motionAllowed && props.animations.idle, props.active && motionAllowed);
   runtime.setAnimationLoop(shouldAnimate ? renderFrame : null);
 
   if (!shouldAnimate && !webglContext?.lost) {
-    runtime.render(now, trail, runtimeSettings);
+    runtime.render(now, interactionTrail.points, runtimeSettings);
   }
 }
 
@@ -356,7 +335,7 @@ function updatePerformanceStats(now: number, force = false): void {
   emit(
     'performanceStats',
     performanceRuntime.createStats({ name: 'Wave Grid', renderer: 'WebGL2 / lines' }, rendererStats, {
-      'Trail points': trail.length,
+      'Trail points': interactionTrail.length,
       'Vertex step': runtimeSettings.vertexStep.toFixed(2),
     }),
   );
