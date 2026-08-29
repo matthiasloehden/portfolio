@@ -1,13 +1,15 @@
 import { DEFAULT_THEME_FONTS, DEFAULT_THEME_PRESET_ID, getThemePreset } from '@/config/themes/definitions';
+import { DEFAULT_THEME_PRESET_PREFERENCE } from '@/config/themes/selection';
 import {
   THEME_BODY_FONT_IDS,
   THEME_COLOR_TOKENS,
   THEME_DISPLAY_FONT_IDS,
   THEME_MODES,
-  THEME_PRESET_IDS,
+  THEME_PRESET_PREFERENCES,
   type ThemeColorOverrides,
   type ThemeMode,
   type ThemePalette,
+  type ThemePresetId,
   type ThemeSettings,
 } from '@/types/theme';
 import { normalizeHexColor } from '@/utils/color';
@@ -19,7 +21,7 @@ function isKnownId<Id extends string>(ids: readonly Id[], value: unknown): value
 
 export function createDefaultThemeSettings(): ThemeSettings {
   return {
-    preset: DEFAULT_THEME_PRESET_ID,
+    preset: DEFAULT_THEME_PRESET_PREFERENCE,
     fonts: { ...DEFAULT_THEME_FONTS },
     colorOverrides: { dark: {}, light: {} },
   };
@@ -30,7 +32,7 @@ export function sanitizeThemeSettings(value: unknown): ThemeSettings {
   if (typeof value !== 'object' || value === null || Array.isArray(value)) return defaults;
 
   const record = value as Record<string, unknown>;
-  const preset = isKnownId(THEME_PRESET_IDS, record.preset) ? record.preset : defaults.preset;
+  const preset = isKnownId(THEME_PRESET_PREFERENCES, record.preset) ? record.preset : defaults.preset;
   const storedFonts =
     typeof record.fonts === 'object' && record.fonts !== null && !Array.isArray(record.fonts)
       ? (record.fonts as Record<string, unknown>)
@@ -57,6 +59,19 @@ export function sanitizeThemeSettings(value: unknown): ThemeSettings {
   return { preset, fonts, colorOverrides };
 }
 
-export function resolveThemePalette(settings: ThemeSettings, mode: ThemeMode): ThemePalette {
-  return { ...getThemePreset(settings.preset).palettes[mode], ...settings.colorOverrides[mode] };
+export function migrateThemeSettings(value: unknown, sourceVersion: number): ThemeSettings {
+  const settings = sanitizeThemeSettings(value);
+
+  // Arctic was the implicit default before route-aware themes existed. Treating
+  // that legacy value as automatic upgrades existing visitors to the new default,
+  // while every intentionally different preset remains explicit.
+  if (sourceVersion < 4 && settings.preset === DEFAULT_THEME_PRESET_ID) {
+    return { ...settings, preset: DEFAULT_THEME_PRESET_PREFERENCE };
+  }
+
+  return settings;
+}
+
+export function resolveThemePalette(settings: ThemeSettings, mode: ThemeMode, preset: ThemePresetId): ThemePalette {
+  return { ...getThemePreset(preset).palettes[mode], ...settings.colorOverrides[mode] };
 }

@@ -64,14 +64,8 @@ const activeBackground = computed(() => resolveBackground(route.path, background
 const activeBackgroundLabel = computed(() => getBackgroundLabel(activeBackground.value));
 const controlsDisabled = computed(() => activeBackground.value === 'none');
 
-const backgroundOptions = computed(() =>
-  BACKGROUND_OPTIONS.map((option) => ({
-    ...option,
-    label:
-      option.value === 'auto' && backgroundPreference.value === 'auto'
-        ? `Automatic per page — ${activeBackgroundLabel.value}`
-        : option.label,
-  })),
+const backgroundMeta = computed(() =>
+  backgroundPreference.value === 'auto' ? activeBackgroundLabel.value : undefined,
 );
 
 const performanceOptions: readonly { value: BackgroundPerformanceMode; label: string }[] = [
@@ -238,8 +232,9 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onDocumentPoin
             <SharedSelectField
               class="mt-3"
               label="Background"
+              :meta="backgroundMeta"
               :model-value="backgroundPreference"
-              :options="backgroundOptions"
+              :options="BACKGROUND_OPTIONS"
               @update:model-value="onBackgroundChange"
             />
             <SharedSelectField

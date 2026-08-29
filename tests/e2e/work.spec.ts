@@ -8,6 +8,7 @@ test.describe('Work page', () => {
       title: workMeta.title,
       heading: getDisplayHeadingText(workHero.titleLines),
       background: '.triangle-background',
+      themePreset: 'crimson',
     });
 
     const overview = page.locator(`#${workOverview.id}`);

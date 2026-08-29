@@ -1,9 +1,9 @@
 export const DISPLAY_PREFERENCES_STORAGE_KEY = 'portfolio-display-preferences';
 export const THEME_PREFERENCE_STORAGE_KEY = 'portfolio-theme';
-export const DISPLAY_PREFERENCES_VERSION = 3;
+export const DISPLAY_PREFERENCES_VERSION = 4;
 
-export const SUPPORTED_DISPLAY_PREFERENCES_VERSIONS = [1, 2, DISPLAY_PREFERENCES_VERSION] as const;
-export const THEME_SETTINGS_STORAGE_VERSIONS = [2, DISPLAY_PREFERENCES_VERSION] as const;
+export const SUPPORTED_DISPLAY_PREFERENCES_VERSIONS = [1, 2, 3, DISPLAY_PREFERENCES_VERSION] as const;
+export const THEME_SETTINGS_STORAGE_VERSIONS = [2, 3, DISPLAY_PREFERENCES_VERSION] as const;
 
 /**
  * Version metadata is shared by the persistence adapter and pre-hydration

@@ -1,18 +1,24 @@
 <script setup lang="ts">
-import { THEME_PRESETS, getThemePreset } from '@/config/themes/definitions';
-import type { ThemeMode, ThemePalette, ThemePresetId } from '@/types/theme';
+import { getThemePreset } from '@/config/themes/definitions';
+import { THEME_PRESET_OPTIONS } from '@/config/themes/selection';
+import type { ThemeMode, ThemePalette, ThemePresetId, ThemePresetPreference } from '@/types/theme';
 import SharedSelectField from '@/components/shared/form/SelectField.vue';
 
-defineProps<{
-  modelValue: ThemePresetId;
+const props = defineProps<{
+  modelValue: ThemePresetPreference;
+  activePreset: ThemePresetId;
   mode: ThemeMode;
 }>();
 
 const emit = defineEmits<{
-  'update:modelValue': [value: ThemePresetId];
+  'update:modelValue': [value: ThemePresetPreference];
 }>();
 
-const presetOptions = THEME_PRESETS.map(({ id, label }) => ({ value: id, label }));
+const presetOptions = THEME_PRESET_OPTIONS;
+
+function resolveOptionPreset(preference: ThemePresetPreference): ThemePresetId {
+  return preference === 'auto' ? props.activePreset : preference;
+}
 
 function getPreviewColors(palette: ThemePalette): readonly string[] {
   return [palette.background, palette.primary, palette.foreground];
@@ -22,6 +28,7 @@ function getPreviewColors(palette: ThemePalette): readonly string[] {
 <template>
   <SharedSelectField
     label="Color scheme"
+    :meta="modelValue === 'auto' ? getThemePreset(activePreset).label : undefined"
     :model-value="modelValue"
     :options="presetOptions"
     @update:model-value="emit('update:modelValue', $event)"
@@ -36,7 +43,7 @@ function getPreviewColors(palette: ThemePalette): readonly string[] {
           aria-hidden="true"
         >
           <span
-            v-for="color in getPreviewColors(getThemePreset(option.value).palettes[mode])"
+            v-for="color in getPreviewColors(getThemePreset(resolveOptionPreset(option.value)).palettes[mode])"
             :key="color"
             class="size-5 rounded-full border border-line-strong"
             :style="{ backgroundColor: color }"
@@ -53,18 +60,13 @@ function getPreviewColors(palette: ThemePalette): readonly string[] {
           aria-hidden="true"
         >
           <span
-            v-for="color in getPreviewColors(getThemePreset(option.value).palettes[mode])"
+            v-for="color in getPreviewColors(getThemePreset(resolveOptionPreset(option.value)).palettes[mode])"
             :key="color"
             class="size-4 rounded-full border border-line-strong"
             :style="{ backgroundColor: color }"
           />
         </span>
-        <span class="min-w-0">
-          <span class="block text-[0.6rem] text-foreground">{{ option.label }}</span>
-          <span class="mt-0.5 block text-[0.52rem] leading-[1.3] text-muted">
-            {{ getThemePreset(option.value).description }}
-          </span>
-        </span>
+        <span class="truncate text-[0.6rem] text-foreground">{{ option.label }}</span>
       </span>
     </template>
   </SharedSelectField>

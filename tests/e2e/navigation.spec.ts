@@ -38,6 +38,7 @@ test.describe('Shared navigation', () => {
       title: workMeta.title,
       heading: getDisplayHeadingText(workHero.titleLines),
       background: '.triangle-background',
+      themePreset: 'crimson',
     });
 
     const skipLink = page.getByRole('link', { name: 'Skip to content' });

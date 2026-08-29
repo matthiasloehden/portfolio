@@ -14,7 +14,7 @@ describe('display preferences schema', () => {
     expect(
       decodeDisplayPreferences(encodeDisplayPreferences(preferences), BACKGROUND_SETTINGS_PERSISTENCE_POLICY),
     ).toEqual({
-      sourceVersion: 3,
+      sourceVersion: 4,
       preferences,
     });
   });
@@ -23,7 +23,7 @@ describe('display preferences schema', () => {
     const defaults = createDefaultDisplayPreferences();
     const decoded = decodeDisplayPreferences(
       {
-        version: 3,
+        version: 4,
         themeSettings: {
           preset: 'unknown',
           fonts: { display: 'cinzel', body: 'unknown' },
@@ -43,6 +43,20 @@ describe('display preferences schema', () => {
       colorOverrides: { dark: { primary: '#aabbcc' }, light: {} },
     });
     expect(decoded?.preferences.backgroundSettingOverrides.particles).toEqual({ pointSize: 3 });
+  });
+
+  it('upgrades the former implicit Arctic default to automatic themes', () => {
+    const defaults = createDefaultDisplayPreferences();
+    const decoded = decodeDisplayPreferences(
+      {
+        version: 3,
+        ...defaults,
+        themeSettings: { ...defaults.themeSettings, preset: 'arctic' },
+      },
+      BACKGROUND_SETTINGS_PERSISTENCE_POLICY,
+    );
+
+    expect(decoded?.preferences.themeSettings.preset).toBe('auto');
   });
 
   it('maps the former shared cursor setting to both interaction channels', () => {

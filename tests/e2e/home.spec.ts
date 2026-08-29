@@ -10,6 +10,7 @@ test.describe('Home page', () => {
       title: `${site.name} | ${site.role}`,
       heading: getDisplayHeadingText(homeHero.titleLines),
       background: '.wave-background',
+      themePreset: 'arctic',
     });
 
     await expect(page.getByText(homeHero.highlights[0].description, { exact: true })).toBeVisible();

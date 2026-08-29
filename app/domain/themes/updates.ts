@@ -3,12 +3,12 @@ import type {
   ThemeColorToken,
   ThemeDisplayFontId,
   ThemeMode,
-  ThemePresetId,
+  ThemePresetPreference,
   ThemeSettings,
 } from '@/types/theme';
 import { normalizeHexColor } from '@/utils/color';
 
-export function updateThemePreset(settings: ThemeSettings, preset: ThemePresetId): ThemeSettings {
+export function updateThemePreset(settings: ThemeSettings, preset: ThemePresetPreference): ThemeSettings {
   return { ...settings, preset };
 }
 

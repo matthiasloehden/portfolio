@@ -19,6 +19,7 @@ test.describe('Personal page', () => {
       title: personalMeta.title,
       heading: getDisplayHeadingText(personalHero.titleLines),
       background: '.particle-background',
+      themePreset: 'arctic',
     });
 
     const overview = page.locator(`#${personalOverview.id}`);

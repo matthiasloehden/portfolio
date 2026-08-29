@@ -5,9 +5,9 @@ type AppFixtures = {
 };
 
 const LOW_PERFORMANCE_DISPLAY_PREFERENCES = {
-  version: 3,
+  version: 4,
   themeSettings: {
-    preset: 'arctic',
+    preset: 'auto',
     fonts: { display: 'barlow-condensed', body: 'inter' },
     colorOverrides: { dark: {}, light: {} },
   },
@@ -90,6 +90,7 @@ type PageContract = {
   title: string;
   heading: string | RegExp;
   background: string;
+  themePreset: 'arctic' | 'crimson' | 'aurora';
 };
 
 /**
@@ -110,6 +111,7 @@ export async function expectPageContract(page: Page, contract: PageContract): Pr
   await expect(heading).toHaveCSS('opacity', '1');
 
   await expect(page.locator('.background-scene-active')).toHaveCount(1);
+  await expect(page.locator('html')).toHaveAttribute('data-theme-preset', contract.themePreset);
   const background = page.locator(`${contract.background}.background-scene-active`);
   await expect(background).toBeVisible();
   await expect(background).toHaveCSS('position', 'fixed');

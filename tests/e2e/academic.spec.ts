@@ -17,6 +17,7 @@ test.describe('Academic page', () => {
       title: academicMeta.title,
       heading: getDisplayHeadingText(academicHero.titleLines),
       background: '.mesh-background',
+      themePreset: 'aurora',
     });
 
     const overview = page.locator(`#${academicOverview.id}`);

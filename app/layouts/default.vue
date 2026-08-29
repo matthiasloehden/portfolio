@@ -11,11 +11,18 @@ const {
   backgroundAnimations,
   backgroundSettingOverrides,
   backgroundPerformance,
+  syncThemeForRoute,
   initializePreferences,
   disposePreferences,
 } = useDisplayPreferences();
+const route = useRoute();
 
-onMounted(initializePreferences);
+watch(
+  () => route.path,
+  (path) => syncThemeForRoute(path),
+  { flush: 'post' },
+);
+onMounted(() => initializePreferences(route.path));
 onBeforeUnmount(disposePreferences);
 
 useHead({

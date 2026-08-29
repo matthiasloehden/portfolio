@@ -1,6 +1,6 @@
 import { createBackgroundAnimationSettings } from '@/domain/backgrounds/preferences';
 import { DISPLAY_PREFERENCES_VERSION, isSupportedDisplayPreferencesVersion } from './versioning';
-import { createDefaultThemeSettings, sanitizeThemeSettings } from '@/domain/themes/settings';
+import { createDefaultThemeSettings, migrateThemeSettings } from '@/domain/themes/settings';
 import {
   BACKGROUND_IDS,
   BACKGROUND_PERFORMANCE_MODES,
@@ -97,7 +97,8 @@ export function decodeDisplayPreferences(
   return {
     sourceVersion: value.version,
     preferences: {
-      themeSettings: value.version === 1 ? createDefaultThemeSettings() : sanitizeThemeSettings(value.themeSettings),
+      themeSettings:
+        value.version === 1 ? createDefaultThemeSettings() : migrateThemeSettings(value.themeSettings, value.version),
       backgroundPreference,
       backgroundAnimations,
       backgroundPerformance,

@@ -1,5 +1,6 @@
 export const THEME_MODES = ['dark', 'light'] as const;
 export const THEME_PRESET_IDS = ['arctic', 'crimson', 'graphite', 'aurora', 'verdant'] as const;
+export const THEME_PRESET_PREFERENCES = ['auto', ...THEME_PRESET_IDS] as const;
 export const THEME_DISPLAY_FONT_IDS = [
   'barlow-condensed',
   'archivo-narrow',
@@ -39,13 +40,14 @@ export const THEME_COLOR_TOKENS = [
 export type ThemeMode = (typeof THEME_MODES)[number];
 export type ThemeColorToken = (typeof THEME_COLOR_TOKENS)[number];
 export type ThemePresetId = (typeof THEME_PRESET_IDS)[number];
+export type ThemePresetPreference = (typeof THEME_PRESET_PREFERENCES)[number];
 export type ThemeDisplayFontId = (typeof THEME_DISPLAY_FONT_IDS)[number];
 export type ThemeBodyFontId = (typeof THEME_BODY_FONT_IDS)[number];
 export type ThemePalette = Readonly<Record<ThemeColorToken, string>>;
 export type ThemeColorOverrides = Partial<Record<ThemeColorToken, string>>;
 
 export interface ThemeSettings {
-  preset: ThemePresetId;
+  preset: ThemePresetPreference;
   fonts: {
     display: ThemeDisplayFontId;
     body: ThemeBodyFontId;

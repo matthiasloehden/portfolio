@@ -11,6 +11,7 @@ import type {
   ThemeDisplayFontId,
   ThemeMode,
   ThemePalette,
+  ThemePresetId,
   ThemeSettings,
 } from '@/types/theme';
 import SharedAccordion from '@/components/shared/Accordion.vue';
@@ -22,6 +23,7 @@ import SharedSettingsResetButton from '@/components/shared/form/SettingsResetBut
 const props = defineProps<{
   settings: ThemeSettings;
   mode: ThemeMode;
+  activePreset: ThemePresetId;
   values: ThemePalette;
 }>();
 
@@ -45,7 +47,7 @@ const groupedControls = colorGroups.map((group) => ({
   ...group,
   controls: THEME_COLOR_CONTROLS.filter((control) => control.group === group.key),
 }));
-const selectedPreset = computed(() => getThemePreset(props.settings.preset));
+const selectedPreset = computed(() => getThemePreset(props.activePreset));
 const hasCurrentThemeColorOverrides = computed(() => Object.keys(props.settings.colorOverrides[props.mode]).length > 0);
 
 function onDisplayFontChange(font: ThemeDisplayFontId): void {

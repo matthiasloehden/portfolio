@@ -25,6 +25,7 @@ import {
   updateThemeDisplayFont,
   updateThemePreset,
 } from '@/domain/themes/updates';
+import { resolveThemePreset } from '@/config/themes/selection';
 import { createDisplayPreferencesStorage } from '@/utils/displayPreferencesStorage';
 import { createDefaultDisplayPreferences, hasCustomDisplayPreferences } from '@/domain/displayPreferences/defaults';
 import type {
@@ -44,6 +45,7 @@ import type {
   ThemeDisplayFontId,
   ThemeMode,
   ThemePresetId,
+  ThemePresetPreference,
   ThemeSettings,
 } from '@/types/theme';
 import { createCoalescedWriter } from '@/utils/coalescedWriter';
@@ -54,6 +56,7 @@ const BACKGROUND_SETTINGS_PERSIST_DELAY = 100;
 
 let colorSchemeQuery: MediaQueryList | null = null;
 let initialized = false;
+let activeRoutePath = '/';
 const preferencesStorage = createDisplayPreferencesStorage();
 const backgroundSettingsWriter = createCoalescedWriter(
   (preferences: DisplayPreferencesState) => preferencesStorage.writePreferences(preferences),
@@ -63,6 +66,7 @@ const backgroundSettingsWriter = createCoalescedWriter(
 export function useDisplayPreferences() {
   const themePreference = useState<ThemePreference>('portfolio-theme-preference', () => 'system');
   const resolvedThemeMode = useState<ThemeMode>('portfolio-resolved-theme-mode', () => 'dark');
+  const resolvedThemePreset = useState<ThemePresetId>('portfolio-resolved-theme-preset', () => 'arctic');
   const themeSettings = useState<ThemeSettings>('portfolio-theme-settings', createDefaultThemeSettings);
   const backgroundPreference = useState<BackgroundPreference>('portfolio-background-preference', () => 'auto');
   const backgroundAnimations = useState<BackgroundAnimationSettings>(
@@ -102,15 +106,17 @@ export function useDisplayPreferences() {
     if (import.meta.client) backgroundSettingsWriter.schedule(currentDisplayPreferences());
   }
 
-  function applyTheme(): void {
+  function applyTheme(transition = false): void {
     if (!import.meta.client) return;
 
     const isDark =
       themePreference.value === 'dark' || (themePreference.value === 'system' && colorSchemeQuery?.matches === true);
     const mode: ThemeMode = isDark ? 'dark' : 'light';
+    const preset = resolveThemePreset(activeRoutePath, themeSettings.value.preset);
 
     resolvedThemeMode.value = mode;
-    applyThemeToDocument(themeSettings.value, mode);
+    resolvedThemePreset.value = preset;
+    applyThemeToDocument(themeSettings.value, mode, preset, transition);
   }
 
   function applyBackgroundAnimationState(): void {
@@ -122,13 +128,13 @@ export function useDisplayPreferences() {
 
   function setThemePreference(preference: ThemePreference): void {
     themePreference.value = preference;
-    applyTheme();
+    applyTheme(true);
     if (import.meta.client) preferencesStorage.writeThemePreference(preference);
   }
 
-  function setThemePreset(preset: ThemePresetId): void {
+  function setThemePreset(preset: ThemePresetPreference): void {
     themeSettings.value = updateThemePreset(themeSettings.value, preset);
-    applyTheme();
+    applyTheme(true);
     persistDisplayPreferences();
   }
 
@@ -236,7 +242,7 @@ export function useDisplayPreferences() {
     backgroundPerformance.value = defaults.backgroundPerformance;
     backgroundSettingOverrides.value = defaults.backgroundSettingOverrides;
 
-    applyTheme();
+    applyTheme(true);
     applyBackgroundAnimationState();
     if (import.meta.client) {
       backgroundSettingsWriter.cancel();
@@ -245,10 +251,16 @@ export function useDisplayPreferences() {
   }
 
   function syncSystemTheme(): void {
-    if (themePreference.value === 'system') applyTheme();
+    if (themePreference.value === 'system') applyTheme(true);
   }
 
-  function initializePreferences(): void {
+  function syncThemeForRoute(path: string): void {
+    activeRoutePath = path;
+    if (themeSettings.value.preset === 'auto') applyTheme(true);
+  }
+
+  function initializePreferences(path = '/'): void {
+    activeRoutePath = path;
     if (!import.meta.client || initialized) return;
 
     colorSchemeQuery = window.matchMedia('(prefers-color-scheme: dark)');
@@ -281,6 +293,7 @@ export function useDisplayPreferences() {
   return {
     themePreference,
     resolvedThemeMode,
+    resolvedThemePreset,
     themeSettings,
     backgroundPreference,
     backgroundAnimations,
@@ -302,6 +315,7 @@ export function useDisplayPreferences() {
     setBackgroundPerformanceMode,
     setBackgroundPerformanceStatsEnabled,
     restoreDefaultSettings,
+    syncThemeForRoute,
     initializePreferences,
     disposePreferences,
   };

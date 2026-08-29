@@ -117,6 +117,20 @@ test.describe('Display settings', () => {
     let dialog = page.getByRole('dialog', { name: 'Display settings' });
     await chooseSelectOption(getSelect(dialog, 'Theme'), 'Dark');
 
+    const colorScheme = getSelect(dialog, 'Color scheme');
+    await expect(colorScheme).toHaveText('Automatic per page');
+    await expect(getSelectMeta(colorScheme)).toHaveText('Crimson signal');
+    await colorScheme.click();
+    await expect(getSelectOptions(colorScheme)).toHaveText([
+      'Automatic per page',
+      'Arctic blue',
+      'Crimson signal',
+      'Aurora violet',
+      'Verdant circuit',
+      'Graphite mono',
+    ]);
+    await colorScheme.press('Escape');
+
     await selectThemePreset(dialog, /Crimson signal/);
     await expect(page.locator('html')).toHaveAttribute('data-theme-preset', 'crimson');
     await expect
@@ -263,7 +277,8 @@ test.describe('Display settings', () => {
     const dialog = page.getByRole('dialog', { name: 'Display settings' });
     const background = getSelect(dialog, 'Background');
 
-    await expect(background).toHaveText('Automatic per page — Triangles');
+    await expect(background).toHaveText('Automatic per page');
+    await expect(getSelectMeta(background)).toHaveText('Triangles');
     await expandSettingsAccordion(dialog, 'Advanced background settings');
     await expandSettingsAccordion(dialog, 'Animations');
 
@@ -274,7 +289,8 @@ test.describe('Display settings', () => {
     await expect(dialog.getByRole('checkbox', { name: 'Idle motion' })).toBeDisabled();
 
     await dialog.getByRole('button', { name: 'Restore default settings' }).click();
-    await expect(background).toHaveText('Automatic per page — Triangles');
+    await expect(background).toHaveText('Automatic per page');
+    await expect(getSelectMeta(background)).toHaveText('Triangles');
     await expect(getPerformanceSelect(dialog)).toBeEnabled();
     await expect(page.locator('.triangle-background.background-scene-active')).toBeVisible();
   });
@@ -437,9 +453,9 @@ test('migrates one representative legacy background override into the versioned 
   });
 
   expect(storedDocument).toMatchObject({
-    version: 3,
+    version: 4,
     themeSettings: {
-      preset: 'arctic',
+      preset: 'auto',
       fonts: { display: 'barlow-condensed', body: 'inter' },
       colorOverrides: { dark: {}, light: {} },
     },
@@ -502,7 +518,7 @@ test('replaces deprecated font profiles without losing versioned preferences', a
   });
 
   expect(storedTheme).toMatchObject({
-    version: 3,
+    version: 4,
     themeSettings: {
       preset: 'aurora',
       fonts: { display: 'barlow-condensed', body: 'inter' },

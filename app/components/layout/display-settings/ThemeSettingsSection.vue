@@ -10,6 +10,7 @@ import ThemeSettingsFields from './ThemeSettingsFields.vue';
 const {
   themePreference,
   resolvedThemeMode,
+  resolvedThemePreset,
   themeSettings,
   setThemePreference,
   setThemePreset,
@@ -26,7 +27,9 @@ const themeOptions: readonly { value: ThemePreference; label: string }[] = [
   { value: 'light', label: 'Light' },
 ];
 
-const activePalette = computed(() => resolveThemePalette(themeSettings.value, resolvedThemeMode.value));
+const activePalette = computed(() =>
+  resolveThemePalette(themeSettings.value, resolvedThemeMode.value, resolvedThemePreset.value),
+);
 const resolvedModeLabel = computed(() => {
   if (themePreference.value !== 'system') return undefined;
 
@@ -47,6 +50,7 @@ const resolvedModeLabel = computed(() => {
     <ThemePresetSelectField
       class="mt-3"
       :model-value="themeSettings.preset"
+      :active-preset="resolvedThemePreset"
       :mode="resolvedThemeMode"
       @update:model-value="setThemePreset"
     />
@@ -60,6 +64,7 @@ const resolvedModeLabel = computed(() => {
         <ThemeSettingsFields
           :settings="themeSettings"
           :mode="resolvedThemeMode"
+          :active-preset="resolvedThemePreset"
           :values="activePalette"
           @display-font-change="setThemeDisplayFont"
           @body-font-change="setThemeBodyFont"

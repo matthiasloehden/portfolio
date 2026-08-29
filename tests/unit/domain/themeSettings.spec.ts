@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { getThemePreset } from '@/config/themes/definitions';
+import { resolveThemePreset } from '@/config/themes/selection';
 import { createDefaultThemeSettings, resolveThemePalette, sanitizeThemeSettings } from '@/domain/themes/settings';
 import {
   clearThemeColorOverrides,
@@ -43,11 +44,19 @@ describe('theme configuration', () => {
     const settings = createDefaultThemeSettings();
     settings.colorOverrides.dark.primary = '#123456';
 
-    const palette = resolveThemePalette(settings, 'dark');
+    const palette = resolveThemePalette(settings, 'dark', 'arctic');
 
     expect(palette.primary).toBe('#123456');
-    expect(palette.background).toBe(getThemePreset(settings.preset).palettes.dark.background);
-    expect(getThemePreset(settings.preset).palettes.dark.primary).not.toBe('#123456');
+    expect(palette.background).toBe(getThemePreset('arctic').palettes.dark.background);
+    expect(getThemePreset('arctic').palettes.dark.primary).not.toBe('#123456');
+  });
+
+  it('resolves automatic presets from the current route', () => {
+    expect(resolveThemePreset('/', 'auto')).toBe('arctic');
+    expect(resolveThemePreset('/work/', 'auto')).toBe('crimson');
+    expect(resolveThemePreset('/academic', 'auto')).toBe('aurora');
+    expect(resolveThemePreset('/personal', 'auto')).toBe('arctic');
+    expect(resolveThemePreset('/work', 'verdant')).toBe('verdant');
   });
 
   it('updates preset and fonts immutably', () => {
