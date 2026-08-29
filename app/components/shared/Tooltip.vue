@@ -9,6 +9,7 @@ defineSlots<{
 }>();
 
 const tooltipId = useId();
+const trigger = ref<HTMLElement | null>(null);
 const dismissed = ref(false);
 const describedBy = computed(() => (props.active && !dismissed.value ? tooltipId : undefined));
 
@@ -28,15 +29,22 @@ function restore(): void {
   dismissed.value = false;
 }
 
+function restoreWhenInactive(): void {
+  nextTick(() => {
+    if (!trigger.value?.matches(':focus-within') && !trigger.value?.matches(':hover')) restore();
+  });
+}
+
 watch(() => props.active, restore);
 </script>
 
 <template>
   <span
+    ref="trigger"
     class="tooltip-trigger relative block"
     @keydown="onKeydown"
-    @focusout="restore"
-    @pointerleave="restore"
+    @focusout="restoreWhenInactive"
+    @pointerleave="restoreWhenInactive"
   >
     <slot :described-by="describedBy" />
     <span
