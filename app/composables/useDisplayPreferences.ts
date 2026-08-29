@@ -46,6 +46,7 @@ import type {
   ThemePresetId,
   ThemeSettings,
 } from '@/types/theme';
+import { createCoalescedWriter } from '@/utils/coalescedWriter';
 import { applyThemeToDocument } from '@/utils/themeRuntime';
 
 // Renderer updates stay immediate; only rapid slider-driven storage writes are coalesced.
@@ -53,35 +54,11 @@ const BACKGROUND_SETTINGS_PERSIST_DELAY = 100;
 
 let colorSchemeQuery: MediaQueryList | null = null;
 let initialized = false;
-let pendingDisplayPreferences: DisplayPreferencesState | null = null;
-let displayPreferencesWriteTimer: ReturnType<typeof setTimeout> | null = null;
 const preferencesStorage = createDisplayPreferencesStorage();
-
-function cancelPendingDisplayPreferencesWrite(): void {
-  if (displayPreferencesWriteTimer !== null) clearTimeout(displayPreferencesWriteTimer);
-
-  displayPreferencesWriteTimer = null;
-  pendingDisplayPreferences = null;
-}
-
-function flushPendingDisplayPreferencesWrite(): void {
-  if (displayPreferencesWriteTimer !== null) clearTimeout(displayPreferencesWriteTimer);
-
-  displayPreferencesWriteTimer = null;
-
-  if (!pendingDisplayPreferences) return;
-
-  preferencesStorage.writePreferences(pendingDisplayPreferences);
-  pendingDisplayPreferences = null;
-}
-
-function scheduleDisplayPreferencesWrite(preferences: DisplayPreferencesState): void {
-  pendingDisplayPreferences = preferences;
-
-  if (displayPreferencesWriteTimer !== null) clearTimeout(displayPreferencesWriteTimer);
-
-  displayPreferencesWriteTimer = setTimeout(flushPendingDisplayPreferencesWrite, BACKGROUND_SETTINGS_PERSIST_DELAY);
-}
+const backgroundSettingsWriter = createCoalescedWriter(
+  (preferences: DisplayPreferencesState) => preferencesStorage.writePreferences(preferences),
+  BACKGROUND_SETTINGS_PERSIST_DELAY,
+);
 
 export function useDisplayPreferences() {
   const themePreference = useState<ThemePreference>('portfolio-theme-preference', () => 'system');
@@ -117,12 +94,12 @@ export function useDisplayPreferences() {
   function persistDisplayPreferences(): void {
     if (!import.meta.client) return;
 
-    cancelPendingDisplayPreferencesWrite();
+    backgroundSettingsWriter.cancel();
     preferencesStorage.writePreferences(currentDisplayPreferences());
   }
 
   function persistBackgroundSettings(): void {
-    if (import.meta.client) scheduleDisplayPreferencesWrite(currentDisplayPreferences());
+    if (import.meta.client) backgroundSettingsWriter.schedule(currentDisplayPreferences());
   }
 
   function applyTheme(): void {
@@ -262,7 +239,7 @@ export function useDisplayPreferences() {
     applyTheme();
     applyBackgroundAnimationState();
     if (import.meta.client) {
-      cancelPendingDisplayPreferencesWrite();
+      backgroundSettingsWriter.cancel();
       preferencesStorage.clear();
     }
   }
@@ -287,16 +264,16 @@ export function useDisplayPreferences() {
     applyTheme();
     applyBackgroundAnimationState();
     colorSchemeQuery.addEventListener('change', syncSystemTheme);
-    window.addEventListener('pagehide', flushPendingDisplayPreferencesWrite);
+    window.addEventListener('pagehide', backgroundSettingsWriter.flush);
     initialized = true;
   }
 
   function disposePreferences(): void {
     if (!initialized) return;
 
-    flushPendingDisplayPreferencesWrite();
+    backgroundSettingsWriter.flush();
     colorSchemeQuery?.removeEventListener('change', syncSystemTheme);
-    window.removeEventListener('pagehide', flushPendingDisplayPreferencesWrite);
+    window.removeEventListener('pagehide', backgroundSettingsWriter.flush);
     colorSchemeQuery = null;
     initialized = false;
   }
