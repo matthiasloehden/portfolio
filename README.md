@@ -19,6 +19,23 @@ Live site: [matthiasloehden.github.io/portfolio](https://matthiasloehden.github.
 | Living Mesh | [`app/components/backgrounds/mesh/MeshRenderer.ts`](app/components/backgrounds/mesh/MeshRenderer.ts) renders an animated, pointer-reactive Canvas2D mesh. |
 | cooling loop diagram | [`app/components/personal/cooling/CoolingLoopPanel.vue`](app/components/personal/cooling/CoolingLoopPanel.vue) composes typed SVG components with procedural animation to visualize a custom liquid cooling system. |
 
+## Architecture
+
+The source tree separates product policy from browser and rendering concerns without introducing layers that have only
+one occupant:
+
+| Directory | Responsibility |
+| --- | --- |
+| `app/domain` | Framework-neutral defaults, validation, migrations, immutable updates, and interaction models. This logic is covered by fast Vitest unit tests. |
+| `app/config` | Typed product catalogs for themes and per-scene background settings. Definitions contain metadata; domain functions provide the reusable behavior. |
+| `app/components/backgrounds` | Vue lifecycle controllers and focused Canvas2D/WebGL renderers. Deterministic geometry and trail rules are delegated to the domain layer. |
+| `app/composables` | Reactive application orchestration across domain state, persistence, and browser effects. |
+| `app/utils` | Small browser-boundary adapters and generic helpers, including resilient localStorage access and theme application. |
+| `tests/unit` / `tests/e2e` | Vitest verifies framework-independent policy; Playwright verifies integrated behavior, accessibility, persistence, and responsive flows. |
+
+The dependency direction is deliberate: components and composables consume the typed configuration and domain APIs;
+the domain layer never depends on Vue, Canvas, WebGL, or browser storage.
+
 ## Stack
 
 This portfolio is intentionally more engineered than a basic static resume. The goal is to show the architecture habits I

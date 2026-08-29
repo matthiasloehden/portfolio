@@ -1,10 +1,10 @@
 /**
  * Application-level registry for the background settings system.
  *
- * Each scene owns a small declarative definition next to its renderer. Those
- * definitions contain the default value, editor metadata, performance presets
- * and runtime safety limits for every public setting. This registry combines
- * them behind a typed API used by the editor, persistence layer and scenes.
+ * Each scene has a small declarative definition in `config/backgrounds/definitions`.
+ * Those definitions contain the default value, editor metadata, performance
+ * presets and runtime safety limits for every public setting. This registry
+ * combines them behind a typed API used by the editor, persistence layer and scenes.
  *
  * The data flow is intentionally one-way:
  *
