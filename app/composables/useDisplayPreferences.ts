@@ -16,8 +16,15 @@ import {
   createDefaultBackgroundAnimationSettings,
   createDefaultBackgroundPerformanceSettings,
 } from '@/domain/backgrounds/preferences';
-import { THEME_COLOR_CONTROLS, getThemeBodyFont, getThemeDisplayFont } from '@/config/themes/definitions';
-import { createDefaultThemeSettings, resolveThemePalette } from '@/domain/themes/settings';
+import { createDefaultThemeSettings } from '@/domain/themes/settings';
+import {
+  clearThemeColorOverrides,
+  removeThemeColorOverride,
+  updateThemeBodyFont,
+  updateThemeColorOverride,
+  updateThemeDisplayFont,
+  updateThemePreset,
+} from '@/domain/themes/updates';
 import { createDisplayPreferencesStorage } from '@/utils/displayPreferencesStorage';
 import { createDefaultDisplayPreferences, hasCustomDisplayPreferences } from '@/domain/displayPreferences/defaults';
 import type {
@@ -39,7 +46,7 @@ import type {
   ThemePresetId,
   ThemeSettings,
 } from '@/types/theme';
-import { normalizeHexColor } from '@/utils/color';
+import { applyThemeToDocument } from '@/utils/themeRuntime';
 
 // Renderer updates stay immediate; only rapid slider-driven storage writes are coalesced.
 const BACKGROUND_SETTINGS_PERSIST_DELAY = 100;
@@ -124,22 +131,9 @@ export function useDisplayPreferences() {
     const isDark =
       themePreference.value === 'dark' || (themePreference.value === 'system' && colorSchemeQuery?.matches === true);
     const mode: ThemeMode = isDark ? 'dark' : 'light';
-    const root = document.documentElement;
-    const palette = resolveThemePalette(themeSettings.value, mode);
-    const displayFont = getThemeDisplayFont(themeSettings.value.fonts.display);
-    const bodyFont = getThemeBodyFont(themeSettings.value.fonts.body);
 
     resolvedThemeMode.value = mode;
-    root.dataset.theme = mode;
-    root.dataset.themePreset = themeSettings.value.preset;
-    root.dataset.displayFont = themeSettings.value.fonts.display;
-    root.dataset.bodyFont = themeSettings.value.fonts.body;
-
-    for (const control of THEME_COLOR_CONTROLS) root.style.setProperty(control.cssVariable, palette[control.key]);
-
-    root.style.setProperty('--display-font', displayFont.family);
-    root.style.setProperty('--body-font', bodyFont.family);
-    window.dispatchEvent(new CustomEvent('portfolio-theme-change'));
+    applyThemeToDocument(themeSettings.value, mode);
   }
 
   function applyBackgroundAnimationState(): void {
@@ -156,58 +150,46 @@ export function useDisplayPreferences() {
   }
 
   function setThemePreset(preset: ThemePresetId): void {
-    themeSettings.value = { ...themeSettings.value, preset };
+    themeSettings.value = updateThemePreset(themeSettings.value, preset);
     applyTheme();
     persistDisplayPreferences();
   }
 
   function setThemeDisplayFont(display: ThemeDisplayFontId): void {
-    themeSettings.value = { ...themeSettings.value, fonts: { ...themeSettings.value.fonts, display } };
+    themeSettings.value = updateThemeDisplayFont(themeSettings.value, display);
     applyTheme();
     persistDisplayPreferences();
   }
 
   function setThemeBodyFont(body: ThemeBodyFontId): void {
-    themeSettings.value = { ...themeSettings.value, fonts: { ...themeSettings.value.fonts, body } };
+    themeSettings.value = updateThemeBodyFont(themeSettings.value, body);
     applyTheme();
     persistDisplayPreferences();
   }
 
   function setThemeColor(token: ThemeColorToken, color: string): void {
-    const normalizedColor = normalizeHexColor(color);
-    if (!normalizedColor) return;
-
     const mode = resolvedThemeMode.value;
-    themeSettings.value = {
-      ...themeSettings.value,
-      colorOverrides: {
-        ...themeSettings.value.colorOverrides,
-        [mode]: { ...themeSettings.value.colorOverrides[mode], [token]: normalizedColor },
-      },
-    };
+    const updated = updateThemeColorOverride(themeSettings.value, mode, token, color);
+    if (updated === themeSettings.value) return;
+
+    themeSettings.value = updated;
     applyTheme();
     persistDisplayPreferences();
   }
 
   function resetThemeColor(token: ThemeColorToken): void {
     const mode = resolvedThemeMode.value;
-    const { [token]: _removed, ...modeOverrides } = themeSettings.value.colorOverrides[mode];
-    themeSettings.value = {
-      ...themeSettings.value,
-      colorOverrides: { ...themeSettings.value.colorOverrides, [mode]: modeOverrides },
-    };
+    themeSettings.value = removeThemeColorOverride(themeSettings.value, mode, token);
     applyTheme();
     persistDisplayPreferences();
   }
 
   function resetCurrentThemeColors(): void {
     const mode = resolvedThemeMode.value;
-    if (Object.keys(themeSettings.value.colorOverrides[mode]).length === 0) return;
+    const updated = clearThemeColorOverrides(themeSettings.value, mode);
+    if (updated === themeSettings.value) return;
 
-    themeSettings.value = {
-      ...themeSettings.value,
-      colorOverrides: { ...themeSettings.value.colorOverrides, [mode]: {} },
-    };
+    themeSettings.value = updated;
     applyTheme();
     persistDisplayPreferences();
   }
