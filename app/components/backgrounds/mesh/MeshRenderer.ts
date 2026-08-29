@@ -7,43 +7,22 @@
  * preserve its visual identity without updating off-screen geometry every frame.
  * Theme, settings, scrolling and interaction enter through explicit methods.
  *
- * Internal point/triangle/edge shapes are defined first, then renderer state and
- * the public lifecycle. Geometry creation, viewport synchronization, influence
- * calculation and drawing helpers follow below. DOM events and scheduling stay
- * in MeshBackground.
+ * Deterministic mesh construction lives in the background domain so it can be
+ * verified without a canvas. This class owns only runtime state, viewport
+ * synchronization, influence calculation and drawing. DOM events and scheduling
+ * stay in MeshBackground.
  */
 import type { BackgroundRendererContract, BackgroundTheme, MeshSettings } from '@/types/background';
 
-import { seededRandom, smoothstep } from '@/domain/backgrounds/math';
+import { smoothstep } from '@/domain/backgrounds/math';
+import {
+  buildMeshGeometryWindow,
+  type MeshEdge,
+  type MeshPoint,
+  type MeshTriangle,
+} from '@/domain/backgrounds/meshGeometry';
 import { getMeshPalette, MESH_CONFIG } from './config';
 import type { MeshPalette, MeshRendererStats, MeshRenderState } from './types';
-
-interface MeshPoint {
-  baseX: number;
-  baseY: number;
-  x: number;
-  y: number;
-  amplitudeX: number;
-  amplitudeY: number;
-  phaseX: number;
-  phaseY: number;
-  speedX: number;
-  speedY: number;
-  secondaryPhase: number;
-}
-
-interface MeshTriangle {
-  a: number;
-  b: number;
-  c: number;
-  tone: number;
-}
-
-interface MeshEdge {
-  a: number;
-  b: number;
-  tone: number;
-}
 
 function clampAlpha(value: number): number {
   return Math.min(1, Math.max(0, value));
@@ -53,11 +32,11 @@ export class MeshRenderer implements BackgroundRendererContract<MeshRendererStat
   private context: CanvasRenderingContext2D | null;
   private palette: MeshPalette;
 
-  private readonly points: MeshPoint[] = [];
-  private readonly triangles: MeshTriangle[] = [];
-  private readonly edges: MeshEdge[] = [];
-  private readonly pointWakeInfluence: number[] = [];
-  private readonly pointCoreInfluence: number[] = [];
+  private points: MeshPoint[] = [];
+  private triangles: MeshTriangle[] = [];
+  private edges: MeshEdge[] = [];
+  private pointWakeInfluence: number[] = [];
+  private pointCoreInfluence: number[] = [];
 
   private width = 1;
   private height = 1;
@@ -272,89 +251,21 @@ export class MeshRenderer implements BackgroundRendererContract<MeshRendererStat
   }
 
   private buildMeshWindow(startRow: number, endRow: number): void {
-    this.points.length = 0;
-    this.triangles.length = 0;
-    this.edges.length = 0;
-    this.pointWakeInfluence.length = 0;
-    this.pointCoreInfluence.length = 0;
+    const geometry = buildMeshGeometryWindow({
+      startRow,
+      endRow,
+      columnCount: this.columnCount,
+      spacing: this.spacing,
+      rowSpacing: this.rowSpacing,
+    });
 
+    this.points = geometry.points;
+    this.triangles = geometry.triangles;
+    this.edges = geometry.edges;
+    this.pointWakeInfluence = new Array<number>(geometry.points.length).fill(0);
+    this.pointCoreInfluence = new Array<number>(geometry.points.length).fill(0);
     this.meshStartRow = startRow;
     this.meshEndRow = endRow;
-
-    const rows = Math.max(0, endRow - startRow + 1);
-    const startX = -this.spacing * 1.25;
-    const rowOriginY = -this.rowSpacing;
-
-    for (let localRow = 0; localRow < rows; localRow += 1) {
-      const globalRow = startRow + localRow;
-
-      for (let column = 0; column < this.columnCount; column += 1) {
-        // Use document-level indices rather than local array positions so a
-        // row keeps its geometry and motion phase after the window shifts.
-        const seed = globalRow * 101 + column * 37 + 1;
-        const offsetX = globalRow % 2 === 0 ? 0 : this.spacing * 0.5;
-        const jitterX = (seededRandom(seed) - 0.5) * this.spacing * 0.26;
-        const jitterY = (seededRandom(seed + 7) - 0.5) * this.rowSpacing * 0.24;
-        const baseX = startX + column * this.spacing + offsetX + jitterX;
-        const baseY = rowOriginY + globalRow * this.rowSpacing + jitterY;
-
-        this.points.push({
-          baseX,
-          baseY,
-          x: baseX,
-          y: baseY,
-          amplitudeX: 8 + seededRandom(seed + 13) * 18,
-          amplitudeY: 7 + seededRandom(seed + 19) * 16,
-          phaseX: seededRandom(seed + 23) * Math.PI * 2,
-          phaseY: seededRandom(seed + 29) * Math.PI * 2,
-          speedX: 0.22 + seededRandom(seed + 31) * 0.25,
-          speedY: 0.18 + seededRandom(seed + 43) * 0.28,
-          secondaryPhase: (globalRow * this.columnCount + column) * 0.31,
-        });
-        this.pointWakeInfluence.push(0);
-        this.pointCoreInfluence.push(0);
-      }
-    }
-
-    const edgeKeys = new Set<string>();
-
-    for (let localRow = 0; localRow < rows - 1; localRow += 1) {
-      const globalRow = startRow + localRow;
-
-      for (let column = 0; column < this.columnCount - 1; column += 1) {
-        const topLeft = localRow * this.columnCount + column;
-        const topRight = topLeft + 1;
-        const bottomLeft = topLeft + this.columnCount;
-        const bottomRight = bottomLeft + 1;
-        const tone = 0.72 + seededRandom(globalRow * 89 + column * 17) * 0.28;
-
-        if ((globalRow + column) % 2 === 0) {
-          this.addTriangle(topLeft, topRight, bottomRight, tone, edgeKeys);
-          this.addTriangle(topLeft, bottomRight, bottomLeft, tone * 0.82, edgeKeys);
-        } else {
-          this.addTriangle(topLeft, topRight, bottomLeft, tone * 0.82, edgeKeys);
-          this.addTriangle(topRight, bottomRight, bottomLeft, tone, edgeKeys);
-        }
-      }
-    }
-  }
-
-  private addTriangle(a: number, b: number, c: number, tone: number, edgeKeys: Set<string>): void {
-    this.triangles.push({ a, b, c, tone });
-    this.addEdge(a, b, tone, edgeKeys);
-    this.addEdge(b, c, tone, edgeKeys);
-    this.addEdge(c, a, tone, edgeKeys);
-  }
-
-  private addEdge(a: number, b: number, tone: number, edgeKeys: Set<string>): void {
-    const start = Math.min(a, b);
-    const end = Math.max(a, b);
-    const key = `${start}:${end}`;
-
-    if (edgeKeys.has(key)) return;
-
-    edgeKeys.add(key);
-    this.edges.push({ a: start, b: end, tone });
   }
 
   private updatePointerTransition(now: number, delta: number, active: boolean, activityIsFresh: boolean): void {
