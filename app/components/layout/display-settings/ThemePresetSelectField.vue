@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { getThemePreset } from '@/config/themes/definitions';
-import { THEME_PRESET_OPTIONS } from '@/config/themes/selection';
+import { THEME_PRESET_OPTIONS, resolveThemePreset } from '@/config/themes/selection';
 import type { ThemeMode, ThemePalette, ThemePresetId, ThemePresetPreference } from '@/types/theme';
 import SharedSelectField from '@/components/shared/form/SelectField.vue';
 
@@ -15,9 +15,12 @@ const emit = defineEmits<{
 }>();
 
 const presetOptions = THEME_PRESET_OPTIONS;
+const route = useRoute();
+const automaticPreset = computed(() => resolveThemePreset(route.path, 'auto'));
 
 function resolveOptionPreset(preference: ThemePresetPreference): ThemePresetId {
-  return preference === 'auto' ? props.activePreset : preference;
+  if (preference === 'auto') return automaticPreset.value;
+  return preference === 'random' ? props.activePreset : preference;
 }
 
 function getPreviewColors(palette: ThemePalette): readonly string[] {
@@ -28,7 +31,7 @@ function getPreviewColors(palette: ThemePalette): readonly string[] {
 <template>
   <SharedSelectField
     label="Color scheme"
-    :meta="modelValue === 'auto' ? getThemePreset(activePreset).label : undefined"
+    :meta="modelValue === 'auto' || modelValue === 'random' ? getThemePreset(activePreset).label : undefined"
     :model-value="modelValue"
     :options="presetOptions"
     @update:model-value="emit('update:modelValue', $event)"
@@ -36,8 +39,9 @@ function getPreviewColors(palette: ThemePalette): readonly string[] {
     <template #value="{ option }">
       <span
         v-if="option"
-        class="grid min-w-0 grid-cols-[auto_minmax(0,1fr)] items-center gap-3"
+        class="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-3"
       >
+        <span class="truncate">{{ option.label }}</span>
         <span
           class="flex -space-x-1"
           aria-hidden="true"
@@ -49,12 +53,12 @@ function getPreviewColors(palette: ThemePalette): readonly string[] {
             :style="{ backgroundColor: color }"
           />
         </span>
-        <span class="truncate">{{ option.label }}</span>
       </span>
     </template>
 
     <template #option="{ option }">
-      <span class="grid min-w-0 grid-cols-[auto_minmax(0,1fr)] items-center gap-3">
+      <span class="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
+        <span class="truncate text-[0.6rem] text-foreground">{{ option.label }}</span>
         <span
           class="flex -space-x-1"
           aria-hidden="true"
@@ -66,7 +70,6 @@ function getPreviewColors(palette: ThemePalette): readonly string[] {
             :style="{ backgroundColor: color }"
           />
         </span>
-        <span class="truncate text-[0.6rem] text-foreground">{{ option.label }}</span>
       </span>
     </template>
   </SharedSelectField>

@@ -3,11 +3,17 @@
 The display menu provides three layers of theme control:
 
 1. `System`, `Dark`, or `Light` chooses the active color mode.
-2. A color-scheme preset supplies a complete palette for both modes.
+2. A color-scheme preference selects a preset, follows the current page, or chooses one at random.
 3. Advanced settings can override individual colors and select heading and body fonts independently.
 
 The implementation keeps those choices separate. Changing the operating-system color mode does not replace a selected
 preset, and changing a preset does not discard explicit color overrides.
+
+Dark is the default color mode. System-based and light rendering remain explicit choices in the display menu.
+
+Arctic Blue is the default color scheme. Automatic page-based selection remains available explicitly. Random selection
+stays stable while the current page is active and is drawn again when it is selected again or navigation changes the
+page. The pre-hydration initialization script resolves a stored random preference before the interface renders.
 
 ## Source of truth
 

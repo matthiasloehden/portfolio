@@ -1,4 +1,4 @@
-import { DEFAULT_THEME_FONTS, DEFAULT_THEME_PRESET_ID, getThemePreset } from '@/config/themes/definitions';
+import { DEFAULT_THEME_FONTS, getThemePreset } from '@/config/themes/definitions';
 import { DEFAULT_THEME_PRESET_PREFERENCE } from '@/config/themes/selection';
 import {
   THEME_BODY_FONT_IDS,
@@ -59,17 +59,8 @@ export function sanitizeThemeSettings(value: unknown): ThemeSettings {
   return { preset, fonts, colorOverrides };
 }
 
-export function migrateThemeSettings(value: unknown, sourceVersion: number): ThemeSettings {
-  const settings = sanitizeThemeSettings(value);
-
-  // Arctic was the implicit default before route-aware themes existed. Treating
-  // that legacy value as automatic upgrades existing visitors to the new default,
-  // while every intentionally different preset remains explicit.
-  if (sourceVersion < 4 && settings.preset === DEFAULT_THEME_PRESET_ID) {
-    return { ...settings, preset: DEFAULT_THEME_PRESET_PREFERENCE };
-  }
-
-  return settings;
+export function migrateThemeSettings(value: unknown, _sourceVersion: number): ThemeSettings {
+  return sanitizeThemeSettings(value);
 }
 
 export function resolveThemePalette(settings: ThemeSettings, mode: ThemeMode, preset: ThemePresetId): ThemePalette {

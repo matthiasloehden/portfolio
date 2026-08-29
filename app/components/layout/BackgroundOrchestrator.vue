@@ -1,7 +1,6 @@
 <!--
-  Resolves the active ambient scene from the current route and visitor
-  preference. Scenes remain mounted so route and preference changes can
-  crossfade without an empty frame; inactive render loops are paused.
+  Presents the resolved ambient scene. Scenes remain mounted so selection
+  changes can crossfade without an empty frame; inactive render loops are paused.
 -->
 <script setup lang="ts">
 import type {
@@ -9,10 +8,8 @@ import type {
   BackgroundId,
   BackgroundPerformanceSettings,
   BackgroundPerformanceStats,
-  BackgroundPreference,
   BackgroundSettingOverridesMap,
 } from '@/types/background';
-import { resolveBackground } from '@/config/backgrounds/selection';
 import ParticleBackground from '@/components/backgrounds/particles/ParticleBackground.vue';
 import MeshBackground from '@/components/backgrounds/mesh/MeshBackground.vue';
 import TriangleBackground from '@/components/backgrounds/triangles/TriangleBackground.vue';
@@ -20,19 +17,16 @@ import WaveBackground from '@/components/backgrounds/wave/WaveBackground.vue';
 import PerformanceStatsOverlay from '@/components/backgrounds/shared/PerformanceStatsOverlay.vue';
 
 const props = defineProps<{
-  preference: BackgroundPreference;
+  background: BackgroundId | 'none';
   animations: BackgroundAnimationSettings;
   settingOverrides: BackgroundSettingOverridesMap;
   performance: BackgroundPerformanceSettings;
 }>();
 
-const route = useRoute();
-
-const selectedBackground = computed(() => resolveBackground(route.path, props.preference));
 const { performanceStats } = useBackgroundRuntimeStatus();
 
 function isSceneActive(background: BackgroundId): boolean {
-  return selectedBackground.value === background;
+  return props.background === background;
 }
 
 function setPerformanceStats(background: BackgroundId, stats: BackgroundPerformanceStats): void {
@@ -41,9 +35,12 @@ function setPerformanceStats(background: BackgroundId, stats: BackgroundPerforma
   performanceStats.value = stats;
 }
 
-watch(selectedBackground, () => {
-  performanceStats.value = null;
-});
+watch(
+  () => props.background,
+  () => {
+    performanceStats.value = null;
+  },
+);
 </script>
 
 <template>
@@ -89,7 +86,7 @@ watch(selectedBackground, () => {
 
   <Teleport to="body">
     <PerformanceStatsOverlay
-      :enabled="selectedBackground !== 'none' && performance.showStats"
+      :enabled="background !== 'none' && performance.showStats"
       :stats="performanceStats"
     />
   </Teleport>

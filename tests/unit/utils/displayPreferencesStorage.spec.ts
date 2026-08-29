@@ -59,16 +59,16 @@ describe('display preferences storage', () => {
     );
   });
 
-  it('uses a compact scalar key for explicit theme modes', () => {
+  it('stores non-default theme modes and omits the default mode', () => {
     const adapter = new MemoryStorage();
     const storage = createDisplayPreferencesStorage(adapter);
 
-    storage.writeThemePreference('dark');
-    expect(storage.readThemePreference()).toBe('dark');
-    expect(adapter.getItem(THEME_PREFERENCE_STORAGE_KEY)).toBe('dark');
-
     storage.writeThemePreference('system');
     expect(storage.readThemePreference()).toBe('system');
+    expect(adapter.getItem(THEME_PREFERENCE_STORAGE_KEY)).toBe('system');
+
+    storage.writeThemePreference('dark');
+    expect(storage.readThemePreference()).toBe('dark');
     expect(adapter.getItem(THEME_PREFERENCE_STORAGE_KEY)).toBeNull();
   });
 
@@ -86,7 +86,7 @@ describe('display preferences storage', () => {
     };
     const storage = createDisplayPreferencesStorage(deniedStorage);
 
-    expect(storage.readThemePreference()).toBe('system');
+    expect(storage.readThemePreference()).toBe('dark');
     expect(storage.readPreferences()).toEqual(createDefaultDisplayPreferences());
     expect(() => storage.writePreferences(createDefaultDisplayPreferences())).not.toThrow();
     expect(() => storage.clear()).not.toThrow();

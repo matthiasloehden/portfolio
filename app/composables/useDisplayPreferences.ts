@@ -25,6 +25,7 @@ import {
   updateThemeDisplayFont,
   updateThemePreset,
 } from '@/domain/themes/updates';
+import { resolveBackground } from '@/config/backgrounds/selection';
 import { resolveThemePreset } from '@/config/themes/selection';
 import { createDisplayPreferencesStorage } from '@/utils/displayPreferencesStorage';
 import { createDefaultDisplayPreferences, hasCustomDisplayPreferences } from '@/domain/displayPreferences/defaults';
@@ -38,7 +39,7 @@ import type {
   BackgroundSettingKey,
   BackgroundSettingOverridesMap,
 } from '@/types/background';
-import type { DisplayPreferencesState, ThemePreference } from '@/types/display';
+import { DEFAULT_THEME_PREFERENCE, type DisplayPreferencesState, type ThemePreference } from '@/types/display';
 import type {
   ThemeBodyFontId,
   ThemeColorToken,
@@ -57,6 +58,8 @@ const BACKGROUND_SETTINGS_PERSIST_DELAY = 100;
 let colorSchemeQuery: MediaQueryList | null = null;
 let initialized = false;
 let activeRoutePath = '/';
+let themeRandomValue = 0;
+let backgroundRandomValue = 0;
 const preferencesStorage = createDisplayPreferencesStorage();
 const backgroundSettingsWriter = createCoalescedWriter(
   (preferences: DisplayPreferencesState) => preferencesStorage.writePreferences(preferences),
@@ -64,11 +67,12 @@ const backgroundSettingsWriter = createCoalescedWriter(
 );
 
 export function useDisplayPreferences() {
-  const themePreference = useState<ThemePreference>('portfolio-theme-preference', () => 'system');
+  const themePreference = useState<ThemePreference>('portfolio-theme-preference', () => DEFAULT_THEME_PREFERENCE);
   const resolvedThemeMode = useState<ThemeMode>('portfolio-resolved-theme-mode', () => 'dark');
   const resolvedThemePreset = useState<ThemePresetId>('portfolio-resolved-theme-preset', () => 'arctic');
   const themeSettings = useState<ThemeSettings>('portfolio-theme-settings', createDefaultThemeSettings);
   const backgroundPreference = useState<BackgroundPreference>('portfolio-background-preference', () => 'auto');
+  const resolvedBackground = useState<BackgroundId | 'none'>('portfolio-resolved-background', () => 'wave');
   const backgroundAnimations = useState<BackgroundAnimationSettings>(
     'portfolio-background-animations',
     createDefaultBackgroundAnimationSettings,
@@ -112,11 +116,24 @@ export function useDisplayPreferences() {
     const isDark =
       themePreference.value === 'dark' || (themePreference.value === 'system' && colorSchemeQuery?.matches === true);
     const mode: ThemeMode = isDark ? 'dark' : 'light';
-    const preset = resolveThemePreset(activeRoutePath, themeSettings.value.preset);
+    const preset = resolveThemePreset(activeRoutePath, themeSettings.value.preset, themeRandomValue);
 
     resolvedThemeMode.value = mode;
     resolvedThemePreset.value = preset;
     applyThemeToDocument(themeSettings.value, mode, preset, transition);
+  }
+
+  function applyBackgroundPreference(): void {
+    resolvedBackground.value = resolveBackground(
+      activeRoutePath,
+      backgroundPreference.value,
+      backgroundRandomValue,
+    );
+  }
+
+  function createThemeRandomValue(): void {
+    themeRandomValue = Math.random();
+    if (import.meta.client) document.documentElement.dataset.themeRandomValue = String(themeRandomValue);
   }
 
   function applyBackgroundAnimationState(): void {
@@ -134,6 +151,7 @@ export function useDisplayPreferences() {
 
   function setThemePreset(preset: ThemePresetPreference): void {
     themeSettings.value = updateThemePreset(themeSettings.value, preset);
+    if (preset === 'random') createThemeRandomValue();
     applyTheme(true);
     persistDisplayPreferences();
   }
@@ -179,6 +197,8 @@ export function useDisplayPreferences() {
 
   function setBackgroundPreference(preference: BackgroundPreference): void {
     backgroundPreference.value = preference;
+    if (preference === 'random') backgroundRandomValue = Math.random();
+    applyBackgroundPreference();
     persistDisplayPreferences();
   }
 
@@ -234,7 +254,7 @@ export function useDisplayPreferences() {
   }
 
   function restoreDefaultSettings(): void {
-    themePreference.value = 'system';
+    themePreference.value = DEFAULT_THEME_PREFERENCE;
     const defaults = createDefaultDisplayPreferences();
     themeSettings.value = defaults.themeSettings;
     backgroundPreference.value = defaults.backgroundPreference;
@@ -243,6 +263,7 @@ export function useDisplayPreferences() {
     backgroundSettingOverrides.value = defaults.backgroundSettingOverrides;
 
     applyTheme(true);
+    applyBackgroundPreference();
     applyBackgroundAnimationState();
     if (import.meta.client) {
       backgroundSettingsWriter.cancel();
@@ -254,9 +275,13 @@ export function useDisplayPreferences() {
     if (themePreference.value === 'system') applyTheme(true);
   }
 
-  function syncThemeForRoute(path: string): void {
+  function syncDisplayForRoute(path: string): void {
     activeRoutePath = path;
-    if (themeSettings.value.preset === 'auto') applyTheme(true);
+    if (themeSettings.value.preset === 'random') createThemeRandomValue();
+    if (themeSettings.value.preset === 'auto' || themeSettings.value.preset === 'random') applyTheme(true);
+
+    if (backgroundPreference.value === 'random') backgroundRandomValue = Math.random();
+    applyBackgroundPreference();
   }
 
   function initializePreferences(path = '/'): void {
@@ -273,7 +298,12 @@ export function useDisplayPreferences() {
     backgroundPerformance.value = stored.backgroundPerformance;
     backgroundSettingOverrides.value = stored.backgroundSettingOverrides;
 
+    const initializedThemeRandomValue = Number(document.documentElement.dataset.themeRandomValue);
+    themeRandomValue = Number.isFinite(initializedThemeRandomValue) ? initializedThemeRandomValue : Math.random();
+    backgroundRandomValue = Math.random();
+
     applyTheme();
+    applyBackgroundPreference();
     applyBackgroundAnimationState();
     colorSchemeQuery.addEventListener('change', syncSystemTheme);
     window.addEventListener('pagehide', backgroundSettingsWriter.flush);
@@ -296,6 +326,7 @@ export function useDisplayPreferences() {
     resolvedThemePreset,
     themeSettings,
     backgroundPreference,
+    resolvedBackground,
     backgroundAnimations,
     backgroundPerformance,
     backgroundSettingOverrides,
@@ -315,7 +346,7 @@ export function useDisplayPreferences() {
     setBackgroundPerformanceMode,
     setBackgroundPerformanceStatsEnabled,
     restoreDefaultSettings,
-    syncThemeForRoute,
+    syncDisplayForRoute,
     initializePreferences,
     disposePreferences,
   };

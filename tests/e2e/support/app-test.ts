@@ -90,7 +90,7 @@ type PageContract = {
   title: string;
   heading: string | RegExp;
   background: string;
-  themePreset: 'arctic' | 'crimson' | 'aurora';
+  themePreset: 'arctic' | 'crimson' | 'aurora' | 'teal';
 };
 
 /**

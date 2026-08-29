@@ -6,7 +6,9 @@ import type {
 } from '@/types/background';
 import type { ThemeSettings } from '@/types/theme';
 
-export type ThemePreference = 'system' | 'light' | 'dark';
+export const THEME_PREFERENCES = ['system', 'light', 'dark'] as const;
+export type ThemePreference = (typeof THEME_PREFERENCES)[number];
+export const DEFAULT_THEME_PREFERENCE: ThemePreference = 'dark';
 
 export interface DisplayPreferencesState {
   themeSettings: ThemeSettings;

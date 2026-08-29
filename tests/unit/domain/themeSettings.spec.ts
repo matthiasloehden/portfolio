@@ -13,6 +13,10 @@ import {
 } from '@/domain/themes/updates';
 
 describe('theme configuration', () => {
+  it('uses Arctic blue as the default color scheme', () => {
+    expect(createDefaultThemeSettings().preset).toBe('arctic');
+  });
+
   it('sanitizes IDs and accepts only known, normalized color tokens', () => {
     expect(
       sanitizeThemeSettings({
@@ -55,8 +59,13 @@ describe('theme configuration', () => {
     expect(resolveThemePreset('/', 'auto')).toBe('arctic');
     expect(resolveThemePreset('/work/', 'auto')).toBe('crimson');
     expect(resolveThemePreset('/academic', 'auto')).toBe('aurora');
-    expect(resolveThemePreset('/personal', 'auto')).toBe('arctic');
+    expect(resolveThemePreset('/personal', 'auto')).toBe('teal');
     expect(resolveThemePreset('/work', 'verdant')).toBe('verdant');
+  });
+
+  it('resolves random presets from a stable random value', () => {
+    expect(resolveThemePreset('/', 'random', 0)).toBe('arctic');
+    expect(resolveThemePreset('/', 'random', 0.999)).toBe('teal');
   });
 
   it('updates preset and fonts immutably', () => {

@@ -3,8 +3,28 @@ import type { Locator, Page } from '@playwright/test';
 import { expect, test, waitForApp } from './support/app-test';
 import { expandSettingsAccordion, openDisplaySettings } from './support/display-settings';
 
+async function openAdvancedSettingsPage(
+  dialog: Locator,
+  buttonName: 'Advanced theme settings' | 'Advanced background settings',
+  headingName: RegExp,
+): Promise<void> {
+  const pageButton = dialog.getByRole('button', { name: buttonName, exact: true });
+  await expect(pageButton).not.toHaveAttribute('aria-expanded');
+  await pageButton.click();
+  await expect(dialog.getByRole('heading', { name: headingName })).toBeVisible();
+  await expect(dialog.getByRole('button', { name: 'Back to display settings' })).toBeFocused();
+}
+
+async function openThemeAdvancedSettings(dialog: Locator): Promise<void> {
+  await openAdvancedSettingsPage(dialog, 'Advanced theme settings', /Theme\s+Advanced settings/);
+}
+
+async function openBackgroundAdvancedSettings(dialog: Locator): Promise<void> {
+  await openAdvancedSettingsPage(dialog, 'Advanced background settings', /Background\s+Advanced settings/);
+}
+
 async function openTriangleAppearanceSettings(dialog: Locator): Promise<void> {
-  await expandSettingsAccordion(dialog, 'Advanced background settings');
+  await openBackgroundAdvancedSettings(dialog);
   await expandSettingsAccordion(dialog, /Configure active background/);
   await expandSettingsAccordion(dialog, 'Appearance');
 }
@@ -22,7 +42,7 @@ function getSelectMeta(select: Locator): Locator {
 }
 
 function getSelectListbox(select: Locator): Locator {
-  return select.locator('xpath=following-sibling::*[@role="listbox"]');
+  return select.page().locator('[role="listbox"][data-state="open"]');
 }
 
 function getSelectOptions(select: Locator): Locator {
@@ -58,19 +78,22 @@ test.describe('Display settings', () => {
   test('applies, persists, and restores the selected theme', async ({ page }) => {
     const theme = getSelect(page, 'Theme');
     const restoreDefaults = page.getByRole('button', { name: 'Restore default settings' });
-    await expect(getSelectMeta(theme)).toHaveText(/Dark|Light/);
-    await chooseSelectOption(theme, 'Dark');
-    await expect(restoreDefaults).toBeEnabled();
-    await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+    await expect(theme).toHaveText('Dark');
     await expect(getSelectMeta(theme)).toHaveCount(0);
-    await expect.poll(() => page.evaluate(() => localStorage.getItem('portfolio-theme'))).toBe('dark');
+    await expect.poll(() => page.evaluate(() => localStorage.getItem('portfolio-theme'))).toBeNull();
+
+    await chooseSelectOption(theme, 'Light');
+    await expect(restoreDefaults).toBeEnabled();
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+    await expect(getSelectMeta(theme)).toHaveCount(0);
+    await expect.poll(() => page.evaluate(() => localStorage.getItem('portfolio-theme'))).toBe('light');
 
     await page.reload();
     await waitForApp(page);
-    await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
 
     const dialog = await openDisplaySettings(page);
-    await expect(getSelect(dialog, 'Theme')).toHaveText('Dark');
+    await expect(getSelect(dialog, 'Theme')).toHaveText('Light');
 
     const reloadedRestoreDefaults = dialog.getByRole('button', { name: 'Restore default settings' });
     await reloadedRestoreDefaults.click();
@@ -82,7 +105,7 @@ test.describe('Display settings', () => {
     await reloadedRestoreDefaults.press('Escape');
     await expect(dialog.getByRole('tooltip')).toHaveCount(0);
     await expect(dialog).toBeVisible();
-    await expect(getSelect(dialog, 'Theme')).toHaveText('System');
+    await expect(getSelect(dialog, 'Theme')).toHaveText('Dark');
     await expect.poll(() => page.evaluate(() => localStorage.getItem('portfolio-theme'))).toBeNull();
   });
 
@@ -95,22 +118,22 @@ test.describe('Display settings', () => {
 
     const systemOption = getSelectListbox(theme).getByRole('option', { name: 'System', exact: true });
     const darkOption = getSelectListbox(theme).getByRole('option', { name: 'Dark', exact: true });
-    await expect(systemOption).toHaveAttribute('aria-selected', 'true');
-    await expect(darkOption).toHaveAttribute('aria-selected', 'false');
-
-    await theme.press('ArrowDown');
-    await expect(theme).toHaveAttribute('aria-activedescendant', /-option-1$/);
     await expect(systemOption).toHaveAttribute('aria-selected', 'false');
     await expect(darkOption).toHaveAttribute('aria-selected', 'true');
 
+    await theme.press('ArrowUp');
+    await expect(theme).toHaveAttribute('aria-activedescendant', /-option-0$/);
+    await expect(systemOption).toHaveAttribute('aria-selected', 'true');
+    await expect(darkOption).toHaveAttribute('aria-selected', 'false');
+
     await theme.press('Escape');
-    await expect(theme).toHaveText('System');
+    await expect(theme).toHaveText('Dark');
     await expect(theme).toHaveAttribute('aria-expanded', 'false');
 
-    await theme.press('d');
-    await expect(theme).toHaveAttribute('aria-activedescendant', /-option-1$/);
+    await theme.press('s');
+    await expect(theme).toHaveAttribute('aria-activedescendant', /-option-0$/);
     await theme.press('Enter');
-    await expect(theme).toHaveText('Dark');
+    await expect(theme).toHaveText('System');
   });
 
   test('applies theme presets, typography and mode-specific color overrides', async ({ page }) => {
@@ -126,10 +149,38 @@ test.describe('Display settings', () => {
       'Arctic blue',
       'Crimson signal',
       'Aurora violet',
-      'Verdant circuit',
+      'Petrol teal',
       'Graphite mono',
+      'Random',
+      'Rose pulse',
+      'Ember orange',
+      'Solar gold',
+      'Verdant circuit',
     ]);
     await colorScheme.press('Escape');
+
+    await selectThemePreset(dialog, 'Arctic blue');
+    await colorScheme.click();
+    const automaticOption = getSelectListbox(colorScheme).getByRole('option', {
+      name: 'Automatic per page',
+      exact: true,
+    });
+    await expect
+      .poll(() =>
+        automaticOption
+          .locator('[style]')
+          .evaluateAll((swatches) => swatches.map((swatch) => swatch.style.backgroundColor)),
+      )
+      .toEqual(['rgb(9, 4, 5)', 'rgb(239, 68, 68)', 'rgb(248, 243, 244)']);
+    await colorScheme.press('Escape');
+
+    await selectThemePreset(dialog, 'Random');
+    await expect(colorScheme).toHaveText('Random');
+    await expect(page.locator('html')).toHaveAttribute('data-theme-preset-preference', 'random');
+    await expect(page.locator('html')).toHaveAttribute(
+      'data-theme-preset',
+      /arctic|crimson|orange|gold|aurora|rose|verdant|teal|graphite/,
+    );
 
     await selectThemePreset(dialog, /Crimson signal/);
     await expect(page.locator('html')).toHaveAttribute('data-theme-preset', 'crimson');
@@ -137,7 +188,7 @@ test.describe('Display settings', () => {
       .poll(() => page.evaluate(() => document.documentElement.style.getPropertyValue('--primary')))
       .toBe('#ef4444');
 
-    await expandSettingsAccordion(dialog, /Advanced theme settings/);
+    await openThemeAdvancedSettings(dialog);
     const headingFont = getSelect(dialog, 'Heading font');
     const bodyFont = getSelect(dialog, 'Body font');
     await headingFont.click();
@@ -184,6 +235,24 @@ test.describe('Display settings', () => {
       .toBeGreaterThan(160);
     await expect
       .poll(() =>
+        getSelectListbox(bodyFont).evaluate((listbox) => {
+          const listboxBounds = listbox.getBoundingClientRect();
+          const options = [...listbox.querySelectorAll('[role="option"]')].slice(0, 7);
+
+          return options.every((option) => {
+            const bounds = option.getBoundingClientRect();
+            return bounds.top >= listboxBounds.top && bounds.bottom <= listboxBounds.bottom;
+          });
+        }),
+      )
+      .toBe(true);
+    await expect
+      .poll(() =>
+        getSelectListbox(bodyFont).evaluate((listbox) => listbox.scrollHeight > listbox.clientHeight),
+      )
+      .toBe(true);
+    await expect
+      .poll(() =>
         getSelectOptions(bodyFont)
           .first()
           .evaluate((option) => {
@@ -212,7 +281,6 @@ test.describe('Display settings', () => {
       )
       .toEqual({ heading: true, body: true, overflow: 0 });
 
-    await expandSettingsAccordion(dialog, /Configure active color scheme/);
     await expandSettingsAccordion(dialog, 'Accents & states');
     const primary = dialog.getByRole('textbox', { name: 'Primary hex color', exact: true });
     await primary.fill('#123456');
@@ -251,15 +319,13 @@ test.describe('Display settings', () => {
     await expect(page.locator('html')).toHaveAttribute('data-body-font', 'ibm-plex-sans');
 
     dialog = await openDisplaySettings(page);
-    await expandSettingsAccordion(dialog, /Advanced theme settings/);
-    await expandSettingsAccordion(dialog, /Configure active color scheme/);
+    await selectThemePreset(dialog, /Arctic blue/);
+    await openThemeAdvancedSettings(dialog);
     await expandSettingsAccordion(dialog, 'Accents & states');
     const currentPrimary = dialog.getByRole('textbox', { name: 'Primary hex color', exact: true });
     const resetCurrentThemeColors = dialog.getByRole('button', { name: 'Reset current dark theme colors' });
     await expect(currentPrimary).toHaveValue('#123456');
 
-    await selectThemePreset(dialog, /Arctic blue/);
-    await expect(currentPrimary).toHaveValue('#123456');
     await dialog.getByRole('button', { name: 'Primary: Use Arctic blue dark value' }).click();
     await expect(currentPrimary).toHaveValue('#3284ff');
     await expect(resetCurrentThemeColors).toBeDisabled();
@@ -277,27 +343,59 @@ test.describe('Display settings', () => {
     const dialog = page.getByRole('dialog', { name: 'Display settings' });
     const background = getSelect(dialog, 'Background');
 
+    await background.click();
+    await expect(getSelectOptions(background)).toHaveText([
+      'Automatic per page',
+      'Wave Grid',
+      'Particles',
+      'Triangles',
+      'Living Mesh',
+      'None',
+      'Random',
+    ]);
+    await expect(getSelectOptions(background).locator('[data-background-preview]')).toHaveCount(7);
+    await expect
+      .poll(() =>
+        getSelectListbox(background).evaluate((listbox) => listbox.scrollHeight <= listbox.clientHeight),
+      )
+      .toBe(true);
+    await expect(
+      getSelectListbox(background)
+        .getByRole('option', { name: 'Automatic per page', exact: true })
+        .locator('[data-background-preview]'),
+    ).toHaveAttribute('data-background-preview', 'triangles');
+    await background.press('Escape');
+
     await expect(background).toHaveText('Automatic per page');
     await expect(getSelectMeta(background)).toHaveText('Triangles');
-    await expandSettingsAccordion(dialog, 'Advanced background settings');
-    await expandSettingsAccordion(dialog, 'Animations');
+
+    await chooseSelectOption(background, 'Random');
+    await expect(background).toHaveText('Random');
+    await expect(page.locator('.background-scene-active')).toHaveCount(1);
+    await expect(getSelectMeta(background)).toHaveText(/Wave Grid|Particles|Triangles|Living Mesh/);
 
     await chooseSelectOption(background, 'None');
     await expect(page.locator('.background-scene-active')).toHaveCount(0);
+
+    await openBackgroundAdvancedSettings(dialog);
+    await expandSettingsAccordion(dialog, 'Animations');
+
     await expect(getPerformanceSelect(dialog)).toBeDisabled();
     await expect(dialog.getByRole('checkbox', { name: 'Performance stats' })).toBeDisabled();
     await expect(dialog.getByRole('checkbox', { name: 'Idle motion' })).toBeDisabled();
 
+    await dialog.getByRole('button', { name: 'Back to display settings' }).click();
     await dialog.getByRole('button', { name: 'Restore default settings' }).click();
     await expect(background).toHaveText('Automatic per page');
     await expect(getSelectMeta(background)).toHaveText('Triangles');
+    await openBackgroundAdvancedSettings(dialog);
     await expect(getPerformanceSelect(dialog)).toBeEnabled();
     await expect(page.locator('.triangle-background.background-scene-active')).toBeVisible();
   });
 
   test('persists independent animation preferences', async ({ page }) => {
     let dialog = page.getByRole('dialog', { name: 'Display settings' });
-    await expandSettingsAccordion(dialog, 'Advanced background settings');
+    await openBackgroundAdvancedSettings(dialog);
     await expandSettingsAccordion(dialog, 'Animations');
 
     const animationNames = ['Idle motion', 'Pointer movement', 'Pointer presses', 'Scroll response'];
@@ -311,7 +409,7 @@ test.describe('Display settings', () => {
     await page.reload();
     await waitForApp(page);
     dialog = await openDisplaySettings(page);
-    await expandSettingsAccordion(dialog, 'Advanced background settings');
+    await openBackgroundAdvancedSettings(dialog);
     await expandSettingsAccordion(dialog, 'Animations');
 
     for (const name of animationNames) {
@@ -455,7 +553,7 @@ test('migrates one representative legacy background override into the versioned 
   expect(storedDocument).toMatchObject({
     version: 4,
     themeSettings: {
-      preset: 'auto',
+      preset: 'arctic',
       fonts: { display: 'barlow-condensed', body: 'inter' },
       colorOverrides: { dark: {}, light: {} },
     },

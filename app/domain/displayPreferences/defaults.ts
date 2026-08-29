@@ -4,7 +4,7 @@ import {
   createDefaultBackgroundPerformanceSettings,
 } from '@/domain/backgrounds/preferences';
 import { createDefaultThemeSettings } from '@/domain/themes/settings';
-import type { DisplayPreferencesState, ThemePreference } from '@/types/display';
+import { DEFAULT_THEME_PREFERENCE, type DisplayPreferencesState, type ThemePreference } from '@/types/display';
 
 /**
  * Creates the complete user-editable display state at its product defaults.
@@ -29,7 +29,7 @@ export function hasCustomDisplayPreferences(
 ): boolean {
   const defaults = createDefaultDisplayPreferences();
 
-  if (themePreference !== 'system') return true;
+  if (themePreference !== DEFAULT_THEME_PREFERENCE) return true;
   if (preferences.themeSettings.preset !== defaults.themeSettings.preset) return true;
   if (preferences.themeSettings.fonts.display !== defaults.themeSettings.fonts.display) return true;
   if (preferences.themeSettings.fonts.body !== defaults.themeSettings.fonts.body) return true;

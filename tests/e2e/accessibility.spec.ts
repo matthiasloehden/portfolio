@@ -57,17 +57,23 @@ test.describe('Accessibility', () => {
     const dialog = await openDisplaySettings(page);
     const colorScheme = dialog.getByRole('combobox', { name: 'Color scheme' });
     await colorScheme.click();
-    await expect(dialog.getByRole('listbox', { name: 'Color scheme' })).toBeVisible();
-    await expectNoAccessibilityViolations(page, testInfo, '#display-settings');
+    await expect(page.getByRole('listbox', { name: 'Color scheme' })).toBeVisible();
+    await expectNoAccessibilityViolations(page, testInfo);
     await colorScheme.press('Escape');
-    await expect(dialog.getByRole('listbox', { name: 'Color scheme' })).toHaveCount(0);
+    await expect(page.getByRole('listbox', { name: 'Color scheme' })).toHaveCount(0);
 
-    await expandSettingsAccordion(dialog, /Advanced theme settings/);
-    await expandSettingsAccordion(dialog, /Configure active color scheme/);
+    await dialog.getByRole('button', { name: 'Advanced theme settings', exact: true }).click();
+    await expect(dialog.getByRole('heading', { name: /Theme\s+Advanced settings/ })).toBeVisible();
+    await expect(dialog.getByRole('heading', { name: 'Configure active color scheme' })).toBeVisible();
     await expandSettingsAccordion(dialog, 'Canvas & surfaces');
     await expandSettingsAccordion(dialog, 'Text');
     await expandSettingsAccordion(dialog, 'Accents & states');
-    await expandSettingsAccordion(dialog, 'Advanced background settings');
+
+    await expectNoAccessibilityViolations(page, testInfo, '#display-settings');
+
+    await dialog.getByRole('button', { name: 'Back to display settings' }).click();
+    await dialog.getByRole('button', { name: 'Advanced background settings', exact: true }).click();
+    await expect(dialog.getByRole('heading', { name: /Background\s+Advanced settings/ })).toBeVisible();
     await expandSettingsAccordion(dialog, 'Animations');
     await expandSettingsAccordion(dialog, /Configure active background/);
     await expandSettingsAccordion(dialog, 'Appearance');

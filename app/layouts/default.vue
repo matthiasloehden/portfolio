@@ -1,17 +1,17 @@
 <!--
   Provides the application shell and initializes persisted display preferences.
-  Background selection and animation dispatch live in LayoutBackgroundOrchestrator
-  so this layout remains responsible only for page-level composition.
+  Display-preference state resolves the active background, while
+  LayoutBackgroundOrchestrator presents it alongside the page composition.
 -->
 <script setup lang="ts">
 import { createThemeInitializationScript } from '@/utils/themeInitialization';
 
 const {
-  backgroundPreference,
+  resolvedBackground,
   backgroundAnimations,
   backgroundSettingOverrides,
   backgroundPerformance,
-  syncThemeForRoute,
+  syncDisplayForRoute,
   initializePreferences,
   disposePreferences,
 } = useDisplayPreferences();
@@ -19,7 +19,7 @@ const route = useRoute();
 
 watch(
   () => route.path,
-  (path) => syncThemeForRoute(path),
+  (path) => syncDisplayForRoute(path),
   { flush: 'post' },
 );
 onMounted(() => initializePreferences(route.path));
@@ -42,7 +42,7 @@ useHead({
     <LayoutSiteSkipLink target="#content" />
 
     <LayoutBackgroundOrchestrator
-      :preference="backgroundPreference"
+      :background="resolvedBackground"
       :animations="backgroundAnimations"
       :setting-overrides="backgroundSettingOverrides"
       :performance="backgroundPerformance"

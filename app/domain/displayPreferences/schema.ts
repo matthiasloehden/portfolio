@@ -9,13 +9,16 @@ import {
   type BackgroundPerformanceSettings,
   type BackgroundPreference,
 } from '@/types/background';
-import type { DisplayPreferencesState, ThemePreference } from '@/types/display';
+import {
+  DEFAULT_THEME_PREFERENCE,
+  THEME_PREFERENCES,
+  type DisplayPreferencesState,
+  type ThemePreference,
+} from '@/types/display';
 
 import type { BackgroundSettingsPersistencePolicy } from './contracts';
 
-const BACKGROUND_PREFERENCES = ['auto', ...BACKGROUND_IDS, 'none'] as const;
-const THEME_PREFERENCES = ['system', 'light', 'dark'] as const;
-
+const BACKGROUND_PREFERENCES = ['auto', ...BACKGROUND_IDS, 'none', 'random'] as const;
 export interface StoredDisplayPreferences extends DisplayPreferencesState {
   version: typeof DISPLAY_PREFERENCES_VERSION;
 }
@@ -38,7 +41,7 @@ export function decodeBackgroundPreference(value: unknown): BackgroundPreference
 export function decodeThemePreference(value: unknown): ThemePreference {
   return typeof value === 'string' && THEME_PREFERENCES.includes(value as ThemePreference)
     ? (value as ThemePreference)
-    : 'system';
+    : DEFAULT_THEME_PREFERENCE;
 }
 
 export function decodeBackgroundAnimations(value: unknown): BackgroundAnimationSettings | undefined {

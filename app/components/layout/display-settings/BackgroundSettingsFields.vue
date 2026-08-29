@@ -97,7 +97,7 @@ function getResetLabel(control: BackgroundNumericSettingDefinition): string {
         v-for="group in settingGroups"
         :key="group.key"
         :label="group.label"
-        :heading-level="5"
+        :heading-level="4"
       >
         <div class="grid gap-3">
           <BackgroundNumericSettingField

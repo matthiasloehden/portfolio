@@ -10,7 +10,7 @@
 export const BACKGROUND_IDS = ['wave', 'particles', 'triangles', 'mesh'] as const;
 
 export type BackgroundId = (typeof BACKGROUND_IDS)[number];
-export type BackgroundPreference = 'auto' | BackgroundId | 'none';
+export type BackgroundPreference = 'auto' | BackgroundId | 'none' | 'random';
 export type BackgroundAnimation = 'idle' | 'cursorMovement' | 'cursorClick' | 'scroll';
 
 export interface BackgroundAnimationSettings {

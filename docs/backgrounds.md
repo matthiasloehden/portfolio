@@ -64,10 +64,12 @@ migrates the earlier multi-key settings format once. Vue state and DOM effects r
 
 ## Orchestration and transitions
 
-`BackgroundOrchestrator.vue` resolves the active scene from the route and saved preference. All four components remain
-mounted because destroying and recreating a canvas can produce an empty white frame. CSS opacity performs the crossfade,
-while inactive scenes stop continuous rendering. Scroll-dependent Canvas2D scenes still draw a cheap synchronization
-frame so their first visible frame is current.
+`useDisplayPreferences.ts` resolves the active scene from the route and saved preference. Automatic selection follows the
+current page; random selection draws one of the four scenes and stays stable until it is selected again or navigation
+changes the page. `BackgroundOrchestrator.vue` presents that resolved scene. All four components remain mounted because
+destroying and recreating a canvas can produce an empty white frame. CSS opacity performs the crossfade, while inactive
+scenes stop continuous rendering. Scroll-dependent Canvas2D scenes still draw a cheap synchronization frame so their
+first visible frame is current.
 
 Animation channels are independent: idle motion, cursor movement, cursor click, and scroll response can each be
 disabled. `prefers-reduced-motion` suppresses motion at the shared environment boundary without changing saved user

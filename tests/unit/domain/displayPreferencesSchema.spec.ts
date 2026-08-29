@@ -8,7 +8,8 @@ import { createDefaultThemeSettings } from '@/domain/themes/settings';
 describe('display preferences schema', () => {
   it('round-trips a current domain document', () => {
     const preferences = createDefaultDisplayPreferences();
-    preferences.backgroundPreference = 'particles';
+    preferences.backgroundPreference = 'random';
+    preferences.themeSettings.preset = 'random';
     preferences.themeSettings.colorOverrides.dark.primary = '#123456';
 
     expect(
@@ -45,7 +46,7 @@ describe('display preferences schema', () => {
     expect(decoded?.preferences.backgroundSettingOverrides.particles).toEqual({ pointSize: 3 });
   });
 
-  it('upgrades the former implicit Arctic default to automatic themes', () => {
+  it('preserves the Arctic preset from older preference documents', () => {
     const defaults = createDefaultDisplayPreferences();
     const decoded = decodeDisplayPreferences(
       {
@@ -56,7 +57,7 @@ describe('display preferences schema', () => {
       BACKGROUND_SETTINGS_PERSISTENCE_POLICY,
     );
 
-    expect(decoded?.preferences.themeSettings.preset).toBe('auto');
+    expect(decoded?.preferences.themeSettings.preset).toBe('arctic');
   });
 
   it('maps the former shared cursor setting to both interaction channels', () => {

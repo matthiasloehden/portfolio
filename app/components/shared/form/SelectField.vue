@@ -1,4 +1,6 @@
 <script setup lang="ts" generic="Value extends string">
+import type { CSSProperties } from 'vue';
+
 interface SelectFieldOption<OptionValue extends string> {
   value: OptionValue;
   label: string;
@@ -24,9 +26,13 @@ defineSlots<{
 
 const TYPEAHEAD_DELAY = 500;
 const PAGE_SIZE = 10;
+const MAX_VISIBLE_OPTIONS = 7;
+const VIEWPORT_MARGIN = 8;
+const LISTBOX_GAP = 4;
 
 const root = ref<HTMLElement | null>(null);
 const trigger = ref<HTMLButtonElement | null>(null);
+const listbox = ref<HTMLElement | null>(null);
 const optionElements = ref<HTMLElement[]>([]);
 const descriptionId = useId();
 const labelId = useId();
@@ -34,8 +40,10 @@ const triggerId = useId();
 const listboxId = useId();
 const open = ref(false);
 const activeIndex = ref(-1);
+const listboxPosition = ref<CSSProperties>({ visibility: 'hidden' });
 let typeaheadQuery = '';
 let typeaheadTimeout: ReturnType<typeof setTimeout> | undefined;
+let positionFrame: number | undefined;
 
 const selectedOption = computed(() => props.options.find((option) => option.value === props.modelValue));
 const selectedIndex = computed(() => props.options.findIndex((option) => option.value === props.modelValue));
@@ -52,6 +60,68 @@ function revealActiveOption(): void {
   nextTick(() => optionElements.value[activeIndex.value]?.scrollIntoView({ block: 'nearest' }));
 }
 
+function toPixels(value: string): number {
+  return Number.parseFloat(value) || 0;
+}
+
+function getListboxHeightLimit(element: HTMLElement): number {
+  const styles = getComputedStyle(element);
+  const visibleOptions = optionElements.value.slice(0, MAX_VISIBLE_OPTIONS);
+  const optionsHeight = visibleOptions.reduce((height, option) => height + option.getBoundingClientRect().height, 0);
+  const gapsHeight = Math.max(0, visibleOptions.length - 1) * toPixels(styles.rowGap);
+  const chromeHeight =
+    toPixels(styles.paddingTop) +
+    toPixels(styles.paddingBottom) +
+    toPixels(styles.borderTopWidth) +
+    toPixels(styles.borderBottomWidth);
+
+  return Math.ceil(optionsHeight + gapsHeight + chromeHeight);
+}
+
+function updateListboxPosition(): void {
+  const triggerElement = trigger.value;
+  const listboxElement = listbox.value;
+  if (!open.value || !triggerElement || !listboxElement) return;
+
+  const triggerBounds = triggerElement.getBoundingClientRect();
+  const viewportWidth = document.documentElement.clientWidth;
+  const viewportHeight = document.documentElement.clientHeight;
+  const width = Math.min(triggerBounds.width, viewportWidth - VIEWPORT_MARGIN * 2);
+  const left = Math.min(Math.max(VIEWPORT_MARGIN, triggerBounds.left), viewportWidth - VIEWPORT_MARGIN - width);
+  const spaceBelow = viewportHeight - triggerBounds.bottom - LISTBOX_GAP - VIEWPORT_MARGIN;
+  const spaceAbove = triggerBounds.top - LISTBOX_GAP - VIEWPORT_MARGIN;
+  const styles = getComputedStyle(listboxElement);
+  const heightLimit = getListboxHeightLimit(listboxElement);
+  const fullHeight =
+    listboxElement.scrollHeight + toPixels(styles.borderTopWidth) + toPixels(styles.borderBottomWidth);
+  const preferredHeight = Math.min(fullHeight, heightLimit);
+  const opensAbove = spaceBelow < preferredHeight && spaceAbove > spaceBelow;
+  const availableHeight = Math.max(0, opensAbove ? spaceAbove : spaceBelow);
+  const maxHeight = Math.min(heightLimit, availableHeight);
+  const renderedHeight = Math.min(fullHeight, maxHeight);
+  const top = opensAbove
+    ? Math.max(VIEWPORT_MARGIN, triggerBounds.top - LISTBOX_GAP - renderedHeight)
+    : triggerBounds.bottom + LISTBOX_GAP;
+
+  listboxPosition.value = {
+    top: `${Math.round(top)}px`,
+    left: `${Math.round(left)}px`,
+    width: `${Math.round(width)}px`,
+    maxHeight: `${Math.floor(maxHeight)}px`,
+    transformOrigin: opensAbove ? 'bottom' : 'top',
+    visibility: 'visible',
+  };
+}
+
+function scheduleListboxPositionUpdate(): void {
+  if (!open.value || positionFrame !== undefined) return;
+
+  positionFrame = requestAnimationFrame(() => {
+    positionFrame = undefined;
+    updateListboxPosition();
+  });
+}
+
 function resetTypeahead(): void {
   typeaheadQuery = '';
   if (typeaheadTimeout !== undefined) clearTimeout(typeaheadTimeout);
@@ -62,8 +132,12 @@ function openListbox(): void {
   if (props.disabled || props.options.length === 0 || open.value) return;
 
   activeIndex.value = selectedIndex.value >= 0 ? selectedIndex.value : 0;
+  listboxPosition.value = { visibility: 'hidden' };
   open.value = true;
-  revealActiveOption();
+  nextTick(() => {
+    updateListboxPosition();
+    optionElements.value[activeIndex.value]?.scrollIntoView({ block: 'nearest' });
+  });
 }
 
 function closeListbox(): void {
@@ -183,13 +257,24 @@ function onOptionClick(index: number): void {
 }
 
 function onDocumentPointerDown(event: PointerEvent): void {
-  if (!open.value || !(event.target instanceof Node) || root.value?.contains(event.target)) return;
+  if (
+    !open.value ||
+    !(event.target instanceof Node) ||
+    root.value?.contains(event.target) ||
+    listbox.value?.contains(event.target)
+  )
+    return;
 
   commitOption(activeIndex.value, false);
 }
 
 function onFocusOut(event: FocusEvent): void {
-  if (!open.value || (event.relatedTarget instanceof Node && root.value?.contains(event.relatedTarget))) return;
+  if (
+    !open.value ||
+    (event.relatedTarget instanceof Node &&
+      (root.value?.contains(event.relatedTarget) || listbox.value?.contains(event.relatedTarget)))
+  )
+    return;
 
   commitOption(activeIndex.value, false);
 }
@@ -201,9 +286,16 @@ watch(
   },
 );
 
-onMounted(() => document.addEventListener('pointerdown', onDocumentPointerDown));
+onMounted(() => {
+  document.addEventListener('pointerdown', onDocumentPointerDown);
+  window.addEventListener('resize', scheduleListboxPositionUpdate);
+  window.addEventListener('scroll', scheduleListboxPositionUpdate, true);
+});
 onBeforeUnmount(() => {
   document.removeEventListener('pointerdown', onDocumentPointerDown);
+  window.removeEventListener('resize', scheduleListboxPositionUpdate);
+  window.removeEventListener('scroll', scheduleListboxPositionUpdate, true);
+  if (positionFrame !== undefined) cancelAnimationFrame(positionFrame);
   resetTypeahead();
 });
 </script>
@@ -274,51 +366,57 @@ onBeforeUnmount(() => {
       </svg>
     </button>
 
-    <Transition
-      enter-active-class="transition duration-100 ease-out motion-reduce:transition-none"
-      enter-from-class="-translate-y-1 opacity-0"
-      leave-active-class="transition duration-75 ease-in motion-reduce:transition-none"
-      leave-to-class="-translate-y-1 opacity-0"
-    >
-      <ul
-        v-show="open"
-        :id="listboxId"
-        class="absolute top-full right-0 left-0 z-[70] mt-1 grid max-h-60 list-none gap-1 overflow-y-auto overscroll-contain border border-line-strong bg-raised p-1.5 shadow-2xl"
-        role="listbox"
-        :aria-labelledby="labelId"
+    <Teleport to="body">
+      <Transition
+        enter-active-class="transition duration-100 ease-out motion-reduce:transition-none"
+        enter-from-class="-translate-y-1 opacity-0"
+        leave-active-class="transition duration-75 ease-in motion-reduce:transition-none"
+        leave-to-class="-translate-y-1 opacity-0"
       >
-        <li
-          v-for="(option, index) in options"
-          :id="getOptionId(index)"
-          :key="option.value"
-          :ref="(element) => setOptionElement(element, index)"
-          class="grid cursor-pointer grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border px-2.5 py-2 text-left text-[0.6rem] transition-colors outline-none"
-          :class="[
-            activeIndex === index
-              ? 'border-primary bg-[color-mix(in_srgb,var(--primary)_8%,var(--surface))] text-foreground'
-              : 'border-transparent bg-background text-foreground hover:border-line-strong',
-            modelValue === option.value ? 'outline outline-1 outline-offset-[-2px] outline-primary-bright' : undefined,
-          ]"
-          role="option"
-          :aria-selected="activeIndex === index"
-          @mousedown.prevent
-          @click="onOptionClick(index)"
+        <ul
+          v-show="open"
+          :id="listboxId"
+          ref="listbox"
+          class="fixed z-[100] grid list-none gap-1 overflow-y-auto overscroll-contain border border-line-strong bg-raised p-1.5 shadow-2xl"
+          :style="listboxPosition"
+          :data-state="open ? 'open' : 'closed'"
+          role="listbox"
+          :aria-labelledby="labelId"
+          @pointerdown.stop
         >
-          <slot
-            name="option"
-            :option="option"
-            :selected="modelValue === option.value"
-            :active="activeIndex === index"
+          <li
+            v-for="(option, index) in options"
+            :id="getOptionId(index)"
+            :key="option.value"
+            :ref="(element) => setOptionElement(element, index)"
+            class="grid cursor-pointer grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border px-2.5 py-2 text-left text-[0.6rem] transition-colors outline-none"
+            :class="[
+              activeIndex === index
+                ? 'border-primary bg-[color-mix(in_srgb,var(--primary)_8%,var(--surface))] text-foreground'
+                : 'border-transparent bg-background text-foreground hover:border-line-strong',
+              modelValue === option.value ? 'outline outline-1 outline-offset-[-2px] outline-primary-bright' : undefined,
+            ]"
+            role="option"
+            :aria-selected="activeIndex === index"
+            @mousedown.prevent
+            @click="onOptionClick(index)"
           >
-            <span class="truncate">{{ option.label }}</span>
-          </slot>
-          <span
-            class="size-1.5 rounded-full"
-            :class="activeIndex === index ? 'bg-primary shadow-[0_0_0.4rem_var(--primary)]' : 'bg-line'"
-            aria-hidden="true"
-          />
-        </li>
-      </ul>
-    </Transition>
+            <slot
+              name="option"
+              :option="option"
+              :selected="modelValue === option.value"
+              :active="activeIndex === index"
+            >
+              <span class="truncate">{{ option.label }}</span>
+            </slot>
+            <span
+              class="size-1.5 rounded-full"
+              :class="activeIndex === index ? 'bg-primary shadow-[0_0_0.4rem_var(--primary)]' : 'bg-line'"
+              aria-hidden="true"
+            />
+          </li>
+        </ul>
+      </Transition>
+    </Teleport>
   </div>
 </template>

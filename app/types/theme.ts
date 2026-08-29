@@ -1,6 +1,16 @@
 export const THEME_MODES = ['dark', 'light'] as const;
-export const THEME_PRESET_IDS = ['arctic', 'crimson', 'graphite', 'aurora', 'verdant'] as const;
-export const THEME_PRESET_PREFERENCES = ['auto', ...THEME_PRESET_IDS] as const;
+export const THEME_PRESET_IDS = [
+  'arctic',
+  'crimson',
+  'orange',
+  'gold',
+  'graphite',
+  'aurora',
+  'rose',
+  'verdant',
+  'teal',
+] as const;
+export const THEME_PRESET_PREFERENCES = ['auto', ...THEME_PRESET_IDS, 'random'] as const;
 export const THEME_DISPLAY_FONT_IDS = [
   'barlow-condensed',
   'archivo-narrow',

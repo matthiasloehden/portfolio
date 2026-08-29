@@ -20,7 +20,7 @@ import {
   decodeThemePreference,
   encodeDisplayPreferences,
 } from '@/domain/displayPreferences/schema';
-import type { DisplayPreferencesState, ThemePreference } from '@/types/display';
+import { DEFAULT_THEME_PREFERENCE, type DisplayPreferencesState, type ThemePreference } from '@/types/display';
 
 const LEGACY_STORAGE_KEYS = {
   background: 'portfolio-background',
@@ -126,7 +126,7 @@ export function createDisplayPreferencesStorage(
       return decodeThemePreference(readStorage(storage, THEME_PREFERENCE_STORAGE_KEY));
     },
     writeThemePreference(preference) {
-      if (preference === 'system') removeStorage(storage, THEME_PREFERENCE_STORAGE_KEY);
+      if (preference === DEFAULT_THEME_PREFERENCE) removeStorage(storage, THEME_PREFERENCE_STORAGE_KEY);
       else writeStorage(storage, THEME_PREFERENCE_STORAGE_KEY, preference);
     },
     readPreferences,

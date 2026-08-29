@@ -3,7 +3,7 @@ import {
   getBackgroundSettingControls,
   resolveBackgroundSettingsForEditor,
 } from '@/config/backgrounds/settingsRegistry';
-import { BACKGROUND_OPTIONS, getBackgroundLabel, resolveBackground } from '@/config/backgrounds/selection';
+import { getBackgroundLabel } from '@/config/backgrounds/selection';
 import type {
   BackgroundAnimation,
   BackgroundId,
@@ -18,11 +18,15 @@ import SharedPanelTrigger from '@/components/shared/PanelTrigger.vue';
 import SharedSelectField from '@/components/shared/form/SelectField.vue';
 import SharedSettingsResetButton from '@/components/shared/form/SettingsResetButton.vue';
 import SharedToggleField from '@/components/shared/form/ToggleField.vue';
+import BackgroundSelectField from './display-settings/BackgroundSelectField.vue';
 import SettingsBackgroundFields from './display-settings/BackgroundSettingsFields.vue';
+import SettingsPageButton from './display-settings/SettingsPageButton.vue';
+import ThemeAdvancedSettings from './display-settings/ThemeAdvancedSettings.vue';
 import ThemeSettingsSection from './display-settings/ThemeSettingsSection.vue';
 
 const {
   backgroundPreference,
+  resolvedBackground,
   backgroundAnimations,
   backgroundPerformance,
   backgroundSettingOverrides,
@@ -41,12 +45,21 @@ interface PanelTriggerHandle {
   focus: (options?: FocusOptions) => void;
 }
 
+type SettingsPage = 'overview' | 'theme' | 'background';
+type PendingPageFocus = Exclude<SettingsPage, 'overview'> | 'back' | null;
+
 const root = ref<HTMLElement | null>(null);
 const panel = ref<HTMLElement | null>(null);
+const panelScroller = ref<HTMLElement | null>(null);
 const panelTrigger = ref<PanelTriggerHandle | null>(null);
-const titleId = useId();
+const themePageTrigger = ref<PanelTriggerHandle | null>(null);
+const backgroundPageTrigger = ref<PanelTriggerHandle | null>(null);
+const backButton = ref<HTMLButtonElement | null>(null);
+const activePage = ref<SettingsPage>('overview');
+const pageTransitionDirection = ref<'forward' | 'back'>('forward');
+const pendingPageFocus = ref<PendingPageFocus>(null);
+const backgroundSettingsTitleId = useId();
 const open = defineModel<boolean>('open', { default: false });
-const route = useRoute();
 const { performanceStats } = useBackgroundRuntimeStatus();
 
 const animationOptions: readonly {
@@ -60,12 +73,25 @@ const animationOptions: readonly {
   { key: 'scroll', label: 'Scroll response', description: 'React to scrolling and wheel gestures.' },
 ];
 
-const activeBackground = computed(() => resolveBackground(route.path, backgroundPreference.value));
+const pageEnterFromClass = computed(() =>
+  pageTransitionDirection.value === 'forward'
+    ? 'opacity-0'
+    : 'opacity-0',
+);
+const pageLeaveToClass = computed(() =>
+  pageTransitionDirection.value === 'forward'
+    ? 'opacity-0'
+    : 'opacity-0',
+);
+
+const activeBackground = computed(() => resolvedBackground.value);
 const activeBackgroundLabel = computed(() => getBackgroundLabel(activeBackground.value));
 const controlsDisabled = computed(() => activeBackground.value === 'none');
 
 const backgroundMeta = computed(() =>
-  backgroundPreference.value === 'auto' ? activeBackgroundLabel.value : undefined,
+  backgroundPreference.value === 'auto' || backgroundPreference.value === 'random'
+    ? activeBackgroundLabel.value
+    : undefined,
 );
 
 const performanceOptions: readonly { value: BackgroundPerformanceMode; label: string }[] = [
@@ -139,6 +165,35 @@ function onActiveBackgroundSettingsReset(): void {
   if (background !== 'none') resetBackgroundSettings(background);
 }
 
+function openSettingsPage(page: Exclude<SettingsPage, 'overview'>): void {
+  pageTransitionDirection.value = 'forward';
+  pendingPageFocus.value = 'back';
+  panelScroller.value?.scrollTo({ top: 0 });
+  activePage.value = page;
+}
+
+function returnToOverview(): void {
+  if (activePage.value === 'overview') return;
+
+  pageTransitionDirection.value = 'back';
+  pendingPageFocus.value = activePage.value;
+  panelScroller.value?.scrollTo({ top: 0 });
+  activePage.value = 'overview';
+}
+
+function onPageTransitionAfterEnter(): void {
+  if (!open.value || pendingPageFocus.value === null) return;
+
+  if (pendingPageFocus.value === 'back') {
+    backButton.value?.focus({ preventScroll: true });
+  } else {
+    const trigger = pendingPageFocus.value === 'theme' ? themePageTrigger.value : backgroundPageTrigger.value;
+    trigger?.focus({ preventScroll: true });
+  }
+
+  pendingPageFocus.value = null;
+}
+
 function onDocumentPointerDown(event: PointerEvent): void {
   if (open.value && event.target instanceof Node && !root.value?.contains(event.target)) open.value = false;
 }
@@ -151,7 +206,11 @@ function onEscape(): void {
 }
 
 watch(open, async (isOpen) => {
-  if (!isOpen) return;
+  if (!isOpen) {
+    pendingPageFocus.value = null;
+    activePage.value = 'overview';
+    return;
+  }
 
   await nextTick();
   panel.value?.focus({ preventScroll: true });
@@ -213,83 +272,146 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onDocumentPoin
         class="absolute top-full right-0 left-0 z-50 origin-top-right border-b border-line bg-raised/95 shadow-2xl backdrop-blur-xl md:top-[calc(100%+0.75rem)] md:left-auto md:w-[min(20rem,calc(100vw-2rem))] md:border"
         role="dialog"
         tabindex="-1"
-        :aria-labelledby="titleId"
+        aria-label="Display settings"
       >
         <div
+          ref="panelScroller"
           class="max-h-[calc(100vh-4.75rem)] overflow-x-hidden overflow-y-auto overscroll-contain px-6 py-4 md:-mr-4 md:max-h-[min(44rem,calc(100vh-5rem))] md:w-[calc(100%+1rem)] md:p-0"
         >
           <div class="md:w-[20rem] md:p-4">
-            <h2
-              :id="titleId"
-              class="mb-4 flex items-center justify-between gap-4 border-b border-line pb-3"
-              aria-label="Display settings"
+            <Transition
+              mode="out-in"
+              enter-active-class="transition-[opacity] duration-180 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none"
+              :enter-from-class="pageEnterFromClass"
+              leave-active-class="transition-[opacity] duration-100 ease-in motion-reduce:transition-none"
+              :leave-to-class="pageLeaveToClass"
+              @after-enter="onPageTransitionAfterEnter"
             >
-              <span class="font-display text-sm tracking-[0.04em] text-foreground uppercase">Display</span>
-              <span class="font-mono text-[0.58rem] text-muted">Preferences</span>
-            </h2>
-
-            <ThemeSettingsSection />
-            <SharedSelectField
-              class="mt-3"
-              label="Background"
-              :meta="backgroundMeta"
-              :model-value="backgroundPreference"
-              :options="BACKGROUND_OPTIONS"
-              @update:model-value="onBackgroundChange"
-            />
-            <SharedSelectField
-              class="mt-3"
-              label="Background performance"
-              :meta="performanceMeta"
-              :model-value="backgroundPerformance.mode"
-              :options="performanceOptions"
-              :disabled="controlsDisabled"
-              @update:model-value="onPerformanceModeChange"
-            />
-
-            <SharedAccordionGroup class="mt-4">
-              <SharedAccordion
-                label="Advanced background settings"
-                :heading-level="3"
-                landmark
-                flush
-              >
-                <SharedToggleField
-                  label="Performance stats"
-                  description="Show diagnostics for the active background."
-                  :checked="backgroundPerformance.showStats"
-                  :disabled="controlsDisabled"
-                  @change="setBackgroundPerformanceStatsEnabled"
-                />
-
-                <SharedAccordionGroup
-                  class="mt-4"
-                  :end-border="false"
+              <div :key="activePage">
+                <h2
+                  v-if="activePage === 'overview'"
+                  class="mb-4 flex items-center justify-between gap-4 border-b border-line pb-3"
                 >
-                  <SharedAccordion
-                    label="Animations"
-                    :heading-level="4"
+                  <span class="font-display text-sm tracking-[0.04em] text-foreground uppercase">Display</span>
+                  <span class="font-mono text-[0.58rem] text-muted">Preferences</span>
+                </h2>
+                <div
+                  v-else
+                  class="mb-4 flex items-center gap-3 border-b border-line pb-3"
+                >
+                  <button
+                    ref="backButton"
+                    class="grid size-7 shrink-0 cursor-pointer place-items-center border border-line text-muted transition-colors hover:border-line-strong hover:text-foreground focus-visible:border-line-strong focus-visible:text-foreground"
+                    type="button"
+                    aria-label="Back to display settings"
+                    @click="returnToOverview"
                   >
-                    <fieldset class="grid gap-3">
-                      <legend class="sr-only">Animations</legend>
-                      <SharedToggleField
-                        v-for="option in animationOptions"
-                        :key="option.key"
-                        :label="option.label"
-                        :description="option.description"
-                        :checked="backgroundAnimations[option.key]"
-                        :disabled="controlsDisabled"
-                        @change="setBackgroundAnimationEnabled(option.key, $event)"
-                      />
-                    </fieldset>
-                  </SharedAccordion>
+                    <svg
+                      class="size-3 stroke-current [stroke-linecap:round] [stroke-linejoin:round]"
+                      viewBox="0 0 12 12"
+                      fill="none"
+                      aria-hidden="true"
+                    >
+                      <path d="M9.5 6h-7m3-3.5L2 6l3.5 3.5" />
+                    </svg>
+                  </button>
+                  <h2 class="flex min-w-0 flex-1 items-baseline justify-between gap-3">
+                    <span class="font-display text-sm tracking-[0.04em] text-foreground uppercase">
+                      {{ activePage === 'theme' ? 'Theme' : 'Background' }}
+                    </span>
+                    <span class="truncate font-mono text-[0.58rem] text-muted">Advanced settings</span>
+                  </h2>
+                </div>
 
-                  <SharedAccordion
-                    label="Configure active background"
-                    :meta="activeBackgroundLabel"
-                    :heading-level="4"
-                    flush
+                <template v-if="activePage === 'overview'">
+                  <ThemeSettingsSection
+                    ref="themePageTrigger"
+                    @open-advanced="openSettingsPage('theme')"
+                  />
+                  <BackgroundSelectField
+                    class="mt-3"
+                    :meta="backgroundMeta"
+                    :model-value="backgroundPreference"
+                    :active-background="activeBackground"
+                    @update:model-value="onBackgroundChange"
+                  />
+                  <SettingsPageButton
+                    ref="backgroundPageTrigger"
+                    class="mt-3"
+                    label="Advanced background settings"
+                    @select="openSettingsPage('background')"
+                  />
+
+                  <SharedSettingsResetButton
+                    class="mt-4"
+                    label="Restore default settings"
+                    :disabled="!hasDisplayPreferenceChanges"
+                    disabled-reason="All display settings already use their defaults."
+                    @click="restoreDefaultSettings"
+                  />
+                </template>
+
+                <ThemeAdvancedSettings v-else-if="activePage === 'theme'" />
+
+                <section
+                  v-else
+                  aria-label="Advanced background settings"
+                >
+                  <SharedSelectField
+                    label="Background performance"
+                    :meta="performanceMeta"
+                    :model-value="backgroundPerformance.mode"
+                    :options="performanceOptions"
+                    :disabled="controlsDisabled"
+                    @update:model-value="onPerformanceModeChange"
+                  />
+
+                  <SharedToggleField
+                    class="mt-4"
+                    label="Performance stats"
+                    description="Show diagnostics for the active background."
+                    :checked="backgroundPerformance.showStats"
+                    :disabled="controlsDisabled"
+                    @change="setBackgroundPerformanceStatsEnabled"
+                  />
+
+                  <SharedAccordionGroup
+                    class="mt-4"
+                    :end-border="false"
                   >
+                    <SharedAccordion
+                      label="Animations"
+                      :heading-level="3"
+                    >
+                      <fieldset class="grid gap-3">
+                        <legend class="sr-only">Animations</legend>
+                        <SharedToggleField
+                          v-for="option in animationOptions"
+                          :key="option.key"
+                          :label="option.label"
+                          :description="option.description"
+                          :checked="backgroundAnimations[option.key]"
+                          :disabled="controlsDisabled"
+                          @change="setBackgroundAnimationEnabled(option.key, $event)"
+                        />
+                      </fieldset>
+                    </SharedAccordion>
+                  </SharedAccordionGroup>
+
+                  <section
+                    class="border-t border-line"
+                    :aria-labelledby="backgroundSettingsTitleId"
+                  >
+                    <div class="flex items-baseline justify-between gap-3 py-3 font-mono font-normal">
+                      <h3
+                        :id="backgroundSettingsTitleId"
+                        class="text-[0.6rem] text-foreground"
+                      >
+                        Configure active background
+                      </h3>
+                      <span class="truncate text-[0.54rem] text-muted">{{ activeBackgroundLabel }}</span>
+                    </div>
+
                     <SettingsBackgroundFields
                       v-if="activeBackground !== 'none'"
                       :background-label="activeBackgroundLabel"
@@ -301,18 +423,10 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onDocumentPoin
                       @reset="onBackgroundSettingReset"
                       @reset-all="onActiveBackgroundSettingsReset"
                     />
-                  </SharedAccordion>
-                </SharedAccordionGroup>
-              </SharedAccordion>
-            </SharedAccordionGroup>
-
-            <SharedSettingsResetButton
-              class="mt-4"
-              label="Restore default settings"
-              :disabled="!hasDisplayPreferenceChanges"
-              disabled-reason="All display settings already use their defaults."
-              @click="restoreDefaultSettings"
-            />
+                  </section>
+                </section>
+              </div>
+            </Transition>
           </div>
         </div>
       </div>

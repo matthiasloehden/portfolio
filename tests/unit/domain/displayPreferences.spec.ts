@@ -1,21 +1,21 @@
 import { describe, expect, it } from 'vitest';
 
 import { createDefaultDisplayPreferences, hasCustomDisplayPreferences } from '@/domain/displayPreferences/defaults';
-import type { DisplayPreferencesState } from '@/types/display';
+import type { DisplayPreferencesState, ThemePreference } from '@/types/display';
 
 const customizationCases: readonly {
   label: string;
   customize: (state: DisplayPreferencesState) => DisplayPreferencesState;
-  themePreference: 'system' | 'dark';
+  themePreference: ThemePreference;
 }[] = [
-  { label: 'explicit theme mode', customize: (state) => state, themePreference: 'dark' },
+  { label: 'explicit theme mode', customize: (state) => state, themePreference: 'system' },
   {
     label: 'theme preset',
     customize: (state) => ({
       ...state,
       themeSettings: { ...state.themeSettings, preset: 'crimson' },
     }),
-    themePreference: 'system',
+    themePreference: 'dark',
   },
   {
     label: 'theme color override',
@@ -26,12 +26,12 @@ const customizationCases: readonly {
         colorOverrides: { ...state.themeSettings.colorOverrides, light: { primary: '#123456' } },
       },
     }),
-    themePreference: 'system',
+    themePreference: 'dark',
   },
   {
     label: 'background selection',
     customize: (state) => ({ ...state, backgroundPreference: 'mesh' }),
-    themePreference: 'system',
+    themePreference: 'dark',
   },
   {
     label: 'animation setting',
@@ -39,7 +39,7 @@ const customizationCases: readonly {
       ...state,
       backgroundAnimations: { ...state.backgroundAnimations, scroll: false },
     }),
-    themePreference: 'system',
+    themePreference: 'dark',
   },
   {
     label: 'performance setting',
@@ -47,7 +47,7 @@ const customizationCases: readonly {
       ...state,
       backgroundPerformance: { ...state.backgroundPerformance, showStats: true },
     }),
-    themePreference: 'system',
+    themePreference: 'dark',
   },
   {
     label: 'scene override',
@@ -58,7 +58,7 @@ const customizationCases: readonly {
         wave: { opacity: 0.5 },
       },
     }),
-    themePreference: 'system',
+    themePreference: 'dark',
   },
 ];
 
@@ -70,7 +70,7 @@ describe('display preference policy', () => {
     first.themeSettings.colorOverrides.dark.primary = '#123456';
 
     expect(second.themeSettings.colorOverrides.dark).toEqual({});
-    expect(hasCustomDisplayPreferences(second, 'system')).toBe(false);
+    expect(hasCustomDisplayPreferences(second, 'dark')).toBe(false);
   });
 
   it.each(customizationCases)('detects a customized $label', ({ customize, themePreference }) => {

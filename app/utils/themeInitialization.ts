@@ -13,6 +13,7 @@ import {
   THEME_PRESETS,
 } from '@/config/themes/definitions';
 import { AUTOMATIC_THEME_PRESETS, DEFAULT_THEME_PRESET_PREFERENCE } from '@/config/themes/selection';
+import { DEFAULT_THEME_PREFERENCE } from '@/types/display';
 
 /**
  * Applies persisted theme tokens before Vue hydrates to avoid a flash of the
@@ -29,6 +30,7 @@ export function createThemeInitializationScript(): string {
     variables: Object.fromEntries(THEME_COLOR_CONTROLS.map((control) => [control.key, control.cssVariable])),
     automaticPresets: AUTOMATIC_THEME_PRESETS,
     defaults: {
+      themePreference: DEFAULT_THEME_PREFERENCE,
       preset: DEFAULT_THEME_PRESET_ID,
       presetPreference: DEFAULT_THEME_PRESET_PREFERENCE,
       fonts: DEFAULT_THEME_FONTS,
@@ -59,26 +61,35 @@ export function createThemeInitializationScript(): string {
       }
     } catch {}
 
-    const mode =
-      themePreference === 'light' || themePreference === 'dark'
+    const selectedTheme =
+      themePreference === 'system' || themePreference === 'light' || themePreference === 'dark'
         ? themePreference
-        : matchMedia('(prefers-color-scheme: dark)').matches
+        : config.defaults.themePreference;
+    const mode =
+      selectedTheme === 'system'
+        ? matchMedia('(prefers-color-scheme: dark)').matches
           ? 'dark'
-          : 'light';
+          : 'light'
+        : selectedTheme;
     const storedPreset = storedSettings?.preset;
     const presetPreference =
       storedVersion < config.storage.currentVersion && storedPreset === config.defaults.preset
         ? config.defaults.presetPreference
         : storedPreset === 'auto' ||
+            storedPreset === 'random' ||
             (typeof storedPreset === 'string' && Object.hasOwn(config.presets, storedPreset))
           ? storedPreset
           : config.defaults.presetPreference;
     const routeSegment = location.pathname.split('/').filter(Boolean).at(-1) || '';
     const routePath = Object.hasOwn(config.automaticPresets, '/' + routeSegment) ? '/' + routeSegment : '/';
+    const themeRandomValue = Math.random();
+    const presetIds = Object.keys(config.presets);
     const presetId =
       presetPreference === 'auto'
         ? config.automaticPresets[routePath] || config.defaults.preset
-        : presetPreference;
+        : presetPreference === 'random'
+          ? presetIds[Math.floor(themeRandomValue * presetIds.length)] || config.defaults.preset
+          : presetPreference;
     const displayFontId =
       typeof storedSettings?.fonts?.display === 'string' &&
       Object.hasOwn(config.fonts.display, storedSettings.fonts.display)
@@ -94,6 +105,7 @@ export function createThemeInitializationScript(): string {
     root.dataset.theme = mode;
     root.dataset.themePreset = presetId;
     root.dataset.themePresetPreference = presetPreference;
+    root.dataset.themeRandomValue = String(themeRandomValue);
     root.dataset.displayFont = displayFontId;
     root.dataset.bodyFont = bodyFontId;
 

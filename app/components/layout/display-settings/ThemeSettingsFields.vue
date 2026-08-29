@@ -49,6 +49,7 @@ const groupedControls = colorGroups.map((group) => ({
 }));
 const selectedPreset = computed(() => getThemePreset(props.activePreset));
 const hasCurrentThemeColorOverrides = computed(() => Object.keys(props.settings.colorOverrides[props.mode]).length > 0);
+const colorSettingsTitleId = useId();
 
 function onDisplayFontChange(font: ThemeDisplayFontId): void {
   emit('display-font-change', font);
@@ -75,52 +76,55 @@ function onBodyFontChange(font: ThemeBodyFontId): void {
       @update:model-value="onBodyFontChange"
     />
 
-    <SharedAccordionGroup
-      class="mt-4"
-      :end-border="false"
+    <section
+      class="mt-4 border-t border-line"
+      :aria-labelledby="colorSettingsTitleId"
     >
-      <SharedAccordion
-        label="Configure active color scheme"
-        :meta="selectedPreset.label"
-        :heading-level="4"
-        flush
-      >
-        <p class="py-2 font-mono text-[0.54rem] leading-[1.4] text-muted">
-          Editing {{ mode }} custom colors. Overrides stay active when color schemes change.
-        </p>
+      <div class="flex items-baseline justify-between gap-3 py-3 font-mono font-normal">
+        <h3
+          :id="colorSettingsTitleId"
+          class="text-[0.6rem] text-foreground"
+        >
+          Configure active color scheme
+        </h3>
+        <span class="truncate text-[0.54rem] text-muted">{{ selectedPreset.label }}</span>
+      </div>
 
-        <SharedAccordionGroup :end-border="false">
-          <SharedAccordion
-            v-for="group in groupedControls"
-            :key="group.key"
-            :label="group.label"
-            :heading-level="5"
-          >
-            <div class="grid gap-4">
-              <SharedHexColorInput
-                v-for="control in group.controls"
-                :key="control.key"
-                :label="control.label"
-                :description="control.description"
-                :model-value="values[control.key]"
-                :overridden="settings.colorOverrides[mode][control.key] !== undefined"
-                :reset-label="`Use ${selectedPreset.label} ${mode} value`"
-                @update:model-value="emit('color-change', control.key, $event)"
-                @reset="emit('color-reset', control.key)"
-              />
-            </div>
-          </SharedAccordion>
-        </SharedAccordionGroup>
+      <p class="pb-3 font-mono text-[0.54rem] leading-[1.4] text-muted">
+        Editing {{ mode }} custom colors. Overrides stay active when color schemes change.
+      </p>
 
-        <SharedSettingsResetButton
-          class="my-4"
-          label="Reset current theme colors"
-          :disabled="!hasCurrentThemeColorOverrides"
-          disabled-reason="No colors have been changed for the current theme."
-          :aria-label="`Reset current ${mode} theme colors`"
-          @click="emit('reset')"
-        />
-      </SharedAccordion>
-    </SharedAccordionGroup>
+      <SharedAccordionGroup :end-border="false">
+        <SharedAccordion
+          v-for="group in groupedControls"
+          :key="group.key"
+          :label="group.label"
+          :heading-level="4"
+        >
+          <div class="grid gap-4">
+            <SharedHexColorInput
+              v-for="control in group.controls"
+              :key="control.key"
+              :label="control.label"
+              :description="control.description"
+              :model-value="values[control.key]"
+              :overridden="settings.colorOverrides[mode][control.key] !== undefined"
+              :reset-label="`Use ${selectedPreset.label} ${mode} value`"
+              @update:model-value="emit('color-change', control.key, $event)"
+              @reset="emit('color-reset', control.key)"
+            />
+          </div>
+        </SharedAccordion>
+      </SharedAccordionGroup>
+
+      <SharedSettingsResetButton
+        class="my-4"
+        label="Reset current theme colors"
+        :disabled="!hasCurrentThemeColorOverrides"
+        disabled-reason="No colors have been changed for the current theme."
+        :aria-label="`Reset current ${mode} theme colors`"
+        @click="emit('reset')"
+      />
+    </section>
   </div>
 </template>

@@ -18,8 +18,8 @@ This project uses a small semantic design system on top of Tailwind CSS 4. The s
 | `primary-foreground` | Text placed on the primary color |
 
 Use semantic classes such as `bg-background`, `text-foreground`, `text-muted`, `border-line`, and `bg-primary`.
-Dark and light values are CSS custom properties. The system preference is the default; the header theme control stores
-an explicit visitor choice.
+Dark and light values are CSS custom properties. Dark mode is the default; the header theme control stores an explicit
+visitor choice when it differs from that default.
 
 ## Typography and layout
 

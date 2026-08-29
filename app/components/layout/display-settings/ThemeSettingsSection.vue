@@ -1,11 +1,20 @@
 <script setup lang="ts">
-import { resolveThemePalette } from '@/domain/themes/settings';
 import type { ThemePreference } from '@/types/display';
-import SharedAccordion from '@/components/shared/Accordion.vue';
-import SharedAccordionGroup from '@/components/shared/AccordionGroup.vue';
 import SharedSelectField from '@/components/shared/form/SelectField.vue';
+import SettingsPageButton from './SettingsPageButton.vue';
 import ThemePresetSelectField from './ThemePresetSelectField.vue';
-import ThemeSettingsFields from './ThemeSettingsFields.vue';
+
+const emit = defineEmits<{
+  'open-advanced': [];
+}>();
+
+const pageButton = ref<{ focus: (options?: FocusOptions) => void } | null>(null);
+
+function focusAdvancedButton(options?: FocusOptions): void {
+  pageButton.value?.focus(options);
+}
+
+defineExpose({ focus: focusAdvancedButton });
 
 const {
   themePreference,
@@ -14,11 +23,6 @@ const {
   themeSettings,
   setThemePreference,
   setThemePreset,
-  setThemeDisplayFont,
-  setThemeBodyFont,
-  setThemeColor,
-  resetThemeColor,
-  resetCurrentThemeColors,
 } = useDisplayPreferences();
 
 const themeOptions: readonly { value: ThemePreference; label: string }[] = [
@@ -27,9 +31,6 @@ const themeOptions: readonly { value: ThemePreference; label: string }[] = [
   { value: 'light', label: 'Light' },
 ];
 
-const activePalette = computed(() =>
-  resolveThemePalette(themeSettings.value, resolvedThemeMode.value, resolvedThemePreset.value),
-);
 const resolvedModeLabel = computed(() => {
   if (themePreference.value !== 'system') return undefined;
 
@@ -54,25 +55,11 @@ const resolvedModeLabel = computed(() => {
       :mode="resolvedThemeMode"
       @update:model-value="setThemePreset"
     />
-    <SharedAccordionGroup class="mt-3">
-      <SharedAccordion
-        label="Advanced theme settings"
-        :heading-level="3"
-        landmark
-        flush
-      >
-        <ThemeSettingsFields
-          :settings="themeSettings"
-          :mode="resolvedThemeMode"
-          :active-preset="resolvedThemePreset"
-          :values="activePalette"
-          @display-font-change="setThemeDisplayFont"
-          @body-font-change="setThemeBodyFont"
-          @color-change="setThemeColor"
-          @color-reset="resetThemeColor"
-          @reset="resetCurrentThemeColors"
-        />
-      </SharedAccordion>
-    </SharedAccordionGroup>
+    <SettingsPageButton
+      ref="pageButton"
+      class="mt-3"
+      label="Advanced theme settings"
+      @select="emit('open-advanced')"
+    />
   </section>
 </template>
