@@ -21,30 +21,38 @@ Live site: [matthiasloehden.github.io/portfolio](https://matthiasloehden.github.
 
 ## Project Structure
 
-The project combines feature-oriented frontend code with explicit boundaries for reusable policy, configuration, and
-browser integration. The structure is intentionally detailed enough to support the interactive systems in this portfolio
-without introducing folders that contain only architectural ceremony.
+The application is organized by feature at the UI boundary and by responsibility in its supporting layers:
 
-| Directory | Responsibility |
-| --- | --- |
-| `app/pages` | Route entry points for the home, professional, academic, and personal portfolio sections. |
-| `app/layouts` | The persistent application shell that coordinates navigation, page content, display preferences, and ambient backgrounds. |
-| `app/components/{home,work,academic,personal}` | Feature-specific presentation components kept close to the content and interactions they implement. |
-| `app/components/backgrounds` | Self-contained Canvas2D and WebGL scenes. Each feature owns its controller, renderer, shaders or geometry, and interaction models; reusable rendering infrastructure lives in `shared`. |
-| `app/components/{layout,shared}` | Application-level controls and accessible UI primitives reused across portfolio sections. |
-| `app/composables` | Reactive orchestration across Vue state, domain policy, persistence, routing, and browser lifecycle events. |
-| `app/config` | Typed product catalogs and selection policy for color schemes and per-scene background settings. |
-| `app/domain` | Framework-neutral defaults, validation, migrations, and immutable updates shared across multiple features. |
-| `app/data` | Typed portfolio content separated from rendering components so copy and presentation evolve independently. |
-| `app/types` | Public TypeScript contracts for content, themes, display preferences, and background renderers. |
-| `app/utils` | Focused browser-boundary adapters and generic helpers, including resilient localStorage access and theme initialization. |
-| `app/assets` / `app/plugins` | Global styling and fonts, plus client-only integration for viewport reveal behavior. |
-| `tests/unit` | Fast Vitest coverage for domain policy, persistence, adaptive performance, geometry, and interaction models. |
-| `tests/e2e` | Playwright coverage for responsive page contracts, accessibility, navigation, display settings, and persistence. |
+```text
+portfolio/
+├── app/
+│   ├── pages/                   # Route entry points
+│   ├── layouts/                 # Shared page layouts
+│   ├── components/
+│   │   ├── home/                # Home page components
+│   │   ├── work/                # Professional page components
+│   │   ├── academic/            # Academic page components
+│   │   ├── personal/            # Personal page components
+│   │   ├── backgrounds/         # Interactive background scenes
+│   │   │   └── shared/          # Reusable rendering infrastructure
+│   │   ├── layout/              # Application layout components
+│   │   └── shared/              # Reusable UI components
+│   ├── composables/             # Reusable reactive logic
+│   ├── config/                  # Application configuration
+│   ├── domain/                  # Application rules and validation
+│   ├── data/                    # Portfolio content
+│   ├── types/                   # Shared TypeScript definitions
+│   ├── utils/                   # Shared utility functions
+│   ├── assets/                  # Global styles and fonts
+│   └── plugins/                 # Nuxt application integrations
+└── tests/
+    ├── unit/                    # Unit tests
+    └── e2e/                     # End-to-end tests
+```
 
-The dependency direction is deliberate: components and composables consume the typed configuration and domain APIs;
-the domain layer never depends on Vue, Canvas, WebGL, or browser storage. Pure scene models remain unit-testable without
-being promoted to application-wide domain concepts.
+Components and composables connect the UI with typed content, configuration, and interactive scene logic. Reusable
+behavior is separated from browser-specific integration where that improves clarity and testability, while
+feature-specific code stays close to the feature that owns it.
 
 ## Stack
 

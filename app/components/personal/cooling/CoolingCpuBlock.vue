@@ -32,7 +32,7 @@ const ports = [
   width: 11cqw;
   aspect-ratio: 1;
   place-items: center;
-  border: 0.1cqw solid var(--primary);
+  border: 0.1cqw solid var(--line-strong);
   background:
     radial-gradient(circle, color-mix(in srgb, var(--primary) 18%, transparent), transparent 68%), var(--raised);
 }

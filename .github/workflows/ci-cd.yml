@@ -31,12 +31,12 @@ env:
 
 jobs:
   # ============================================================
-  # Static checks
+  # Static checks + unit tests
   #
   # Runs in parallel with build + E2E.
   # ============================================================
   static-check:
-    name: Static Check
+    name: Static Checks + Unit Tests
     if: >
       github.event_name != 'workflow_dispatch' ||
       inputs.mode == 'ci'
