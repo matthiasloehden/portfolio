@@ -1,7 +1,8 @@
 # Portfolio style guide
 
-This project uses a small semantic design system on top of Tailwind CSS 4. The source of truth lives in
-`app/assets/style/main.css`; components consume semantic utilities instead of raw color values.
+This project uses a small semantic design system on top of Tailwind CSS 4. `app/assets/style/main.css` is the global
+stylesheet entry point, while theme tokens live in `app/assets/style/theme.css`; components consume semantic utilities
+instead of raw color values.
 
 ## Color tokens
 

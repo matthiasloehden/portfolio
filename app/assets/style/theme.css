@@ -1,0 +1,68 @@
+@theme inline {
+  --color-background: var(--background);
+  --color-raised: var(--raised);
+  --color-surface: var(--surface);
+  --color-surface-hover: var(--surface-hover);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-quiet: var(--quiet);
+  --color-primary: var(--primary);
+  --color-primary-bright: var(--primary-bright);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-success: var(--success);
+  --font-sans: var(--body-font);
+  --font-display: var(--display-font);
+  --font-mono: var(--mono-font);
+  --breakpoint-xs: 26.25rem;
+  --breakpoint-sm: 38.75rem;
+  --breakpoint-md: 51.25rem;
+  --container-site: 82rem;
+  --shadow-panel: 1.5rem 1.5rem 0 color-mix(in srgb, var(--primary) 3.5%, transparent);
+}
+
+/*
+ * No-script and pre-hydration fallback for the default Arctic preset. The
+ * runtime replaces these semantic variables from the typed theme registry;
+ * keeping the fallback here lets the static document remain fully readable
+ * when JavaScript or browser storage is unavailable.
+ */
+:root {
+  color-scheme: dark;
+  --background: #030509;
+  --raised: #070b12;
+  --surface: rgba(9, 17, 31, 0.72);
+  --surface-hover: rgba(12, 26, 50, 0.8);
+  --line: rgba(126, 164, 221, 0.18);
+  --line-strong: rgba(90, 151, 255, 0.42);
+  --foreground: #f1f4f8;
+  --muted: #9aa3b0;
+  --quiet: #747e8c;
+  --primary: #3284ff;
+  --primary-bright: #72aaff;
+  --primary-foreground: #02060d;
+  --success: #3cdc94;
+  --selection: rgba(50, 132, 255, 0.35);
+  --display-font: 'Barlow Condensed', 'Arial Narrow', 'Roboto Condensed', 'Helvetica Neue', Arial, sans-serif;
+  --body-font: 'Inter Variable', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --mono-font: 'IBM Plex Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+  --background: #f3f7fc;
+  --raised: #ffffff;
+  --surface: rgba(255, 255, 255, 0.78);
+  --surface-hover: rgba(231, 240, 254, 0.9);
+  --line: rgba(20, 59, 110, 0.16);
+  --line-strong: rgba(14, 92, 205, 0.42);
+  --foreground: #11151b;
+  --muted: #59616c;
+  --quiet: #68717c;
+  --primary: #075fd7;
+  --primary-bright: #075fd7;
+  --primary-foreground: #ffffff;
+  --success: #16875a;
+  --selection: rgba(7, 95, 215, 0.2);
+}

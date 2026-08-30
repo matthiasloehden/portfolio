@@ -48,7 +48,7 @@ selection without introducing a second alpha control.
 
 ## Tailwind integration
 
-[`app/assets/style/main.css`](../app/assets/style/main.css) exposes semantic Tailwind colors through `@theme inline`:
+[`app/assets/style/theme.css`](../app/assets/style/theme.css) exposes semantic Tailwind colors through `@theme inline`:
 
 ```css
 --color-background: var(--background);
@@ -60,7 +60,7 @@ Components continue to use stable utilities such as `bg-background`, `text-foreg
 The theme runtime only replaces the underlying CSS custom properties, so components do not need preset-specific classes
 or conditional styling.
 
-The `:root` values in `main.css` intentionally mirror the default Arctic scheme as a no-script fallback. They are the
+The `:root` values in `theme.css` intentionally mirror the default Arctic scheme as a no-script fallback. They are the
 only duplicated palette values; interactive clients replace them from the typed registry before hydration.
 
 The background renderers read the same computed semantic colors through

@@ -1,0 +1,44 @@
+@utility site-container {
+  width: min(100% - 3rem, var(--container-site));
+  margin-inline: auto;
+}
+
+html {
+  min-height: 100%;
+  background: var(--background);
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  margin: 0;
+  min-height: 100%;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--body-font);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+#__nuxt {
+  min-height: 100vh;
+  background: var(--background);
+}
+
+::selection {
+  background: var(--selection);
+  color: var(--foreground);
+}
+
+:focus-visible {
+  border-radius: 0.1rem;
+  outline: 2px solid var(--primary-bright);
+  outline-offset: 4px;
+}
+
+@layer base {
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+}
