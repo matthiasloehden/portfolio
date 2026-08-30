@@ -4,8 +4,8 @@
  * The renderer creates the Three.js scene, orthographic camera and particle
  * simulation, then exposes the small lifecycle used by ParticleBackground:
  * resize, render, theme/quality updates, diagnostics and disposal. Rebuilding
- * the simulation is intentionally contained here because quality changes alter
- * both its texture dimensions and its particle count.
+ * the simulation is intentionally contained here because particle-count
+ * changes alter the dimensions of its state textures.
  *
  * Browser events, Vue reactivity and frame scheduling do not belong in this
  * class. Public lifecycle methods are grouped before the private rebuild helper,
@@ -33,6 +33,7 @@ export class ParticleRenderer implements BackgroundRendererContract<ParticleRend
   private camera: THREE.OrthographicCamera | null = null;
   private simulation: ParticleSimulation | null = null;
   private quality: ParticleQualityPreset;
+  private particleColor = '';
 
   private constructor(
     private readonly canvas: HTMLCanvasElement,
@@ -66,7 +67,8 @@ export class ParticleRenderer implements BackgroundRendererContract<ParticleRend
     this.camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.01, 10);
     this.camera.position.z = 2;
 
-    this.rebuildSimulation(getParticleColor(theme));
+    this.particleColor = getParticleColor(theme);
+    this.rebuildSimulation();
   }
 
   resize(): void {
@@ -89,21 +91,27 @@ export class ParticleRenderer implements BackgroundRendererContract<ParticleRend
   }
 
   setQuality(quality: ParticleQualityPreset, theme: BackgroundTheme): void {
-    if (quality.id === this.quality.id) return;
+    if (quality.id === this.quality.id) {
+      this.setTheme(theme);
+      return;
+    }
 
     this.quality = quality;
-    this.rebuildSimulation(getParticleColor(theme));
+    this.setTheme(theme);
   }
 
   setTheme(theme: BackgroundTheme): void {
-    this.simulation?.setColor(getParticleColor(theme));
+    this.particleColor = getParticleColor(theme);
+    this.simulation?.setColor(this.particleColor);
   }
 
   setSettings(settings: ParticleSettings): boolean {
     const pixelRatioCapChanged = this.settings.pixelRatioCap !== settings.pixelRatioCap;
+    const particleCountChanged = this.settings.particleCount !== settings.particleCount;
 
     this.settings = settings;
-    this.simulation?.setSettings(settings);
+    if (particleCountChanged) this.rebuildSimulation();
+    else this.simulation?.setSettings(settings);
     return pixelRatioCapChanged;
   }
 
@@ -147,23 +155,22 @@ export class ParticleRenderer implements BackgroundRendererContract<ParticleRend
     this.renderer = null;
   }
 
-  private rebuildSimulation(color: string): void {
+  private rebuildSimulation(): void {
     if (!this.renderer || !this.scene) return;
 
     const aspect =
       Math.max(this.canvas.clientWidth || window.innerWidth, 1) /
       Math.max(this.canvas.clientHeight || window.innerHeight, 1);
 
-    // Resolution is the GPGPU texture size, so a quality change requires a
-    // complete simulation rebuild rather than a uniform update.
+    // Particle state lives in a square GPGPU texture, so count changes require
+    // a complete simulation rebuild rather than a uniform update.
     this.simulation?.dispose();
     this.simulation = new ParticleSimulation(
       this.renderer.instance,
       this.scene,
-      this.quality,
       this.settings,
       aspect,
-      color,
+      this.particleColor,
     );
     this.resize();
   }

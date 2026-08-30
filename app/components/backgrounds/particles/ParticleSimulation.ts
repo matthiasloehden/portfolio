@@ -9,7 +9,7 @@ import { GPUComputationRenderer, type Variable } from 'three/addons/misc/GPUComp
 
 import type { BackgroundAnimationSettings, ParticleSettings } from '@/types/background';
 
-import { PARTICLE_CONFIG, type ParticleQualityPreset } from './config';
+import { PARTICLE_CONFIG } from './config';
 import type { InteractionState } from './InteractionManager';
 import { particleFragmentShader, particleVertexShader, positionShader, velocityShader } from './shaders';
 
@@ -28,13 +28,12 @@ export class ParticleSimulation {
   constructor(
     private readonly renderer: THREE.WebGLRenderer,
     private readonly scene: THREE.Scene,
-    quality: ParticleQualityPreset,
     private settings: ParticleSettings,
     aspect: number,
     color: string,
   ) {
-    const resolution = quality.resolution;
-    this.particleCount = resolution * resolution;
+    const resolution = Math.ceil(Math.sqrt(settings.particleCount));
+    this.particleCount = settings.particleCount;
     this.compute = new GPUComputationRenderer(resolution, resolution, renderer);
     this.compute.setDataType(THREE.HalfFloatType);
 
@@ -72,12 +71,15 @@ export class ParticleSimulation {
     velocityUniforms.uScrollStrength = { value: settings.scrollStrength };
     velocityUniforms.uMaxVelocity = { value: PARTICLE_CONFIG.maxVelocity };
     velocityUniforms.uAspect = { value: aspect };
+    velocityUniforms.uBoundaryCollisions = { value: settings.boundaryCollisions };
+    velocityUniforms.uBoundaryRestitution = { value: PARTICLE_CONFIG.boundaryRestitution };
     velocityUniforms.uPointer = { value: this.pointer };
     velocityUniforms.uPointerVelocity = { value: this.pointerVelocity };
 
     const positionUniforms = this.positionVariable.material.uniforms;
     positionUniforms.uDelta = { value: 0 };
     positionUniforms.uAspect = { value: aspect };
+    positionUniforms.uBoundaryCollisions = { value: settings.boundaryCollisions };
     positionUniforms.uSimulationMargin = { value: PARTICLE_CONFIG.simulationMargin };
 
     const error = this.compute.init();
@@ -166,6 +168,9 @@ export class ParticleSimulation {
     this.getUniform(this.velocityVariable.material.uniforms, 'uPointerVortexStrength').value = settings.vortexStrength;
     this.getUniform(this.velocityVariable.material.uniforms, 'uClickAttraction').value = settings.clickStrength;
     this.getUniform(this.velocityVariable.material.uniforms, 'uScrollStrength').value = settings.scrollStrength;
+    this.getUniform(this.velocityVariable.material.uniforms, 'uBoundaryCollisions').value = settings.boundaryCollisions;
+    this.getUniform(this.positionVariable.material.uniforms, 'uBoundaryCollisions').value =
+      settings.boundaryCollisions;
   }
 
   dispose(): void {
@@ -178,10 +183,13 @@ export class ParticleSimulation {
   private seedTextures(positionTexture: THREE.DataTexture, velocityTexture: THREE.DataTexture, aspect: number): void {
     const positions = positionTexture.image.data as Float32Array;
     const velocities = velocityTexture.image.data as Float32Array;
-    const limitX = aspect * PARTICLE_CONFIG.simulationMargin;
-    const limitY = PARTICLE_CONFIG.simulationMargin;
+    const margin = this.settings.boundaryCollisions ? 1 : PARTICLE_CONFIG.simulationMargin;
+    const limitX = aspect * margin;
+    const limitY = margin;
 
-    for (let index = 0; index < this.particleCount; index += 1) {
+    const textureParticleCount = positions.length / 4;
+
+    for (let index = 0; index < textureParticleCount; index += 1) {
       const offset = index * 4;
       positions[offset] = (Math.random() * 2 - 1) * limitX;
       positions[offset + 1] = (Math.random() * 2 - 1) * limitY;

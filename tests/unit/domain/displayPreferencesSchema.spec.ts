@@ -33,7 +33,9 @@ describe('display preferences schema', () => {
         backgroundPreference: 'particles',
         backgroundAnimations: defaults.backgroundAnimations,
         backgroundPerformance: { mode: 'high', showStats: true },
-        backgroundSettingOverrides: { particles: { pointSize: 3, opacity: 'invalid', unknown: 9 } },
+        backgroundSettingOverrides: {
+          particles: { pointSize: 3, boundaryCollisions: true, opacity: 'invalid', unknown: 9 },
+        },
       },
       BACKGROUND_SETTINGS_PERSISTENCE_POLICY,
     );
@@ -43,7 +45,10 @@ describe('display preferences schema', () => {
       fonts: { display: 'cinzel', body: 'inter' },
       colorOverrides: { dark: { primary: '#aabbcc' }, light: {} },
     });
-    expect(decoded?.preferences.backgroundSettingOverrides.particles).toEqual({ pointSize: 3 });
+    expect(decoded?.preferences.backgroundSettingOverrides.particles).toEqual({
+      pointSize: 3,
+      boundaryCollisions: true,
+    });
   });
 
   it('preserves the Arctic preset from older preference documents', () => {

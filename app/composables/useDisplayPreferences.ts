@@ -38,6 +38,7 @@ import type {
   BackgroundPreference,
   BackgroundSettingKey,
   BackgroundSettingOverridesMap,
+  BackgroundSettingValue,
 } from '@/types/background';
 import { DEFAULT_THEME_PREFERENCE, type DisplayPreferencesState, type ThemePreference } from '@/types/display';
 import type {
@@ -210,9 +211,9 @@ export function useDisplayPreferences() {
   function setBackgroundSetting<Id extends BackgroundId>(
     background: Id,
     setting: BackgroundSettingKey<Id>,
-    value: number,
+    value: BackgroundSettingValue,
   ): void {
-    if (!Number.isFinite(value)) return;
+    if (typeof value !== 'boolean' && !Number.isFinite(value)) return;
 
     backgroundSettingOverrides.value = updateBackgroundSettingOverride(
       backgroundSettingOverrides.value,

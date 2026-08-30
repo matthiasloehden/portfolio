@@ -4,7 +4,7 @@ import {
 } from '@/domain/backgrounds/preferences';
 import { createDefaultThemeSettings } from '@/domain/themes/settings';
 import { createBackgroundSettingOverrides } from '@/domain/backgrounds/settingOverrides';
-import { BACKGROUND_IDS, type BackgroundSettingOverridesMap } from '@/types/background';
+import { BACKGROUND_IDS, type BackgroundSettingOverridesMap, type BackgroundSettingValue } from '@/types/background';
 import type { DisplayPreferencesState } from '@/types/display';
 
 import type { BackgroundSettingsPersistencePolicy } from './contracts';
@@ -34,9 +34,11 @@ function deriveLegacyOverrides(
   // from defaults represent the visitor's intent and are retained during upgrade.
   for (const background of BACKGROUND_IDS) {
     for (const [setting, value] of Object.entries(values[background])) {
-      const defaultValue = (defaults[background] as unknown as Readonly<Record<string, number>>)[setting];
+      const defaultValue = (defaults[background] as unknown as Readonly<Record<string, BackgroundSettingValue>>)[
+        setting
+      ];
       if (value !== defaultValue) {
-        (overrides[background] as Record<string, number>)[setting] = value;
+        (overrides[background] as Record<string, BackgroundSettingValue>)[setting] = value;
       }
     }
   }
@@ -64,7 +66,7 @@ function pickFlaggedLegacyOverrides(
 
     for (const [setting, value] of Object.entries(sanitizedValues[background])) {
       if (backgroundFlags[setting] === true) {
-        (overrides[background] as Record<string, number>)[setting] = value;
+        (overrides[background] as Record<string, BackgroundSettingValue>)[setting] = value;
       }
     }
   }

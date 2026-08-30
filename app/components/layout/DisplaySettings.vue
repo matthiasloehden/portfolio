@@ -11,6 +11,7 @@ import type {
   BackgroundPreference,
   BackgroundQualityId,
   BackgroundSettingKey,
+  BackgroundSettingValue,
 } from '@/types/background';
 import SharedAccordion from '@/components/shared/Accordion.vue';
 import SharedAccordionGroup from '@/components/shared/AccordionGroup.vue';
@@ -109,7 +110,7 @@ const activeSettingsControls = computed(() =>
   activeBackground.value === 'none' ? [] : getBackgroundSettingControls(activeBackground.value),
 );
 
-const activeSettingsValues = computed<Readonly<Record<string, number>>>(() =>
+const activeSettingsValues = computed<Readonly<Record<string, BackgroundSettingValue>>>(() =>
   activeBackground.value === 'none'
     ? {}
     : resolveBackgroundSettingsForEditor(
@@ -119,7 +120,7 @@ const activeSettingsValues = computed<Readonly<Record<string, number>>>(() =>
       ),
 );
 
-const activeSettingOverrides = computed<Readonly<Record<string, number | undefined>>>(() =>
+const activeSettingOverrides = computed<Readonly<Record<string, BackgroundSettingValue | undefined>>>(() =>
   activeBackground.value === 'none' ? {} : backgroundSettingOverrides.value[activeBackground.value],
 );
 
@@ -142,7 +143,7 @@ function getActiveSetting(setting: string): {
   return control ? { background, key: control.key as BackgroundSettingKey<BackgroundId> } : null;
 }
 
-function onBackgroundSettingChange(setting: string, value: number): void {
+function onBackgroundSettingChange(setting: string, value: BackgroundSettingValue): void {
   const activeSetting = getActiveSetting(setting);
   if (activeSetting) setBackgroundSetting(activeSetting.background, activeSetting.key, value);
 }

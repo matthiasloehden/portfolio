@@ -1,21 +1,23 @@
 <script setup lang="ts">
-import type { BackgroundQualityId } from '@/types/background';
-import type { BackgroundNumericSettingDefinition } from '@/config/backgrounds/settingsRegistry';
+import type { BackgroundQualityId, BackgroundSettingValue } from '@/types/background';
+import type { BackgroundSettingDefinition } from '@/config/backgrounds/settingsRegistry';
+import type { NumericSettingDefinition } from '@/domain/backgrounds/settingsDefinition';
 import SharedAccordion from '@/components/shared/Accordion.vue';
 import SharedAccordionGroup from '@/components/shared/AccordionGroup.vue';
 import SharedSettingsResetButton from '@/components/shared/form/SettingsResetButton.vue';
+import BackgroundBooleanSettingField from './BackgroundBooleanSettingField.vue';
 import BackgroundNumericSettingField from './BackgroundNumericSettingField.vue';
 
 const props = defineProps<{
   backgroundLabel: string;
-  controls: readonly BackgroundNumericSettingDefinition[];
-  values: Readonly<Record<string, number>>;
-  overrides: Readonly<Record<string, number | undefined>>;
+  controls: readonly BackgroundSettingDefinition[];
+  values: Readonly<Record<string, BackgroundSettingValue>>;
+  overrides: Readonly<Record<string, BackgroundSettingValue | undefined>>;
   performancePreset: BackgroundQualityId;
 }>();
 
 const emit = defineEmits<{
-  change: [key: string, value: number];
+  change: [key: string, value: BackgroundSettingValue];
   reset: [key: string];
   'reset-all': [];
 }>();
@@ -36,7 +38,7 @@ const settingGroups = computed(() =>
 const hasOverrides = computed(() => Object.values(props.overrides).some((value) => value !== undefined));
 
 function getPerformanceMarkers(
-  control: BackgroundNumericSettingDefinition,
+  control: NumericSettingDefinition,
 ): readonly { label: string; shortLabel: string; value: number; active: boolean }[] {
   if (!control.presetValues) return [];
 
@@ -55,10 +57,22 @@ function getPerformanceMarkers(
   });
 }
 
-function getResetLabel(control: BackgroundNumericSettingDefinition): string {
+function getResetLabel(control: BackgroundSettingDefinition): string {
+  if (control.type === 'boolean') return 'Use scene default';
+
   return control.presetValues?.[props.performancePreset] === undefined
     ? 'Use scene default'
     : `Use ${props.performancePreset} performance value`;
+}
+
+function getNumericValue(control: NumericSettingDefinition): number {
+  const value = props.values[control.key];
+  return typeof value === 'number' ? value : control.defaultValue;
+}
+
+function getBooleanValue(control: BackgroundSettingDefinition): boolean {
+  const value = props.values[control.key];
+  return typeof value === 'boolean' ? value : control.defaultValue === true;
 }
 </script>
 
@@ -100,24 +114,38 @@ function getResetLabel(control: BackgroundNumericSettingDefinition): string {
         :heading-level="4"
       >
         <div class="grid gap-3">
-          <BackgroundNumericSettingField
+          <template
             v-for="control in group.controls"
             :key="control.key"
-            :label="control.label"
-            :description="control.description"
-            :model-value="values[control.key] ?? control.defaultValue"
-            :min="control.recommended.min"
-            :max="control.recommended.max"
-            :step="control.recommended.step"
-            :runtime-min="control.runtime.min"
-            :runtime-max="control.runtime.max"
-            :editor-range="control.editorRange"
-            :markers="getPerformanceMarkers(control)"
-            :overridden="overrides[control.key] !== undefined"
-            :reset-label="getResetLabel(control)"
-            @update:model-value="emit('change', control.key, $event)"
-            @reset="emit('reset', control.key)"
-          />
+          >
+            <BackgroundBooleanSettingField
+              v-if="control.type === 'boolean'"
+              :label="control.label"
+              :description="control.description"
+              :model-value="getBooleanValue(control)"
+              :overridden="overrides[control.key] !== undefined"
+              :reset-label="getResetLabel(control)"
+              @update:model-value="emit('change', control.key, $event)"
+              @reset="emit('reset', control.key)"
+            />
+            <BackgroundNumericSettingField
+              v-else
+              :label="control.label"
+              :description="control.description"
+              :model-value="getNumericValue(control)"
+              :min="control.recommended.min"
+              :max="control.recommended.max"
+              :step="control.recommended.step"
+              :runtime-min="control.runtime.min"
+              :runtime-max="control.runtime.max"
+              :editor-range="control.editorRange"
+              :markers="getPerformanceMarkers(control)"
+              :overridden="overrides[control.key] !== undefined"
+              :reset-label="getResetLabel(control)"
+              @update:model-value="emit('change', control.key, $event)"
+              @reset="emit('reset', control.key)"
+            />
+          </template>
         </div>
       </SharedAccordion>
     </SharedAccordionGroup>

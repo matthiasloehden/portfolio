@@ -15,7 +15,7 @@ Each scene follows the same four-part structure:
 
 1. `*Background.vue` owns reactive props, browser input, mount/unmount behavior, and performance-mode changes.
 2. `*Renderer.ts` owns drawing resources, theme application, resizing, diagnostics, and scene-specific rendering.
-3. `settings.ts` declares public defaults, editor metadata, performance values, and renderer safety limits.
+3. `config/backgrounds/definitions/*.ts` declares public defaults, editor metadata, performance values, and renderer safety limits.
 4. `config.ts` and `types.ts` contain internal constants and scene-specific TypeScript contracts.
 
 Renderers implement the shared `BackgroundRendererContract`, which requires typed theme updates and base diagnostics.
@@ -38,7 +38,7 @@ identical:
 
 ## Settings flow
 
-[`settings/registry.ts`](../app/components/backgrounds/settings/registry.ts) is the code entry point for configurable
+[`settingsRegistry.ts`](../app/config/backgrounds/settingsRegistry.ts) is the code entry point for configurable
 background behavior. It combines the four scene-owned definitions behind one typed API. The display editor, persistence
 adapter, and scene controllers all consume that API rather than maintaining parallel control lists, defaults, and
 validators.
@@ -56,6 +56,7 @@ allowing invalid geometry sizes, texture capacities, or render resolutions.
 The slider keeps the recommended range visually prominent and uses its remaining width for more extreme values. When a
 runtime boundary removes one extreme side, that space is reassigned to the other side. Performance values remain
 independent markers; the active preset and all concrete preset values are shown without redefining what is recommended.
+Boolean scene settings use accessible switches and follow the same override, persistence, and reset flow.
 
 Display preferences are written as one versioned document by
 [`displayPreferencesStorage.ts`](../app/utils/displayPreferencesStorage.ts). It validates untrusted browser storage and

@@ -91,10 +91,12 @@ export interface WaveSettings {
 }
 
 export interface ParticleSettings {
+  particleCount: number;
   pointSize: number;
   opacity: number;
   idleStrength: number;
   noiseSpeed: number;
+  boundaryCollisions: boolean;
   interactionRadius: number;
   repulsionStrength: number;
   vortexStrength: number;
@@ -123,6 +125,8 @@ export interface MeshSettings {
   interactionDuration: number;
   pixelRatioCap: number;
 }
+
+export type BackgroundSettingValue = number | boolean;
 
 export interface BackgroundSettingsMap {
   wave: WaveSettings;

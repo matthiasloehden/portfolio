@@ -3,6 +3,16 @@ import type { ParticleSettings } from '@/types/background';
 
 /** Editable, persisted and runtime-safe settings for the particle scene. */
 export const particleSettingsDefinition = defineBackgroundSettings<ParticleSettings>({
+  particleCount: {
+    group: 'appearance',
+    label: 'Particle count',
+    description: 'Number of simulated and rendered particles; higher values require more GPU work.',
+    defaultValue: 50_176,
+    recommended: { min: 12_544, max: 50_176, step: 256 },
+    runtime: { min: 1_024, max: 100_000, integer: true },
+    editorRange: { min: 4_096, max: 65_536 },
+    presetValues: { high: 50_176, medium: 25_600, low: 12_544 },
+  },
   pointSize: {
     group: 'appearance',
     label: 'Particle size',
@@ -34,6 +44,13 @@ export const particleSettingsDefinition = defineBackgroundSettings<ParticleSetti
     defaultValue: 0.075,
     recommended: { min: 0, max: 0.2, step: 0.005 },
     runtime: { min: 0, max: 1 },
+  },
+  boundaryCollisions: {
+    type: 'boolean',
+    group: 'appearance',
+    label: 'Window boundary collisions',
+    description: 'Bounce particles off the visible window edges instead of wrapping them around.',
+    defaultValue: false,
   },
   pixelRatioCap: {
     group: 'appearance',

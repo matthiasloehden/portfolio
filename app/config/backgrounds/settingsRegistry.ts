@@ -25,7 +25,7 @@ import {
   resolveSettings,
   sanitizeSettingOverrides,
   type BackgroundSettingsDefinition,
-  type NumericSettingDefinition,
+  type SettingDefinition,
 } from '@/domain/backgrounds/settingsDefinition';
 import { createBackgroundSettingOverrides } from '@/domain/backgrounds/settingOverrides';
 import type { BackgroundSettingsPersistencePolicy } from '@/domain/displayPreferences/contracts';
@@ -35,6 +35,7 @@ import {
   BACKGROUND_IDS,
   type BackgroundId,
   type BackgroundQualityId,
+  type BackgroundSettingValue,
   type BackgroundSettingOverrides,
   type BackgroundSettingOverridesMap,
   type BackgroundSettingsFor,
@@ -52,7 +53,7 @@ export const BACKGROUND_SETTINGS_REGISTRY = {
   mesh: meshSettingsDefinition,
 } satisfies SettingsRegistry;
 
-export type BackgroundNumericSettingDefinition = NumericSettingDefinition<string>;
+export type BackgroundSettingDefinition = SettingDefinition<string>;
 
 function getDefinition<Id extends BackgroundId>(
   background: Id,
@@ -62,7 +63,7 @@ function getDefinition<Id extends BackgroundId>(
   return BACKGROUND_SETTINGS_REGISTRY[background] as BackgroundSettingsDefinition<BackgroundSettingsFor<Id>>;
 }
 
-export function getBackgroundSettingControls(background: BackgroundId): readonly BackgroundNumericSettingDefinition[] {
+export function getBackgroundSettingControls(background: BackgroundId): readonly BackgroundSettingDefinition[] {
   return getDefinition(background).controls;
 }
 
@@ -82,12 +83,12 @@ export function resolveBackgroundSettingsForEditor(
   background: BackgroundId,
   overrides: BackgroundSettingOverridesMap,
   preset: BackgroundQualityId,
-): Readonly<Record<string, number>> {
+): Readonly<Record<string, BackgroundSettingValue>> {
   const resolved = resolveSettings(getDefinition(background), overrides[background], preset);
 
   // The editor deliberately addresses controls by a dynamic string key. Scene
-  // definitions guarantee that every value exposed through this boundary is numeric.
-  return resolved as unknown as Readonly<Record<string, number>>;
+  // definitions guarantee that every value exposed through this boundary is editable.
+  return resolved as unknown as Readonly<Record<string, BackgroundSettingValue>>;
 }
 
 export function createRuntimeBackgroundSettings<Id extends BackgroundId>(

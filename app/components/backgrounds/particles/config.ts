@@ -1,14 +1,12 @@
 import type { BackgroundQualityPreset, BackgroundTheme } from '@/types/background';
 import { getBackgroundThemeColor } from '../shared/themeColors';
 
-export interface ParticleQualityPreset extends BackgroundQualityPreset {
-  resolution: number;
-}
+export type ParticleQualityPreset = BackgroundQualityPreset;
 
 export const PARTICLE_QUALITY_PRESETS = [
-  { id: 'high', resolution: 224, slowFrameThreshold: 22 },
-  { id: 'medium', resolution: 160, slowFrameThreshold: 25 },
-  { id: 'low', resolution: 112, slowFrameThreshold: 30 },
+  { id: 'high', slowFrameThreshold: 22 },
+  { id: 'medium', slowFrameThreshold: 25 },
+  { id: 'low', slowFrameThreshold: 30 },
 ] as const satisfies readonly ParticleQualityPreset[];
 
 export const PARTICLE_CONFIG = {
@@ -32,6 +30,7 @@ export const PARTICLE_CONFIG = {
   maxPointerSpeed: 4.5,
   interactionDecay: 0.72,
   simulationMargin: 1.16,
+  boundaryRestitution: 0.88,
   maxVelocity: 0.72,
   performanceSampleFrames: 120,
   performanceWarmupFrames: 180,

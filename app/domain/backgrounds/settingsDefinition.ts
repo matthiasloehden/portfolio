@@ -1,9 +1,9 @@
-import type { BackgroundQualityId } from '@/types/background';
+import type { BackgroundQualityId, BackgroundSettingValue } from '@/types/background';
 
 /**
- * Framework-neutral description of one editable numeric scene setting.
+ * Framework-neutral descriptions of editable scene settings.
  *
- * Three ranges serve different purposes:
+ * Numeric settings use three ranges for different purposes:
  * - `recommended` defines the highlighted section of the editor slider.
  * - `editorRange` may override the automatically balanced slider bounds.
  * - the number input remains intentionally unbounded so visitors can experiment.
@@ -14,7 +14,7 @@ import type { BackgroundQualityId } from '@/types/background';
  * values, and otherwise the scene default is used.
  */
 
-export type NumericSettingGroup = 'appearance' | 'interaction';
+export type BackgroundSettingGroup = 'appearance' | 'interaction';
 
 export interface NumericSettingRange {
   min: number;
@@ -35,7 +35,8 @@ export interface NumericEditorRange {
 
 export interface NumericSettingDefinition<Key extends string = string> {
   key: Key;
-  group: NumericSettingGroup;
+  type?: 'number';
+  group: BackgroundSettingGroup;
   label: string;
   description: string;
   defaultValue: number;
@@ -45,45 +46,68 @@ export interface NumericSettingDefinition<Key extends string = string> {
   presetValues?: Partial<Record<BackgroundQualityId, number>>;
 }
 
-type NumericSettingKey<Settings extends object> = Extract<keyof Settings, string>;
-
-export interface BackgroundSettingsDefinition<Settings extends object> {
-  controls: readonly NumericSettingDefinition<NumericSettingKey<Settings>>[];
+export interface BooleanSettingDefinition<Key extends string = string> {
+  key: Key;
+  type: 'boolean';
+  group: BackgroundSettingGroup;
+  label: string;
+  description: string;
+  defaultValue: boolean;
 }
 
-type NumericSettingDefinitionMap<Settings extends Record<keyof Settings, number>> = {
-  [Key in NumericSettingKey<Settings>]: Omit<NumericSettingDefinition<Key>, 'key'>;
+export type SettingDefinition<Key extends string = string> =
+  | NumericSettingDefinition<Key>
+  | BooleanSettingDefinition<Key>;
+
+type SettingKey<Settings extends object> = Extract<keyof Settings, string>;
+
+export interface BackgroundSettingsDefinition<Settings extends object> {
+  controls: readonly SettingDefinition<SettingKey<Settings>>[];
+}
+
+type SettingDefinitionInput<Key extends string, Value> = Value extends boolean
+  ? Omit<BooleanSettingDefinition<Key>, 'key'>
+  : Value extends number
+    ? Omit<NumericSettingDefinition<Key>, 'key'>
+    : never;
+
+type SettingDefinitionMap<Settings extends object> = {
+  [Key in SettingKey<Settings>]: SettingDefinitionInput<Key, Settings[Key]>;
 };
 
-export function defineBackgroundSettings<Settings extends Record<keyof Settings, number>>(
-  definitions: NumericSettingDefinitionMap<Settings>,
+export function defineBackgroundSettings<Settings extends object>(
+  definitions: SettingDefinitionMap<Settings>,
 ): BackgroundSettingsDefinition<Settings> {
   // An object map makes every settings-interface key mandatory and inherently
   // unique. Object insertion order then becomes the editor's display order.
   const entries = Object.entries(definitions) as [
-    NumericSettingKey<Settings>,
-    NumericSettingDefinitionMap<Settings>[NumericSettingKey<Settings>],
+    SettingKey<Settings>,
+    SettingDefinitionMap<Settings>[SettingKey<Settings>],
   ][];
-  const controls = entries.map(([key, definition]) => ({ ...definition, key }));
+  const controls = entries.map(([key, definition]) => ({ ...definition, key })) as SettingDefinition<
+    SettingKey<Settings>
+  >[];
 
   return { controls };
 }
 
-function setNumericValue<Settings extends object>(
+function setSettingValue<Settings extends object>(
   target: Partial<Settings>,
-  key: NumericSettingKey<Settings>,
-  value: number,
+  key: SettingKey<Settings>,
+  value: BackgroundSettingValue,
 ): void {
-  // TypeScript cannot express indexed assignment for a mapped numeric object;
+  // TypeScript cannot express indexed assignment for a mapped settings object;
   // keeping the assertion here prevents casts from leaking into consumers.
   (target as Record<string, unknown>)[key] = value;
 }
 
-function readFiniteOverride<Settings extends object>(
+function readValidOverride<Settings extends object>(
   overrides: Partial<Settings> | undefined,
-  key: NumericSettingKey<Settings>,
-): number | undefined {
-  const value = overrides?.[key];
+  control: SettingDefinition<SettingKey<Settings>>,
+): BackgroundSettingValue | undefined {
+  const value = overrides?.[control.key];
+
+  if (control.type === 'boolean') return typeof value === 'boolean' ? value : undefined;
   return typeof value === 'number' && Number.isFinite(value) ? value : undefined;
 }
 
@@ -93,7 +117,7 @@ export function createDefaultSettings<Settings extends object>(
   const defaults: Partial<Settings> = {};
 
   for (const control of definition.controls) {
-    setNumericValue(defaults, control.key, control.defaultValue);
+    setSettingValue(defaults, control.key, control.defaultValue);
   }
 
   return defaults as Settings;
@@ -107,9 +131,9 @@ export function resolveSettings<Settings extends object>(
   const resolved: Partial<Settings> = {};
 
   for (const control of definition.controls) {
-    const override = readFiniteOverride(overrides, control.key);
-    const value = override ?? control.presetValues?.[preset] ?? control.defaultValue;
-    setNumericValue(resolved, control.key, value);
+    const override = readValidOverride(overrides, control);
+    const presetValue = control.type === 'boolean' ? undefined : control.presetValues?.[preset];
+    setSettingValue(resolved, control.key, override ?? presetValue ?? control.defaultValue);
   }
 
   return resolved as Settings;
@@ -122,9 +146,16 @@ export function createRuntimeSettings<Settings extends object>(
   const runtimeSettings: Partial<Settings> = {};
 
   for (const control of definition.controls) {
-    const candidate = readFiniteOverride(settings, control.key) ?? control.defaultValue;
-    const bounded = Math.min(control.runtime.max, Math.max(control.runtime.min, candidate));
-    setNumericValue(runtimeSettings, control.key, control.runtime.integer ? Math.round(bounded) : bounded);
+    const candidate = readValidOverride(settings, control) ?? control.defaultValue;
+
+    if (control.type === 'boolean') {
+      setSettingValue(runtimeSettings, control.key, candidate);
+      continue;
+    }
+
+    const numericCandidate = typeof candidate === 'number' ? candidate : control.defaultValue;
+    const bounded = Math.min(control.runtime.max, Math.max(control.runtime.min, numericCandidate));
+    setSettingValue(runtimeSettings, control.key, control.runtime.integer ? Math.round(bounded) : bounded);
   }
 
   return runtimeSettings as Settings;
@@ -144,8 +175,10 @@ export function sanitizeSettingOverrides<Settings extends object>(
   for (const control of definition.controls) {
     const value = source[control.key];
 
-    if (typeof value === 'number' && Number.isFinite(value)) {
-      setNumericValue(overrides, control.key, value);
+    if (control.type === 'boolean') {
+      if (typeof value === 'boolean') setSettingValue(overrides, control.key, value);
+    } else if (typeof value === 'number' && Number.isFinite(value)) {
+      setSettingValue(overrides, control.key, value);
     }
   }
 

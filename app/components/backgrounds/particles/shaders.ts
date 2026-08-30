@@ -23,6 +23,8 @@ export const velocityShader = /* glsl */ `
   uniform float uScrollStrength;
   uniform float uMaxVelocity;
   uniform float uAspect;
+  uniform bool uBoundaryCollisions;
+  uniform float uBoundaryRestitution;
   uniform vec2 uPointer;
   uniform vec2 uPointerVelocity;
 
@@ -172,6 +174,17 @@ export const velocityShader = /* glsl */ `
     float maxVelocity = mix(uMaxVelocity, uInteractionMaxVelocity, momentum);
     if (speed > maxVelocity) velocity *= maxVelocity / speed;
 
+    if (uBoundaryCollisions) {
+      vec2 limit = vec2(uAspect, 1.0);
+
+      if ((position.x <= -limit.x && velocity.x < 0.0) || (position.x >= limit.x && velocity.x > 0.0)) {
+        velocity.x *= -uBoundaryRestitution;
+      }
+      if ((position.y <= -limit.y && velocity.y < 0.0) || (position.y >= limit.y && velocity.y > 0.0)) {
+        velocity.y *= -uBoundaryRestitution;
+      }
+    }
+
     float zVelocity = sin(uTime * 0.13 + seed * 12.0 + position.x) * 0.006;
     gl_FragColor = vec4(velocity, zVelocity, velocityData.w);
   }
@@ -181,6 +194,7 @@ export const positionShader = /* glsl */ `
   uniform float uDelta;
   uniform float uAspect;
   uniform float uSimulationMargin;
+  uniform bool uBoundaryCollisions;
 
   void main() {
     vec2 uv = gl_FragCoord.xy / resolution.xy;
@@ -191,9 +205,13 @@ export const positionShader = /* glsl */ `
     float limitX = uAspect * uSimulationMargin;
     float limitY = uSimulationMargin;
 
-    // Soft wrapping in a domain larger than the viewport avoids visible walls.
-    position.x = mod(position.x + limitX, limitX * 2.0) - limitX;
-    position.y = mod(position.y + limitY, limitY * 2.0) - limitY;
+    if (uBoundaryCollisions) {
+      position.xy = clamp(position.xy, vec2(-uAspect, -1.0), vec2(uAspect, 1.0));
+    } else {
+      // Soft wrapping in a domain larger than the viewport avoids visible walls.
+      position.x = mod(position.x + limitX, limitX * 2.0) - limitX;
+      position.y = mod(position.y + limitY, limitY * 2.0) - limitY;
+    }
     position.z = clamp(position.z, -0.18, 0.18);
 
     gl_FragColor = vec4(position, positionData.w);
