@@ -75,7 +75,6 @@ test.describe('Accessibility', () => {
     await dialog.getByRole('button', { name: 'Advanced background settings', exact: true }).click();
     await expect(dialog.getByRole('heading', { name: /Background\s+Advanced settings/ })).toBeVisible();
     await expandSettingsAccordion(dialog, 'Animations');
-    await expandSettingsAccordion(dialog, /Configure active background/);
     await expandSettingsAccordion(dialog, 'Appearance');
     await expandSettingsAccordion(dialog, 'Interactions');
 

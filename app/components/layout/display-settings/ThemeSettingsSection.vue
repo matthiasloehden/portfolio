@@ -16,14 +16,8 @@ function focusAdvancedButton(options?: FocusOptions): void {
 
 defineExpose({ focus: focusAdvancedButton });
 
-const {
-  themePreference,
-  resolvedThemeMode,
-  resolvedThemePreset,
-  themeSettings,
-  setThemePreference,
-  setThemePreset,
-} = useDisplayPreferences();
+const { themePreference, resolvedThemeMode, resolvedThemePreset, themeSettings, setThemePreference, setThemePreset } =
+  useDisplayPreferences();
 
 const themeOptions: readonly { value: ThemePreference; label: string }[] = [
   { value: 'system', label: 'System' },

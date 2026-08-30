@@ -73,16 +73,8 @@ const animationOptions: readonly {
   { key: 'scroll', label: 'Scroll response', description: 'React to scrolling and wheel gestures.' },
 ];
 
-const pageEnterFromClass = computed(() =>
-  pageTransitionDirection.value === 'forward'
-    ? 'opacity-0'
-    : 'opacity-0',
-);
-const pageLeaveToClass = computed(() =>
-  pageTransitionDirection.value === 'forward'
-    ? 'opacity-0'
-    : 'opacity-0',
-);
+const pageEnterFromClass = computed(() => (pageTransitionDirection.value === 'forward' ? 'opacity-0' : 'opacity-0'));
+const pageLeaveToClass = computed(() => (pageTransitionDirection.value === 'forward' ? 'opacity-0' : 'opacity-0'));
 
 const activeBackground = computed(() => resolvedBackground.value);
 const activeBackgroundLabel = computed(() => getBackgroundLabel(activeBackground.value));

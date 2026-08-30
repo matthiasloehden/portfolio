@@ -92,8 +92,7 @@ function updateListboxPosition(): void {
   const spaceAbove = triggerBounds.top - LISTBOX_GAP - VIEWPORT_MARGIN;
   const styles = getComputedStyle(listboxElement);
   const heightLimit = getListboxHeightLimit(listboxElement);
-  const fullHeight =
-    listboxElement.scrollHeight + toPixels(styles.borderTopWidth) + toPixels(styles.borderBottomWidth);
+  const fullHeight = listboxElement.scrollHeight + toPixels(styles.borderTopWidth) + toPixels(styles.borderBottomWidth);
   const preferredHeight = Math.min(fullHeight, heightLimit);
   const opensAbove = spaceBelow < preferredHeight && spaceAbove > spaceBelow;
   const availableHeight = Math.max(0, opensAbove ? spaceAbove : spaceBelow);
@@ -394,7 +393,9 @@ onBeforeUnmount(() => {
               activeIndex === index
                 ? 'border-primary bg-[color-mix(in_srgb,var(--primary)_8%,var(--surface))] text-foreground'
                 : 'border-transparent bg-background text-foreground hover:border-line-strong',
-              modelValue === option.value ? 'outline outline-1 outline-offset-[-2px] outline-primary-bright' : undefined,
+              modelValue === option.value
+                ? 'outline outline-1 outline-offset-[-2px] outline-primary-bright'
+                : undefined,
             ]"
             role="option"
             :aria-selected="activeIndex === index"

@@ -124,11 +124,7 @@ export function useDisplayPreferences() {
   }
 
   function applyBackgroundPreference(): void {
-    resolvedBackground.value = resolveBackground(
-      activeRoutePath,
-      backgroundPreference.value,
-      backgroundRandomValue,
-    );
+    resolvedBackground.value = resolveBackground(activeRoutePath, backgroundPreference.value, backgroundRandomValue);
   }
 
   function createThemeRandomValue(): void {

@@ -25,7 +25,6 @@ async function openBackgroundAdvancedSettings(dialog: Locator): Promise<void> {
 
 async function openTriangleAppearanceSettings(dialog: Locator): Promise<void> {
   await openBackgroundAdvancedSettings(dialog);
-  await expandSettingsAccordion(dialog, /Configure active background/);
   await expandSettingsAccordion(dialog, 'Appearance');
 }
 
@@ -247,9 +246,7 @@ test.describe('Display settings', () => {
       )
       .toBe(true);
     await expect
-      .poll(() =>
-        getSelectListbox(bodyFont).evaluate((listbox) => listbox.scrollHeight > listbox.clientHeight),
-      )
+      .poll(() => getSelectListbox(bodyFont).evaluate((listbox) => listbox.scrollHeight > listbox.clientHeight))
       .toBe(true);
     await expect
       .poll(() =>
@@ -355,9 +352,7 @@ test.describe('Display settings', () => {
     ]);
     await expect(getSelectOptions(background).locator('[data-background-preview]')).toHaveCount(7);
     await expect
-      .poll(() =>
-        getSelectListbox(background).evaluate((listbox) => listbox.scrollHeight <= listbox.clientHeight),
-      )
+      .poll(() => getSelectListbox(background).evaluate((listbox) => listbox.scrollHeight <= listbox.clientHeight))
       .toBe(true);
     await expect(
       getSelectListbox(background)
@@ -539,9 +534,9 @@ test('migrates one representative legacy background override into the versioned 
   await page.goto('/work');
   await waitForApp(page);
   const dialog = await openDisplaySettings(page);
+  await expect(getSelect(dialog, 'Background')).toHaveText('Triangles');
   await openTriangleAppearanceSettings(dialog);
 
-  await expect(getSelect(dialog, 'Background')).toHaveText('Triangles');
   await expect(getPerformanceSelect(dialog)).toHaveText('Medium');
   await expect(dialog.getByRole('spinbutton', { name: 'Triangle density value' })).toHaveValue('1.3');
 
