@@ -84,9 +84,12 @@ export function defineBackgroundSettings<Settings extends object>(
     SettingKey<Settings>,
     SettingDefinitionMap<Settings>[SettingKey<Settings>],
   ][];
-  const controls = entries.map(([key, definition]) => ({ ...definition, key })) as SettingDefinition<
-    SettingKey<Settings>
-  >[];
+  // Object.entries cannot preserve the correlation between each mapped key and
+  // its conditional definition type. The map above validates that correlation.
+  const controls = entries.map(([key, definition]) => ({
+    ...definition,
+    key,
+  })) as unknown as SettingDefinition<SettingKey<Settings>>[];
 
   return { controls };
 }
