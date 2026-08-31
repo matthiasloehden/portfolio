@@ -17,7 +17,7 @@ test.describe('Personal page', () => {
     await expectPageContract(page, {
       path: '/personal',
       title: personalMeta.title,
-      heading: getDisplayHeadingText(personalHero.titleLines),
+      heading: getDisplayHeadingText(personalHero.title),
       background: '.particle-background',
       themePreset: 'teal',
     });
@@ -27,7 +27,7 @@ test.describe('Personal page', () => {
 
     for (const project of personalSections) {
       await expect(
-        page.getByRole('heading', { name: getDisplayHeadingText(project.titleLines), exact: true }),
+        page.getByRole('heading', { name: getDisplayHeadingText(project.title), exact: true }),
       ).toBeAttached();
     }
 
@@ -37,7 +37,7 @@ test.describe('Personal page', () => {
 
     await overview.getByRole('link', { name: hardwareSection.listTitle }).click();
     await expect(page).toHaveURL((url) => url.hash === `#${hardwareSection.id}`);
-    await expectHeadingInViewport(page, getDisplayHeadingText(hardwareSection.titleLines));
+    await expectHeadingInViewport(page, getDisplayHeadingText(hardwareSection.title));
 
     const sourceAction = personalClosing.actions.find((action) => action.href?.startsWith('http'));
     if (!sourceAction?.href) throw new Error('The personal page needs an external source action');

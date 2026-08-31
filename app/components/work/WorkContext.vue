@@ -20,7 +20,8 @@ defineProps<{
         id="work-context-title"
         class="max-w-[10ch]!"
         size="overview"
-        :lines="content.titleLines"
+        :title="content.title"
+        :accent="content.accent"
       />
 
       <div class="mt-8 flex flex-col gap-2">

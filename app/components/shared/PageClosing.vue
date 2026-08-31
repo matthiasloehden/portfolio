@@ -39,7 +39,8 @@ const copyWidthClasses: Record<ClosingWidth, string> = {
       :id="`${id}-title`"
       :class="['motion-hover mx-0 sm:mx-auto', titleWidthClasses[width]]"
       size="closing"
-      :lines="content.titleLines"
+      :title="content.title"
+      :accent="content.accent"
       data-reveal="scale"
     />
     <p

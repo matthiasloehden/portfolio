@@ -23,7 +23,8 @@ const revealDelayClasses = ['', '[--reveal-delay:75ms]', '[--reveal-delay:150ms]
       <SharedDisplayHeading
         id="capabilities-title"
         class="motion-hover"
-        :lines="content.titleLines"
+        :title="content.title"
+        :accent="content.accent"
         data-reveal="left"
       />
       <p

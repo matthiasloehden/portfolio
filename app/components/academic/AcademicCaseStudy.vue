@@ -16,7 +16,8 @@ const noteDelayClasses = ['[--reveal-delay:120ms]', '[--reveal-delay:185ms]'];
     :number="number"
     :category="category"
     :type="type"
-    :title-lines="titleLines"
+    :title="title"
+    :accent="accent"
     :reverse="reverse"
   >
     <template #copy>

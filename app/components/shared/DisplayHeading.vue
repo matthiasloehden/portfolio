@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { DisplayHeadingLine } from '@/types/content';
+import type { DisplayHeadingAccent, DisplayHeadingLine, DisplayHeadingTitle } from '@/types/content';
 import { getDisplayHeadingText } from '@/utils/displayHeading';
 
 type HeadingLevel = 'h1' | 'h2' | 'h3';
@@ -9,15 +9,37 @@ const props = withDefaults(
   defineProps<{
     level?: HeadingLevel;
     size?: HeadingSize;
-    lines?: DisplayHeadingLine[];
+    title?: DisplayHeadingTitle;
+    accent?: DisplayHeadingAccent;
   }>(),
   {
     level: 'h2',
     size: 'section',
+    accent: false,
   },
 );
 
-const linesLabel = computed(() => (props.lines ? getDisplayHeadingText(props.lines) : undefined));
+const lines = computed<DisplayHeadingLine[] | undefined>(() => {
+  if (props.title === undefined) {
+    return undefined;
+  }
+
+  return typeof props.title === 'string' ? [props.title] : props.title;
+});
+
+const titleLabel = computed(() => (props.title === undefined ? undefined : getDisplayHeadingText(props.title)));
+
+function getLineSegments(line: DisplayHeadingLine): string[] {
+  return typeof line === 'string' ? [line] : line;
+}
+
+function startsWithAccent(lineIndex: number): boolean {
+  return Array.isArray(props.accent) ? (props.accent[lineIndex] ?? false) : props.accent;
+}
+
+function hasAccent(lineIndex: number, segmentIndex: number): boolean {
+  return startsWithAccent(lineIndex) ? segmentIndex % 2 === 0 : segmentIndex % 2 !== 0;
+}
 
 const accentClasses =
   'text-primary-bright not-italic [text-shadow:0_0_3rem_color-mix(in_srgb,var(--primary)_18%,transparent)]';
@@ -43,19 +65,24 @@ const sizeClasses: Record<HeadingSize, string> = {
   <component
     :is="level"
     :class="['font-display font-bold text-balance uppercase [font-stretch:condensed]', sizeClasses[size]]"
-    :aria-label="linesLabel"
+    :aria-label="titleLabel"
   >
     <template v-if="lines">
       <template
-        v-for="(line, index) in lines"
-        :key="`${line.text}-${index}`"
+        v-for="(line, lineIndex) in lines"
+        :key="`${getLineSegments(line).join('')}-${lineIndex}`"
       >
-        <em
-          v-if="line.accent"
-          :class="accentClasses"
-          >{{ line.text }}</em
-        ><template v-else>{{ line.text }}</template
-        >{{ line.suffix }}<br v-if="index < lines.length - 1" />
+        <template
+          v-for="(segment, segmentIndex) in getLineSegments(line)"
+          :key="`${segment}-${segmentIndex}`"
+        >
+          <em
+            v-if="hasAccent(lineIndex, segmentIndex)"
+            :class="accentClasses"
+            >{{ segment }}</em
+          ><template v-else>{{ segment }}</template>
+        </template>
+        <br v-if="lineIndex < lines.length - 1" />
       </template>
     </template>
     <slot v-else />

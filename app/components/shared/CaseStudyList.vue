@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import type { CaseStudyListItem, DisplayHeadingLine } from '@/types/content';
+import type { CaseStudyListItem, DisplayHeadingAccent, DisplayHeadingTitle } from '@/types/content';
 
 defineProps<{
   id: string;
   titleId: string;
   label: string;
-  titleLines: DisplayHeadingLine[];
+  title: DisplayHeadingTitle;
+  accent?: DisplayHeadingAccent;
   items: CaseStudyListItem[];
 }>();
 
@@ -31,7 +32,8 @@ const revealDelayClasses = [
       <SharedDisplayHeading
         :id="titleId"
         size="overview"
-        :lines="titleLines"
+        :title="title"
+        :accent="accent"
       />
     </div>
     <ol class="m-0 list-none border-t border-line p-0">

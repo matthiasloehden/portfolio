@@ -15,7 +15,7 @@ test.describe('Academic page', () => {
     await expectPageContract(page, {
       path: '/academic',
       title: academicMeta.title,
-      heading: getDisplayHeadingText(academicHero.titleLines),
+      heading: getDisplayHeadingText(academicHero.title),
       background: '.mesh-background',
       themePreset: 'aurora',
     });
@@ -25,7 +25,7 @@ test.describe('Academic page', () => {
 
     for (const project of academicCases) {
       await expect(
-        page.getByRole('heading', { name: getDisplayHeadingText(project.titleLines), exact: true }),
+        page.getByRole('heading', { name: getDisplayHeadingText(project.title), exact: true }),
       ).toBeAttached();
     }
 
@@ -35,6 +35,6 @@ test.describe('Academic page', () => {
 
     await overview.getByRole('link', { name: passkeysCase.listTitle }).click();
     await expect(page).toHaveURL((url) => url.hash === `#${passkeysCase.id}`);
-    await expectHeadingInViewport(page, getDisplayHeadingText(passkeysCase.titleLines));
+    await expectHeadingInViewport(page, getDisplayHeadingText(passkeysCase.title));
   });
 });

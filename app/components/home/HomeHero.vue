@@ -24,7 +24,8 @@ defineProps<{
           level="h1"
           size="hero"
           class="[--reveal-delay:75ms]"
-          :lines="content.titleLines"
+          :title="content.title"
+          :accent="content.accent"
           data-reveal="up"
         />
         <div

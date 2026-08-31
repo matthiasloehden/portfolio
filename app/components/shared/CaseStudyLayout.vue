@@ -1,12 +1,13 @@
 <script setup lang="ts">
-import type { DisplayHeadingLine } from '@/types/content';
+import type { DisplayHeadingAccent, DisplayHeadingTitle } from '@/types/content';
 
 defineProps<{
   id: string;
   number: string;
   category: string;
   type: string;
-  titleLines: DisplayHeadingLine[];
+  title: DisplayHeadingTitle;
+  accent?: DisplayHeadingAccent;
   summary?: string;
   reverse?: boolean;
 }>();
@@ -39,7 +40,8 @@ defineProps<{
         <SharedDisplayHeading
           :id="`${id}-title`"
           size="case"
-          :lines="titleLines"
+          :title="title"
+          :accent="accent"
         />
         <p
           v-if="summary"

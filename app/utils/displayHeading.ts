@@ -1,5 +1,9 @@
-import type { DisplayHeadingLine } from '@/types/content';
+import type { DisplayHeadingTitle } from '@/types/content';
 
-export function getDisplayHeadingText(lines: DisplayHeadingLine[]): string {
-  return lines.map((line) => `${line.text}${line.suffix ?? ''}`).join(' ');
+export function getDisplayHeadingText(title: DisplayHeadingTitle): string {
+  if (typeof title === 'string') {
+    return title;
+  }
+
+  return title.map((line) => (typeof line === 'string' ? line : line.join(''))).join(' ');
 }

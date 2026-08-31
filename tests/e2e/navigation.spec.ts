@@ -36,7 +36,7 @@ test.describe('Shared navigation', () => {
     await expectPageContract(page, {
       path: workRoute.to,
       title: workMeta.title,
-      heading: getDisplayHeadingText(workHero.titleLines),
+      heading: getDisplayHeadingText(workHero.title),
       background: '.triangle-background',
       themePreset: 'crimson',
     });

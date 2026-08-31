@@ -26,7 +26,8 @@ const revealDelayClasses = ['', '[--reveal-delay:100ms]'];
       />
       <SharedDisplayHeading
         id="about-title"
-        :lines="content.titleLines"
+        :title="content.title"
+        :accent="content.accent"
       />
     </div>
     <div class="grid content-center gap-6 text-base leading-[1.8] text-muted sm:text-[1.06rem] lg:text-[1.12rem]">

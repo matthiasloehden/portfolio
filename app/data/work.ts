@@ -19,7 +19,8 @@ export const learningCase: WorkCaseStudyContent = {
   listCategory: 'Learning platform',
   category: 'Enterprise client',
   type: 'Learning & content',
-  titleLines: [{ text: 'Enterprise' }, { text: 'learning', accent: true, suffix: ' platform' }],
+  title: ['Enterprise', ['learning', ' platform']],
+  accent: [false, true],
   summary: 'Learning platform with a custom CMS, role-based access, and multiple content formats.',
   paragraphs: [
     'Our team at TopRed Media was responsible for developing the application and managing its content. Its custom CMS supported events, videos, podcasts, and articles in one system.',
@@ -39,7 +40,8 @@ export const retailCase: WorkCaseStudyContent = {
   listCategory: 'Shop operations',
   category: 'Enterprise client',
   type: 'Retail operations',
-  titleLines: [{ text: 'Retail', accent: true, suffix: ' operations' }, { text: 'platform' }],
+  title: [['Retail', ' operations'], 'platform'],
+  accent: [true, false],
   summary: 'Operational platform for shop data, tasks, workflows, and Excel-based reporting.',
   paragraphs: [
     'Our team built a central platform where shop employees received and completed operational tasks, including documenting completed work with photo uploads.',
@@ -60,7 +62,8 @@ export const signageCase: WorkCaseStudyContent = {
   listCategory: 'Digital signage',
   category: 'Enterprise client',
   type: 'Digital signage',
-  titleLines: [{ text: 'Digital' }, { text: 'signage', accent: true, suffix: ' control' }, { text: 'system' }],
+  title: ['Digital', ['signage', ' control'], 'system'],
+  accent: [false, true, false],
   summary: 'Python service and Electron UI for remote display control and operational monitoring.',
   paragraphs: [
     'I was responsible for a Python service with an Electron frontend that ran on digital-signage players and controlled their connected displays while advertisements were playing.',
@@ -80,7 +83,8 @@ export const clientCase: WorkCaseStudyContent = {
   listCategory: 'CMS & communication',
   category: 'TopRed Media',
   type: 'Company product',
-  titleLines: [{ text: 'Configurable', accent: true }, { text: 'client platform' }],
+  title: ['Configurable', 'client platform'],
+  accent: [true, false],
   summary:
     'A shared application foundation with client-specific modules for content, communication, and access control.',
   paragraphs: [
@@ -99,7 +103,8 @@ export const workCases = [learningCase, retailCase, signageCase, clientCase];
 export const workHero: WorkHeroContent = {
   kickerPrefix: '[ 2019–2025 ]',
   kicker: 'Professional software development',
-  titleLines: [{ text: 'Production' }, { text: 'software.', accent: true }],
+  title: ['Production', 'software.'],
+  accent: [false, true],
   introduction: [
     'At TopRed Media GmbH, I contributed across the full lifecycle of production enterprise applications, from initial development through years of feature development, refactoring, integrations, and maintenance.',
     'Working in a three-developer team, I contributed across the stack as requirements, workflows, and the products themselves continuously evolved.',
@@ -117,18 +122,15 @@ export const workOverview: WorkOverviewContent = {
   id: 'work-list',
   titleId: 'work-list-title',
   label: 'Selected professional work',
-  titleLines: [{ text: 'Four selected' }, { text: 'production', accent: true }, { text: 'systems.' }],
+  title: ['Four selected', 'production', 'systems.'],
+  accent: [false, true, false],
   items: createCaseStudyListItems(workCases),
 };
 
 export const workContext: WorkContextContent = {
   kicker: 'Technology overview',
-  titleLines: [
-    { text: 'Core' },
-    { text: 'technologies', accent: true },
-    { text: 'across these' },
-    { text: 'projects.' },
-  ],
+  title: ['Core', 'technologies', 'across these', 'projects.'],
+  accent: [false, true, false, false],
   stack: {
     languages: ['PHP', 'SQL', 'JavaScript'],
     backend: ['Laravel', 'MySQL', 'Redis', 'Meilisearch'],
@@ -148,7 +150,8 @@ export const workContext: WorkContextContent = {
 export const workClosing: WorkClosingContent = {
   kickerPrefix: '/',
   kicker: 'Professional scope',
-  titleLines: [{ text: 'About these' }, { text: 'projects.', accent: true }],
+  title: ['About these', 'projects.'],
+  accent: [false, true],
   description:
     'These client projects and the company-owned product are intentionally described at a system level. Together, they represent the range of production software I worked on: application workflows, user interfaces, data, permissions, search, integrations, maintenance, and software interacting with physical systems.',
   actions: [

@@ -28,7 +28,7 @@ test.describe('Motion preferences and scroll reveal', () => {
 
     await expect.poll(() => page.locator('[data-reveal]:not(.is-revealed)').count()).toBe(0);
     await expect(
-      page.getByRole('heading', { name: getDisplayHeadingText(hardwareSection.titleLines), exact: true }),
+      page.getByRole('heading', { name: getDisplayHeadingText(hardwareSection.title), exact: true }),
     ).toBeAttached();
   });
 });

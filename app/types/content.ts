@@ -6,14 +6,15 @@ interface NavigationItemBase {
 
 export type NavigationItem = NavigationItemBase & ({ to: string; href?: never } | { href: string; to?: never });
 
-export interface DisplayHeadingLine {
-  text: string;
-  accent?: boolean;
-  suffix?: string;
-}
+export type DisplayHeadingLine = string | string[];
+
+export type DisplayHeadingTitle = string | DisplayHeadingLine[];
+
+export type DisplayHeadingAccent = boolean | boolean[];
 
 export interface DisplayHeadingContent {
-  titleLines: DisplayHeadingLine[];
+  title: DisplayHeadingTitle;
+  accent?: DisplayHeadingAccent;
 }
 
 export interface CaseStudyListItem {

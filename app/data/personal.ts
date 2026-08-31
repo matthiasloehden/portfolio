@@ -20,7 +20,8 @@ export const openSourceSection: PersonalSectionContent = {
   listCategory: 'Features & fixes',
   category: 'Open source',
   type: 'Useful changes, shared back',
-  titleLines: [{ text: 'Improving the' }, { text: 'tools', accent: true, suffix: ' I already use.' }],
+  title: ['Improving the', ['tools', ' I already use.']],
+  accent: [false, true],
   lead: 'My personal projects often begin with a practical need. Sometimes the best place to solve it is upstream.',
   paragraphs: [
     'I contribute features and fixes to tools I actually use, from smart-home and remote-control software to game-server management.',
@@ -36,7 +37,8 @@ export const homelabSection: PersonalSectionContent = {
   listCategory: 'Docker & local AI',
   category: 'Homelab',
   type: 'Infrastructure at home',
-  titleLines: [{ text: 'Running' }, { text: 'software', accent: true }, { text: 'beyond localhost.' }],
+  title: ['Running', 'software', 'beyond localhost.'],
+  accent: [false, true, false],
   lead: 'I use my own PC to learn how applications behave when they depend on containers, services, and the resources around them.',
   paragraphs: [
     'I use Docker to run and isolate services on my own hardware, host applications and game-server workloads, and experiment with running large language models locally.',
@@ -52,11 +54,8 @@ export const learningSection: PersonalSectionContent = {
   listCategory: 'Learning from first principles',
   category: 'Learning',
   type: 'From low level to architecture',
-  titleLines: [
-    { text: 'From' },
-    { text: 'transistors', accent: true, suffix: ' to' },
-    { text: 'software architecture.' },
-  ],
+  title: ['From', ['transistors', ' to'], 'software architecture.'],
+  accent: [false, true, false],
   lead: 'I enjoy understanding technology from the lowest levels up.',
   paragraphs: [
     'Understanding software abstractions often requires examining the layers beneath them. The creators I follow explore that stack through digital logic, computer architecture, operating systems, algorithms, mathematics, and engineering.',
@@ -72,7 +71,8 @@ export const hardwareSection: PersonalSectionContent = {
   listCategory: 'Building & cooling',
   category: 'Hardware',
   type: 'Built, tuned, understood',
-  titleLines: [{ text: 'The machine', accent: true }, { text: 'matters too.' }],
+  title: ['The machine', 'matters too.'],
+  accent: [true, false],
   lead: 'My interest in technology does not stop at software. I am passionate about PC hardware and enjoy building systems myself.',
   paragraphs: [
     'My PC uses a custom water-cooling loop with four radiators and two pumps. Planning and building it brings together what I enjoy most about hardware: precision, performance, and understanding how every part affects the whole.',
@@ -86,7 +86,8 @@ export const personalSections = [openSourceSection, homelabSection, learningSect
 export const personalHero: PersonalHeroContent = {
   kickerPrefix: '[ OPEN / CURIOUS ]',
   kicker: 'Personal projects & interests',
-  titleLines: [{ text: 'Built from' }, { text: 'curiosity.', accent: true }],
+  title: ['Built from', 'curiosity.'],
+  accent: [false, true],
   introduction: [
     'Beyond professional and university work, I contribute to tools I use, run systems at home, keep learning, and build PCs down to the cooling loop.',
   ],
@@ -103,23 +104,16 @@ export const personalOverview: PersonalOverviewContent = {
   id: 'personal-list',
   titleId: 'personal-list-title',
   label: 'Outside client & university work',
-  titleLines: [
-    { text: 'Projects,' },
-    { text: 'systems', accent: true, suffix: ' &' },
-    { text: 'technical interests.' },
-  ],
+  title: ['Projects,', ['systems', ' &'], 'technical interests.'],
+  accent: [false, true, false],
   items: createCaseStudyListItems(personalSections),
 };
 
 export const personalClosing: PageClosingContent = {
   kickerPrefix: '/ ALWAYS LEARNING',
   kicker: 'Curiosity in practice',
-  titleLines: [
-    { text: 'The best' },
-    { text: 'projects', accent: true, suffix: ' start' },
-    { text: 'with wanting' },
-    { text: 'to know more.' },
-  ],
+  title: ['The best', ['projects', ' start'], 'with wanting', 'to know more.'],
+  accent: [false, true, false, false],
   description:
     'Whether it is a pull request, a container, or a cooling loop, I learn by understanding the system and making it work for a real purpose.',
   actions: [

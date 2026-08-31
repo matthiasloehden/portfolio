@@ -35,7 +35,8 @@ withDefaults(
         level="h1"
         size="page"
         class="motion-hover"
-        :lines="content.titleLines"
+        :title="content.title"
+        :accent="content.accent"
         data-reveal="left"
       />
 

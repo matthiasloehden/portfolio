@@ -8,18 +8,18 @@ test.describe('Home page', () => {
     await expectPageContract(page, {
       path: '/',
       title: `${site.name} | ${site.role}`,
-      heading: getDisplayHeadingText(homeHero.titleLines),
+      heading: getDisplayHeadingText(homeHero.title),
       background: '.wave-background',
       themePreset: 'arctic',
     });
 
     await expect(page.getByText(homeHero.highlights[0].description, { exact: true })).toBeVisible();
     await expect(
-      page.getByRole('heading', { name: getDisplayHeadingText(homeAbout.titleLines), exact: true }),
+      page.getByRole('heading', { name: getDisplayHeadingText(homeAbout.title), exact: true }),
     ).toBeAttached();
     await expect(
       page.getByRole('heading', {
-        name: getDisplayHeadingText(homeCapabilities.titleLines),
+        name: getDisplayHeadingText(homeCapabilities.title),
         exact: true,
       }),
     ).toBeAttached();
@@ -38,7 +38,7 @@ test.describe('Home page', () => {
     await capabilities.getByRole('link', { name: `View ${firstCapability.title} section`, exact: true }).click();
     await expect(page).toHaveURL((url) => url.pathname === firstCapability.to);
     await expect(
-      page.getByRole('heading', { level: 1, name: getDisplayHeadingText(workHero.titleLines) }),
+      page.getByRole('heading', { level: 1, name: getDisplayHeadingText(workHero.title) }),
     ).toBeVisible();
   });
 });
