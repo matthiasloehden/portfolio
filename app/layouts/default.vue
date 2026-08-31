@@ -12,10 +12,13 @@ const {
   backgroundSettingOverrides,
   backgroundPerformance,
   syncDisplayForRoute,
+  syncThemeForRoute,
   initializePreferences,
   disposePreferences,
 } = useDisplayPreferences();
 const route = useRoute();
+const nuxtApp = useNuxtApp();
+const removeThemeRouteHook = nuxtApp.hook('page:transition:finish', syncThemeForRoute);
 
 watch(
   () => route.path,
@@ -23,7 +26,10 @@ watch(
   { flush: 'post' },
 );
 onMounted(() => initializePreferences(route.path));
-onBeforeUnmount(disposePreferences);
+onBeforeUnmount(() => {
+  removeThemeRouteHook();
+  disposePreferences();
+});
 
 useHead({
   script: [

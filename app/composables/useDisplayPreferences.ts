@@ -274,11 +274,13 @@ export function useDisplayPreferences() {
 
   function syncDisplayForRoute(path: string): void {
     activeRoutePath = path;
-    if (themeSettings.value.preset === 'random') createThemeRandomValue();
-    if (themeSettings.value.preset === 'auto' || themeSettings.value.preset === 'random') applyTheme(true);
-
     if (backgroundPreference.value === 'random') backgroundRandomValue = Math.random();
     applyBackgroundPreference();
+  }
+
+  function syncThemeForRoute(): void {
+    if (themeSettings.value.preset === 'random') createThemeRandomValue();
+    if (themeSettings.value.preset === 'auto' || themeSettings.value.preset === 'random') applyTheme(true);
   }
 
   function initializePreferences(path = '/'): void {
@@ -344,6 +346,7 @@ export function useDisplayPreferences() {
     setBackgroundPerformanceStatsEnabled,
     restoreDefaultSettings,
     syncDisplayForRoute,
+    syncThemeForRoute,
     initializePreferences,
     disposePreferences,
   };

@@ -169,8 +169,7 @@ export class ParticleSimulation {
     this.getUniform(this.velocityVariable.material.uniforms, 'uClickAttraction').value = settings.clickStrength;
     this.getUniform(this.velocityVariable.material.uniforms, 'uScrollStrength').value = settings.scrollStrength;
     this.getUniform(this.velocityVariable.material.uniforms, 'uBoundaryCollisions').value = settings.boundaryCollisions;
-    this.getUniform(this.positionVariable.material.uniforms, 'uBoundaryCollisions').value =
-      settings.boundaryCollisions;
+    this.getUniform(this.positionVariable.material.uniforms, 'uBoundaryCollisions').value = settings.boundaryCollisions;
   }
 
   dispose(): void {
