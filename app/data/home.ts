@@ -31,8 +31,8 @@ export const homeHero = {
 export const homeAbout = {
   number: '01',
   label: 'About',
-  title: ['Practical experience,', 'backed by', 'strong fundamentals.'],
-  accent: [false, false, true],
+  title: [['Practical ', 'experience,'], 'backed by', ['strong ', 'fundamentals.']],
+  accent: [false, false, false],
   paragraphs: [
     'I completed my application-development apprenticeship at TopRed Media from 2019 to 2022 and continued there as a full-stack developer until 2025. Since 2022, I have paired that hands-on experience with computer science studies at IU, with coursework in distributed systems, security and software design.',
     'I like understanding how systems work and why they are built the way they are. I want to understand the actual problem, make deliberate technical decisions, and build solutions that are reliable, maintainable, and fit for purpose.',

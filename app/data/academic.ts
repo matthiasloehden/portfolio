@@ -18,7 +18,7 @@ export const streamingCase: AcademicCaseStudyContent = {
   listCategory: 'Scalability & big data',
   category: 'Scalability & big data',
   type: 'Streaming architecture',
-  title: ['From raw events', 'to a live', ['operational', ' view.']],
+  title: [['From ', 'raw events'], 'to a live', ['operational', ' view.']],
   accent: [false, false, true],
   lead: 'A distributed event-processing prototype for ingesting, transforming, and analyzing streaming data in real time.',
   description:
@@ -42,7 +42,7 @@ export const passkeysCase: AcademicCaseStudyContent = {
   listCategory: 'Security design',
   category: 'Security design',
   type: 'Authentication architecture',
-  title: [['Passwordless', ' sign-in'], 'with FIDO2 passkeys.'],
+  title: [['Passwordless', ' sign-in'], ['with ', 'FIDO2 passkeys.']],
   accent: [true, false],
   lead: 'A proof of concept exploring secure system design and modern authentication, built around a FIDO2-based passwordless sign-in system.',
   description:
@@ -66,7 +66,7 @@ export const softwareEngineeringCase: AcademicCaseStudyContent = {
   listCategory: 'Lifecycle & quality',
   category: 'Software engineering',
   type: 'Team project',
-  title: ['From requirements', 'to a', ['tested', ' release.']],
+  title: [['From ', 'requirements'], 'to a', ['tested', ' release.']],
   accent: [false, false, true],
   lead: 'A completed group project bringing methods from earlier software-engineering courses together across the full development lifecycle.',
   description:
@@ -138,8 +138,8 @@ export const academicOverview: AcademicOverviewContent = {
 export const academicClosing: PageClosingContent = {
   kickerPrefix: '/',
   kicker: 'Academic scope',
-  title: ['Computer science', 'beyond the', 'application', 'layer.'],
-  accent: [false, false, true, false],
+  title: [['Computer ', 'science'], 'beyond the', ['application ', 'layer.']],
+  accent: [false, false, false],
   description:
     'These projects connect my professional experience with academic work across the complete software lifecycle, distributed data processing, authentication and system security, and IT service operations.',
   actions: [

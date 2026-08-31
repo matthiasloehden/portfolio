@@ -54,7 +54,7 @@ export const learningSection: PersonalSectionContent = {
   listCategory: 'Learning from first principles',
   category: 'Learning',
   type: 'From low level to architecture',
-  title: ['From', ['transistors', ' to'], 'software architecture.'],
+  title: ['From', ['transistors', ' to'], ['software ', 'architecture.']],
   accent: [false, true, false],
   lead: 'I enjoy understanding technology from the lowest levels up.',
   paragraphs: [
@@ -113,7 +113,7 @@ export const personalClosing: PageClosingContent = {
   kickerPrefix: '/ ALWAYS LEARNING',
   kicker: 'Curiosity in practice',
   title: ['The best', ['projects', ' start'], 'with wanting', 'to know more.'],
-  accent: [false, true, false, false],
+  accent: [false, true, false, true],
   description:
     'Whether it is a pull request, a container, or a cooling loop, I learn by understanding the system and making it work for a real purpose.',
   actions: [
