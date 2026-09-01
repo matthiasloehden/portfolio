@@ -19,8 +19,8 @@ export interface ThemeFontDefinition<Id extends string> {
   id: Id;
   label: string;
   family: string;
-  /** Google Fonts CSS query for remotely hosted families. Local fonts omit it. */
-  googleFontsQuery?: string;
+  /** Google Fonts CSS query for remotely hosted families. Local fonts use null. */
+  googleFontsQuery: string | null;
 }
 
 export interface ThemeColorControl {
@@ -396,6 +396,7 @@ export const THEME_DISPLAY_FONTS = [
     id: 'barlow-condensed',
     label: 'Barlow Condensed',
     family: "'Barlow Condensed', 'Arial Narrow', sans-serif",
+    googleFontsQuery: null,
   },
   {
     id: 'archivo-narrow',
@@ -440,6 +441,7 @@ export const THEME_BODY_FONTS = [
     id: 'inter',
     label: 'Inter',
     family: "'Inter Variable', ui-sans-serif, system-ui, sans-serif",
+    googleFontsQuery: null,
   },
   {
     id: 'ibm-plex-sans',

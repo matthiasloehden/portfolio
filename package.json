@@ -8,6 +8,7 @@
     "build": "nuxt build",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
+    "lighthouse": "yarn generate && CHROME_PATH=\"$(yarn node -e \"import('@playwright/test').then(({ chromium }) => process.stdout.write(chromium.executablePath()))\")\" yarn lhci autorun",
     "lint": "oxlint",
     "lint:fix": "oxlint --fix",
     "format": "oxfmt .",
@@ -28,6 +29,7 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.12.1",
+    "@lhci/cli": "0.15.1",
     "@playwright/test": "^1.62.1",
     "@tailwindcss/vite": "^4.3.3",
     "@types/node": "^26.1.2",
