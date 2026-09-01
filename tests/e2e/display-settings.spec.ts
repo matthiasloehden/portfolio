@@ -3,6 +3,9 @@ import type { Locator, Page } from '@playwright/test';
 import { expect, test, waitForApp } from './support/app-test';
 import { expandSettingsAccordion, openDisplaySettings } from './support/display-settings';
 
+const GOOGLE_FONTS_STYLESHEET_SELECTOR = 'link[data-portfolio-google-fonts]';
+const GOOGLE_FONT_PRECONNECT_SELECTOR = 'link[data-portfolio-google-font-preconnect]';
+
 async function openAdvancedSettingsPage(
   dialog: Locator,
   buttonName: 'Advanced theme settings' | 'Advanced background settings',
@@ -133,6 +136,40 @@ test.describe('Display settings', () => {
     await expect(theme).toHaveAttribute('aria-activedescendant', /-option-0$/);
     await theme.press('Enter');
     await expect(theme).toHaveText('System');
+  });
+
+  test('loads only the selected Google Fonts', async ({ page }) => {
+    const dialog = page.getByRole('dialog', { name: 'Display settings' });
+    const stylesheet = page.locator(GOOGLE_FONTS_STYLESHEET_SELECTOR);
+
+    await expect(stylesheet).toHaveCount(0);
+    await expect(page.locator(GOOGLE_FONT_PRECONNECT_SELECTOR)).toHaveCount(0);
+
+    await openThemeAdvancedSettings(dialog);
+    const headingFont = getSelect(dialog, 'Heading font');
+    const bodyFont = getSelect(dialog, 'Body font');
+
+    await chooseSelectOption(headingFont, 'Roboto Condensed');
+    await expect(stylesheet).toHaveAttribute(
+      'href',
+      'https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@300..900&display=swap',
+    );
+
+    await chooseSelectOption(bodyFont, 'IBM Plex Sans');
+    await expect(stylesheet).toHaveAttribute(
+      'href',
+      'https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@300..900&family=IBM+Plex+Sans:wght@100;200;300;400;500;600;700&display=swap',
+    );
+
+    await chooseSelectOption(headingFont, 'Barlow Condensed');
+    await expect(stylesheet).toHaveAttribute(
+      'href',
+      'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@100;200;300;400;500;600;700&display=swap',
+    );
+
+    await chooseSelectOption(bodyFont, 'Inter');
+    await expect(stylesheet).toHaveCount(0);
+    await expect(page.locator(GOOGLE_FONT_PRECONNECT_SELECTOR)).toHaveCount(0);
   });
 
   test('applies theme presets, typography and mode-specific color overrides', async ({ page }) => {
@@ -314,6 +351,10 @@ test.describe('Display settings', () => {
     await expect(page.locator('html')).toHaveAttribute('data-theme-preset', 'crimson');
     await expect(page.locator('html')).toHaveAttribute('data-display-font', 'roboto-condensed');
     await expect(page.locator('html')).toHaveAttribute('data-body-font', 'ibm-plex-sans');
+    await expect(page.locator(GOOGLE_FONTS_STYLESHEET_SELECTOR)).toHaveAttribute(
+      'href',
+      'https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@300..900&family=IBM+Plex+Sans:wght@100;200;300;400;500;600;700&display=swap',
+    );
 
     dialog = await openDisplaySettings(page);
     await selectThemePreset(dialog, /Arctic blue/);

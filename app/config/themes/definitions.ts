@@ -19,6 +19,8 @@ export interface ThemeFontDefinition<Id extends string> {
   id: Id;
   label: string;
   family: string;
+  /** Google Fonts CSS query for remotely hosted families. Local fonts omit it. */
+  googleFontsQuery?: string;
 }
 
 export interface ThemeColorControl {
@@ -399,31 +401,37 @@ export const THEME_DISPLAY_FONTS = [
     id: 'archivo-narrow',
     label: 'Archivo Narrow',
     family: "'Archivo Narrow', 'Arial Narrow', sans-serif",
+    googleFontsQuery: 'Archivo+Narrow:wght@400..700',
   },
   {
     id: 'cinzel',
     label: 'Cinzel',
     family: "'Cinzel', Georgia, serif",
+    googleFontsQuery: 'Cinzel:wght@400..900',
   },
   {
     id: 'oswald',
     label: 'Oswald',
     family: "'Oswald', 'Arial Narrow', sans-serif",
+    googleFontsQuery: 'Oswald:wght@200..700',
   },
   {
     id: 'playfair-display',
     label: 'Playfair Display',
     family: "'Playfair Display', Georgia, serif",
+    googleFontsQuery: 'Playfair+Display:wght@400..900',
   },
   {
     id: 'roboto-condensed',
     label: 'Roboto Condensed',
     family: "'Roboto Condensed', 'Arial Narrow', sans-serif",
+    googleFontsQuery: 'Roboto+Condensed:wght@300..900',
   },
   {
     id: 'space-grotesk',
     label: 'Space Grotesk',
     family: "'Space Grotesk', ui-sans-serif, system-ui, sans-serif",
+    googleFontsQuery: 'Space+Grotesk:wght@300..700',
   },
 ] as const satisfies readonly ThemeFontDefinition<ThemeDisplayFontId>[];
 
@@ -437,36 +445,43 @@ export const THEME_BODY_FONTS = [
     id: 'ibm-plex-sans',
     label: 'IBM Plex Sans',
     family: "'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif",
+    googleFontsQuery: 'IBM+Plex+Sans:wght@100;200;300;400;500;600;700',
   },
   {
     id: 'jetbrains-mono',
     label: 'JetBrains Mono',
     family: "'JetBrains Mono', ui-monospace, 'SFMono-Regular', Consolas, monospace",
+    googleFontsQuery: 'JetBrains+Mono:wght@100..800',
   },
   {
     id: 'lora',
     label: 'Lora',
     family: "'Lora', Georgia, serif",
+    googleFontsQuery: 'Lora:wght@400..700',
   },
   {
     id: 'merriweather',
     label: 'Merriweather',
     family: "'Merriweather', Georgia, serif",
+    googleFontsQuery: 'Merriweather:wght@300;400;700;900',
   },
   {
     id: 'nunito-sans',
     label: 'Nunito Sans',
     family: "'Nunito Sans', ui-sans-serif, system-ui, sans-serif",
+    googleFontsQuery: 'Nunito+Sans:wght@200..1000',
   },
   {
     id: 'roboto',
     label: 'Roboto',
     family: "'Roboto', ui-sans-serif, system-ui, sans-serif",
+    googleFontsQuery: 'Roboto:wght@100..900',
   },
   {
     id: 'source-sans-3',
     label: 'Source Sans 3',
     family: "'Source Sans 3', ui-sans-serif, system-ui, sans-serif",
+    googleFontsQuery: 'Source+Sans+3:wght@200..900',
   },
 ] as const satisfies readonly ThemeFontDefinition<ThemeBodyFontId>[];
 

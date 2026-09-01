@@ -3,6 +3,7 @@
 import { THEME_COLOR_CONTROLS, getThemeBodyFont, getThemeDisplayFont } from '@/config/themes/definitions';
 import { resolveThemePalette } from '@/domain/themes/settings';
 import type { ThemeMode, ThemePresetId, ThemeSettings } from '@/types/theme';
+import { syncSelectedGoogleFonts } from '@/utils/googleFonts';
 
 export function applyThemeToDocument(
   settings: ThemeSettings,
@@ -14,6 +15,8 @@ export function applyThemeToDocument(
   const palette = resolveThemePalette(settings, mode, preset);
   const displayFont = getThemeDisplayFont(settings.fonts.display);
   const bodyFont = getThemeBodyFont(settings.fonts.body);
+
+  syncSelectedGoogleFonts(settings);
 
   function apply(): void {
     root.dataset.theme = mode;

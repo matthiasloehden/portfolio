@@ -94,8 +94,8 @@ Available body families are:
 - Source Sans 3
 
 The default Barlow Condensed, Inter, and fixed IBM Plex Mono interface font remain self-hosted. Optional families are
-served by Google Fonts. The runtime assigns the selected families to `--display-font` and `--body-font`, which back
-Tailwind's `font-display` and `font-sans` utilities.
+served by Google Fonts only when selected. The runtime assigns the selected families to `--display-font` and
+`--body-font`, which back Tailwind's `font-display` and `font-sans` utilities.
 
 ## UI responsibilities
 

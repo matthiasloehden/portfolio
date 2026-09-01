@@ -13,6 +13,12 @@ import {
   THEME_PRESETS,
 } from '@/config/themes/definitions';
 import { AUTOMATIC_THEME_PRESETS, DEFAULT_THEME_PRESET_PREFERENCE } from '@/config/themes/selection';
+import {
+  GOOGLE_FONT_PRECONNECT_ATTRIBUTE,
+  GOOGLE_FONT_PRECONNECTS,
+  GOOGLE_FONTS_ENDPOINT,
+  GOOGLE_FONTS_LINK_ATTRIBUTE,
+} from '@/config/themes/googleFonts';
 import { DEFAULT_THEME_PREFERENCE } from '@/types/display';
 
 /**
@@ -26,6 +32,14 @@ export function createThemeInitializationScript(): string {
     fonts: {
       display: Object.fromEntries(THEME_DISPLAY_FONTS.map((font) => [font.id, font.family])),
       body: Object.fromEntries(THEME_BODY_FONTS.map((font) => [font.id, font.family])),
+    },
+    googleFonts: {
+      endpoint: GOOGLE_FONTS_ENDPOINT,
+      linkAttribute: GOOGLE_FONTS_LINK_ATTRIBUTE,
+      preconnectAttribute: GOOGLE_FONT_PRECONNECT_ATTRIBUTE,
+      preconnects: GOOGLE_FONT_PRECONNECTS,
+      display: Object.fromEntries(THEME_DISPLAY_FONTS.map((font) => [font.id, font.googleFontsQuery ?? null])),
+      body: Object.fromEntries(THEME_BODY_FONTS.map((font) => [font.id, font.googleFontsQuery ?? null])),
     },
     variables: Object.fromEntries(THEME_COLOR_CONTROLS.map((control) => [control.key, control.cssVariable])),
     automaticPresets: AUTOMATIC_THEME_PRESETS,
@@ -99,6 +113,48 @@ export function createThemeInitializationScript(): string {
       typeof storedSettings?.fonts?.body === 'string' && Object.hasOwn(config.fonts.body, storedSettings.fonts.body)
         ? storedSettings.fonts.body
         : config.defaults.fonts.body;
+    const selectedGoogleFontQueries = [
+      config.googleFonts.display[displayFontId],
+      config.googleFonts.body[bodyFontId],
+    ].filter((font, index, fonts) => font && fonts.indexOf(font) === index);
+    const googleFontsStylesheet =
+      selectedGoogleFontQueries.length > 0
+        ? config.googleFonts.endpoint +
+          '?' +
+          selectedGoogleFontQueries.map((font) => 'family=' + font).join('&') +
+          '&display=swap'
+        : undefined;
+    const googleFontsLinkSelector = 'link[' + config.googleFonts.linkAttribute + ']';
+    const googleFontPreconnectSelector = 'link[' + config.googleFonts.preconnectAttribute + ']';
+    const existingGoogleFontsLink = document.head.querySelector(googleFontsLinkSelector);
+    const syncGoogleFontPreconnect = (connection) => {
+      const alreadyConnected = [...document.head.querySelectorAll(googleFontPreconnectSelector)].some(
+        (link) => link.getAttribute('href') === connection.origin,
+      );
+      if (alreadyConnected) return;
+
+      const link = document.createElement('link');
+      link.rel = 'preconnect';
+      link.href = connection.origin;
+      link.setAttribute(config.googleFonts.preconnectAttribute, '');
+      if (connection.crossOrigin) link.crossOrigin = 'anonymous';
+      document.head.append(link);
+    };
+
+    if (googleFontsStylesheet) {
+      config.googleFonts.preconnects.forEach(syncGoogleFontPreconnect);
+
+      if (existingGoogleFontsLink?.getAttribute('href') !== googleFontsStylesheet) {
+        const link = existingGoogleFontsLink || document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = googleFontsStylesheet;
+        link.setAttribute(config.googleFonts.linkAttribute, '');
+        if (!existingGoogleFontsLink) document.head.append(link);
+      }
+    } else {
+      existingGoogleFontsLink?.remove();
+      document.head.querySelectorAll(googleFontPreconnectSelector).forEach((link) => link.remove());
+    }
     const palette = config.presets[presetId][mode];
     const overrides = storedSettings?.colorOverrides?.[mode] || {};
 
