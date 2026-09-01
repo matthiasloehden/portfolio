@@ -118,24 +118,24 @@ test.describe('Display settings', () => {
     await theme.press('Enter');
     await expect(theme).toHaveAttribute('aria-expanded', 'true');
 
-    const systemOption = getSelectListbox(theme).getByRole('option', { name: 'System', exact: true });
+    const autoOption = getSelectListbox(theme).getByRole('option', { name: 'Auto', exact: true });
     const darkOption = getSelectListbox(theme).getByRole('option', { name: 'Dark', exact: true });
-    await expect(systemOption).toHaveAttribute('aria-selected', 'false');
+    await expect(autoOption).toHaveAttribute('aria-selected', 'false');
     await expect(darkOption).toHaveAttribute('aria-selected', 'true');
 
     await theme.press('ArrowUp');
     await expect(theme).toHaveAttribute('aria-activedescendant', /-option-0$/);
-    await expect(systemOption).toHaveAttribute('aria-selected', 'true');
+    await expect(autoOption).toHaveAttribute('aria-selected', 'true');
     await expect(darkOption).toHaveAttribute('aria-selected', 'false');
 
     await theme.press('Escape');
     await expect(theme).toHaveText('Dark');
     await expect(theme).toHaveAttribute('aria-expanded', 'false');
 
-    await theme.press('s');
+    await theme.press('a');
     await expect(theme).toHaveAttribute('aria-activedescendant', /-option-0$/);
     await theme.press('Enter');
-    await expect(theme).toHaveText('System');
+    await expect(theme).toHaveText('Auto');
   });
 
   test('loads only the selected Google Fonts', async ({ page }) => {
@@ -412,20 +412,20 @@ test.describe('Display settings', () => {
 
     await chooseSelectOption(background, 'None');
     await expect(page.locator('.background-scene-active')).toHaveCount(0);
+    await expect(getPerformanceSelect(dialog)).toBeDisabled();
+    await expect(dialog.getByRole('checkbox', { name: 'Performance stats' })).toBeDisabled();
 
     await openBackgroundAdvancedSettings(dialog);
     await expandSettingsAccordion(dialog, 'Animations');
 
-    await expect(getPerformanceSelect(dialog)).toBeDisabled();
-    await expect(dialog.getByRole('checkbox', { name: 'Performance stats' })).toBeDisabled();
     await expect(dialog.getByRole('checkbox', { name: 'Idle motion' })).toBeDisabled();
 
     await dialog.getByRole('button', { name: 'Back to display settings' }).click();
     await dialog.getByRole('button', { name: 'Restore default settings' }).click();
     await expect(background).toHaveText('Automatic per page');
     await expect(getSelectMeta(background)).toHaveText('Triangles');
-    await openBackgroundAdvancedSettings(dialog);
     await expect(getPerformanceSelect(dialog)).toBeEnabled();
+    await openBackgroundAdvancedSettings(dialog);
     await expect(page.locator('.triangle-background.background-scene-active')).toBeVisible();
   });
 
@@ -458,9 +458,15 @@ test.describe('Display settings', () => {
 
   test('keeps explicit values across performance changes and returns reset fields to inheritance', async ({ page }) => {
     let dialog = page.getByRole('dialog', { name: 'Display settings' });
-    await openTriangleAppearanceSettings(dialog);
-
     const performance = getPerformanceSelect(dialog);
+    await expect(performance).toHaveText('Low');
+    await expect(performance).toHaveAccessibleName('Background performance');
+    await expect(getSelectMeta(performance)).toHaveCount(0);
+    await performance.click();
+    await expect(getSelectOptions(performance)).toHaveText(['Auto', 'High', 'Medium', 'Low']);
+    await performance.press('Escape');
+
+    await openTriangleAppearanceSettings(dialog);
     let resetCurrentBackground = dialog.getByRole('button', { name: 'Reset current background settings' });
     let density = dialog.getByRole('spinbutton', { name: 'Triangle density value' });
 
@@ -468,12 +474,6 @@ test.describe('Display settings', () => {
       dialog.getByText('Editing Triangles settings. Overrides stay active when performance presets change.'),
     ).toBeVisible();
     await expect(resetCurrentBackground).toBeDisabled();
-    await expect(performance).toHaveText('Low');
-    await expect(performance).toHaveAccessibleName('Background performance');
-    await expect(getSelectMeta(performance)).toHaveCount(0);
-    await performance.click();
-    await expect(getSelectOptions(performance)).toHaveText(['Auto', 'High', 'Medium', 'Low']);
-    await performance.press('Escape');
     await expect(density).toHaveValue('0.48');
 
     const densitySlider = dialog.getByRole('slider', { name: 'Triangle density range' });
@@ -484,25 +484,33 @@ test.describe('Display settings', () => {
     await expect(resetCurrentBackground).toBeDisabled();
     await expect(dialog.getByRole('listitem', { name: 'Low preset: 0.48 (active)' })).toBeVisible();
 
-    await chooseSelectOption(performance, 'Auto');
-    await expect(performance).toHaveAccessibleName('Background performance');
-    await expect(getSelectMeta(performance)).toHaveText(/High|Medium|Low/);
-    await expect(getSelectMeta(performance)).not.toContainText('Auto:');
-    await chooseSelectOption(performance, 'Low');
-    await expect(performance).toHaveAccessibleName('Background performance');
-    await expect(getSelectMeta(performance)).toHaveCount(0);
+    await dialog.getByRole('button', { name: 'Back to display settings' }).click();
+    await chooseSelectOption(getPerformanceSelect(dialog), 'Auto');
+    await expect(getPerformanceSelect(dialog)).toHaveAccessibleName('Background performance');
+    await expect(getSelectMeta(getPerformanceSelect(dialog))).toHaveText(/High|Medium|Low/);
+    await expect(getSelectMeta(getPerformanceSelect(dialog))).not.toContainText('Auto:');
+    await chooseSelectOption(getPerformanceSelect(dialog), 'Low');
+    await expect(getPerformanceSelect(dialog)).toHaveAccessibleName('Background performance');
+    await expect(getSelectMeta(getPerformanceSelect(dialog))).toHaveCount(0);
 
-    await chooseSelectOption(performance, 'High');
+    await chooseSelectOption(getPerformanceSelect(dialog), 'High');
+    await openTriangleAppearanceSettings(dialog);
+    density = dialog.getByRole('spinbutton', { name: 'Triangle density value' });
     await expect(density).toHaveValue('1');
     await expect(dialog.getByRole('listitem', { name: 'High preset: 1 (active)' })).toBeVisible();
-    await chooseSelectOption(performance, 'Low');
-    await expect(density).toHaveValue('0.48');
 
     await density.fill('1.2');
     await density.press('Tab');
     await expect(resetCurrentBackground).toBeEnabled();
-    await chooseSelectOption(performance, 'High');
+
+    await dialog.getByRole('button', { name: 'Back to display settings' }).click();
+    await chooseSelectOption(getPerformanceSelect(dialog), 'Low');
+    await openTriangleAppearanceSettings(dialog);
+    density = dialog.getByRole('spinbutton', { name: 'Triangle density value' });
     await expect(density).toHaveValue('1.2');
+
+    await dialog.getByRole('button', { name: 'Back to display settings' }).click();
+    await chooseSelectOption(getPerformanceSelect(dialog), 'High');
 
     await page.reload();
     await waitForApp(page);
@@ -524,7 +532,10 @@ test.describe('Display settings', () => {
     await expect(density).toHaveValue('1');
     await expect(resetCurrentBackground).toBeDisabled();
 
+    await dialog.getByRole('button', { name: 'Back to display settings' }).click();
     await chooseSelectOption(getPerformanceSelect(dialog), 'Low');
+    await openTriangleAppearanceSettings(dialog);
+    density = dialog.getByRole('spinbutton', { name: 'Triangle density value' });
     await expect(density).toHaveValue('0.48');
   });
 
@@ -576,9 +587,9 @@ test('migrates one representative legacy background override into the versioned 
   await waitForApp(page);
   const dialog = await openDisplaySettings(page);
   await expect(getSelect(dialog, 'Background')).toHaveText('Triangles');
+  await expect(getPerformanceSelect(dialog)).toHaveText('Medium');
   await openTriangleAppearanceSettings(dialog);
 
-  await expect(getPerformanceSelect(dialog)).toHaveText('Medium');
   await expect(dialog.getByRole('spinbutton', { name: 'Triangle density value' })).toHaveValue('1.3');
 
   const storedDocument = await page.evaluate(() => {

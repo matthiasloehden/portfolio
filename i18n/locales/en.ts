@@ -51,7 +51,7 @@ const messages = {
     language: {
       label: 'Language',
       description: 'Choose a language or follow your browser preference.',
-      automatic: 'Automatic',
+      automatic: 'Auto',
       recommended: 'Recommended original version',
       machineTranslated: 'Automatically translated',
     },
@@ -84,7 +84,7 @@ const messages = {
       resetColorsDisabled: 'No colors have been changed for the current theme.',
       usePresetValue: 'Use {preset} {mode} value',
       modes: {
-        system: 'System',
+        system: 'Auto',
         dark: 'Dark',
         light: 'Light',
       },

@@ -14,6 +14,8 @@ Language is part of the display-settings reset contract. Restoring defaults disa
 
 Long-form, typed content lives in `app/data/content/<locale>`. Every locale must export the same modules and named values as `app/data/content/en`. Type parity is checked by the locale index files.
 
+Locale indexes are client-side bundle boundaries. The initial page loads only the complete bundle for its active language; selecting another language loads that locale on demand. Keep the four page modules grouped below each locale index so navigation within one language can reuse the already loaded content.
+
 When translating content:
 
 - Translate prose, labels, descriptions, status text, accessibility text, and SEO metadata.

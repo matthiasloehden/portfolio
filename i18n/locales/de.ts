@@ -53,7 +53,7 @@ export default {
     language: {
       label: 'Sprache',
       description: 'Wähle eine Sprache oder folge deiner Browsereinstellung.',
-      automatic: 'Automatisch',
+      automatic: 'Auto',
       recommended: 'Empfohlene Originalfassung',
       machineTranslated: 'Automatisch übersetzt',
     },
@@ -61,7 +61,7 @@ export default {
       automatic: 'Automatisch je Seite',
       random: 'Zufällig',
       none: 'Keine',
-      auto: 'Automatisch',
+      auto: 'Auto',
       low: 'Niedrig',
       medium: 'Mittel',
       high: 'Hoch',
@@ -87,7 +87,7 @@ export default {
       resetColorsDisabled: 'Für das aktuelle Erscheinungsbild wurden keine Farben geändert.',
       usePresetValue: 'Wert {preset} für {mode} verwenden',
       modes: {
-        system: 'System',
+        system: 'Auto',
         dark: 'Dunkel',
         light: 'Hell',
       },

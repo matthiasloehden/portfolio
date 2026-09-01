@@ -360,6 +360,16 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onDocumentPoin
                     :active-background="activeBackground"
                     @update:model-value="onBackgroundChange"
                   />
+                  <SharedSelectField
+                    class="mt-3"
+                    :label="t('display.background.performance')"
+                    :meta="performanceMeta"
+                    :model-value="backgroundPerformance.mode"
+                    :options="performanceOptions"
+                    :disabled="controlsDisabled"
+                    @update:model-value="onPerformanceModeChange"
+                  />
+
                   <SettingsPageButton
                     ref="backgroundPageTrigger"
                     class="mt-3"
@@ -382,14 +392,6 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onDocumentPoin
                   v-else
                   :aria-label="t('display.background.advancedLabel')"
                 >
-                  <SharedSelectField
-                    :label="t('display.background.performance')"
-                    :meta="performanceMeta"
-                    :model-value="backgroundPerformance.mode"
-                    :options="performanceOptions"
-                    :disabled="controlsDisabled"
-                    @update:model-value="onPerformanceModeChange"
-                  />
 
                   <SharedToggleField
                     class="mt-4"

@@ -90,7 +90,7 @@ test.describe('Localization', () => {
 
     let dialog = await openDisplaySettings(page);
     await dialog.getByRole('combobox', { name: 'Language', exact: true }).click();
-    await page.getByRole('listbox').getByRole('option', { name: 'Automatic', exact: true }).click();
+    await page.getByRole('listbox').getByRole('option', { name: 'Auto', exact: true }).click();
 
     await expect(page).toHaveURL((url) => url.pathname === '/es/work');
     await expect(page.locator('html')).toHaveAttribute('lang', 'es-ES');
@@ -104,7 +104,7 @@ test.describe('Localization', () => {
       dialog: 'Configuración de pantalla',
       close: 'Cerrar configuración de pantalla',
     });
-    await expect(dialog.getByRole('combobox', { name: 'Idioma', exact: true })).toContainText('Automático');
+    await expect(dialog.getByRole('combobox', { name: 'Idioma', exact: true })).toContainText('Auto');
     await dialog.getByRole('button', { name: 'Restaurar la configuración predeterminada' }).click();
 
     await expect(page).toHaveURL((url) => url.pathname === '/work');

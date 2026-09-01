@@ -53,7 +53,7 @@ export default {
     language: {
       label: 'Lingua',
       description: 'Scegli una lingua o segui le preferenze del browser.',
-      automatic: 'Automatico',
+      automatic: 'Auto',
       recommended: 'Versione originale consigliata',
       machineTranslated: 'Tradotto automaticamente',
     },
@@ -87,7 +87,7 @@ export default {
       resetColorsDisabled: 'Nessun colore è stato cambiato per il tema corrente.',
       usePresetValue: 'Utilizzare il valore {preset} {mode}',
       modes: {
-        system: 'Sistema',
+        system: 'Auto',
         dark: 'Buio',
         light: 'Leggero',
       },

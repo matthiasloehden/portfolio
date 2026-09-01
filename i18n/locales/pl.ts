@@ -53,7 +53,7 @@ export default {
     language: {
       label: 'Język',
       description: 'Wybierz język lub zastosuj ustawienia przeglądarki.',
-      automatic: 'Automatycznie',
+      automatic: 'Auto',
       recommended: 'Zalecana wersja oryginalna',
       machineTranslated: 'Przetłumaczone automatycznie',
     },
@@ -61,7 +61,7 @@ export default {
       automatic: 'Automatycznie na stronę',
       random: 'Losowy',
       none: 'Nic',
-      auto: 'Automatyczny',
+      auto: 'Auto',
       low: 'Niski',
       medium: 'Średni',
       high: 'Wysoki',
@@ -87,7 +87,7 @@ export default {
       resetColorsDisabled: 'Żadne kolory nie zostały zmienione dla bieżącego motywu.',
       usePresetValue: 'Użyj wartości {preset} {mode}',
       modes: {
-        system: 'System',
+        system: 'Auto',
         dark: 'Ciemny',
         light: 'Światło',
       },
