@@ -38,7 +38,7 @@ defineProps<{
 
     <div
       class="flex flex-wrap gap-[0.45rem] border-t border-line px-4 py-[0.9rem]"
-      aria-label="Technologies used"
+      :aria-label="$t('accessibility.technologiesUsed')"
     >
       <span
         v-for="node in content.nodes"

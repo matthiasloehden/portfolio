@@ -7,8 +7,9 @@ const props = defineProps<{
 }>();
 
 const NuxtLinkComponent = resolveComponent('NuxtLink');
+const localePath = useLocalePath();
 const linkComponent = computed(() => (props.item.to ? NuxtLinkComponent : 'a'));
-const linkAttributes = computed(() => (props.item.to ? { to: props.item.to } : { href: props.item.href }));
+const linkAttributes = computed(() => (props.item.to ? { to: localePath(props.item.to) } : { href: props.item.href }));
 </script>
 
 <template>

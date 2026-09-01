@@ -1,14 +1,15 @@
 import type { Locator } from '@playwright/test';
 
 import { siteNavigation } from '@/data/site';
-import { workHero, workMeta } from '@/data/work';
+import { APP_ROUTE_PATHS } from '@/config/routes';
+import { workHero, workMeta } from '@/data/content/en/work';
 import { expect, expectPageContract, getDisplayHeadingText, test, waitForApp } from './support/app-test';
 
 function routeAt(index: number): { label: string; to: string } {
   const route = siteNavigation.filter((item) => item.to)[index];
   if (!route?.to) throw new Error(`Missing page route at navigation index ${index}`);
 
-  return { label: route.label, to: route.to };
+  return { label: route.label, to: APP_ROUTE_PATHS[route.to.name] };
 }
 
 const workRoute = routeAt(1);

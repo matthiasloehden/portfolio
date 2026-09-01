@@ -1,6 +1,7 @@
 import { DEFAULT_THEME_PRESET_ID, THEME_PRESETS, getThemePreset } from '@/config/themes/definitions';
 import { THEME_PRESET_IDS, type ThemePresetId, type ThemePresetPreference } from '@/types/theme';
 import { selectByRandomValue } from '@/utils/randomSelection';
+import { getCanonicalContentPath } from '@/utils/localizedPath';
 
 export const DEFAULT_THEME_PRESET_PREFERENCE: ThemePresetPreference = DEFAULT_THEME_PRESET_ID;
 
@@ -32,6 +33,6 @@ export function resolveThemePreset(
   }
   if (preference !== 'auto') return preference;
 
-  const normalizedPath = path.replace(/\/+$/, '') || '/';
+  const normalizedPath = getCanonicalContentPath(path);
   return AUTOMATIC_THEME_PRESETS[normalizedPath] ?? THEME_PRESETS[0].id;
 }

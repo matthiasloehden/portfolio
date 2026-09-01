@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { BackgroundQualityId, BackgroundSettingValue } from '@/types/background';
+import type { BackgroundId, BackgroundQualityId, BackgroundSettingValue } from '@/types/background';
 import type { BackgroundSettingDefinition } from '@/config/backgrounds/settingsRegistry';
 import type { NumericSettingDefinition } from '@/domain/backgrounds/settingsDefinition';
 import SharedAccordion from '@/components/shared/Accordion.vue';
@@ -10,11 +10,13 @@ import BackgroundNumericSettingField from './BackgroundNumericSettingField.vue';
 
 const props = defineProps<{
   backgroundLabel: string;
+  background: BackgroundId;
   controls: readonly BackgroundSettingDefinition[];
   values: Readonly<Record<string, BackgroundSettingValue>>;
   overrides: Readonly<Record<string, BackgroundSettingValue | undefined>>;
   performancePreset: BackgroundQualityId;
 }>();
+const { t, te } = useI18n();
 
 const emit = defineEmits<{
   change: [key: string, value: BackgroundSettingValue];
@@ -22,13 +24,16 @@ const emit = defineEmits<{
   'reset-all': [];
 }>();
 
-const groupOptions = [
-  { key: 'appearance', label: 'Appearance' },
-  { key: 'interaction', label: 'Interactions' },
-] as const;
+const groupOptions = computed(
+  () =>
+    [
+      { key: 'appearance', label: t('display.background.appearance') },
+      { key: 'interaction', label: t('display.background.interactions') },
+    ] as const,
+);
 
 const settingGroups = computed(() =>
-  groupOptions
+  groupOptions.value
     .map((group) => ({
       ...group,
       controls: props.controls.filter((control) => control.group === group.key),
@@ -48,7 +53,7 @@ function getPerformanceMarkers(
       ? []
       : [
           {
-            label: `${preset.charAt(0).toUpperCase()}${preset.slice(1)}`,
+            label: t(`display.shared.${preset}`),
             shortLabel: preset.charAt(0).toUpperCase(),
             value,
             active: preset === props.performancePreset,
@@ -58,11 +63,21 @@ function getPerformanceMarkers(
 }
 
 function getResetLabel(control: BackgroundSettingDefinition): string {
-  if (control.type === 'boolean') return 'Use scene default';
+  if (control.type === 'boolean') return t('display.background.useSceneDefault');
 
   return control.presetValues?.[props.performancePreset] === undefined
-    ? 'Use scene default'
-    : `Use ${props.performancePreset} performance value`;
+    ? t('display.background.useSceneDefault')
+    : t('display.background.usePerformanceValue', { preset: t(`display.shared.${props.performancePreset}`) });
+}
+
+function getControlLabel(control: BackgroundSettingDefinition): string {
+  const key = `display.background.controls.${props.background}.${control.key}.label`;
+  return te(key) ? t(key) : control.label;
+}
+
+function getControlDescription(control: BackgroundSettingDefinition): string {
+  const key = `display.background.controls.${props.background}.${control.key}.description`;
+  return te(key) ? t(key) : control.description;
 }
 
 function getNumericValue(control: NumericSettingDefinition): number {
@@ -79,7 +94,7 @@ function getBooleanValue(control: BackgroundSettingDefinition): boolean {
 <template>
   <div>
     <p class="py-2 font-mono text-[0.54rem] leading-[1.4] text-muted">
-      Editing {{ backgroundLabel }} settings. Overrides stay active when performance presets change.
+      {{ t('display.background.editing', { background: backgroundLabel }) }}
     </p>
 
     <div class="flex flex-wrap items-center gap-x-3 gap-y-1 py-2 font-mono text-[0.5rem] text-muted">
@@ -88,21 +103,21 @@ function getBooleanValue(control: BackgroundSettingDefinition): boolean {
           class="h-1 w-3 border border-line bg-[color-mix(in_srgb,var(--primary)_10%,var(--surface))]"
           aria-hidden="true"
         />
-        Extended
+        {{ t('display.background.extended') }}
       </span>
       <span class="inline-flex items-center gap-1.5">
         <span
           class="h-1 w-3 border border-line bg-primary"
           aria-hidden="true"
         />
-        Recommended
+        {{ t('display.background.recommended') }}
       </span>
       <span class="inline-flex items-center gap-1.5">
         <span
           class="h-3 w-0.5 bg-primary-bright shadow-[0_0_0.3rem_color-mix(in_srgb,var(--primary)_45%,transparent)]"
           aria-hidden="true"
         />
-        Active preset
+        {{ t('display.background.activePreset') }}
       </span>
     </div>
 
@@ -120,8 +135,8 @@ function getBooleanValue(control: BackgroundSettingDefinition): boolean {
           >
             <BackgroundBooleanSettingField
               v-if="control.type === 'boolean'"
-              :label="control.label"
-              :description="control.description"
+              :label="getControlLabel(control)"
+              :description="getControlDescription(control)"
               :model-value="getBooleanValue(control)"
               :overridden="overrides[control.key] !== undefined"
               :reset-label="getResetLabel(control)"
@@ -130,8 +145,8 @@ function getBooleanValue(control: BackgroundSettingDefinition): boolean {
             />
             <BackgroundNumericSettingField
               v-else
-              :label="control.label"
-              :description="control.description"
+              :label="getControlLabel(control)"
+              :description="getControlDescription(control)"
               :model-value="getNumericValue(control)"
               :min="control.recommended.min"
               :max="control.recommended.max"
@@ -152,9 +167,9 @@ function getBooleanValue(control: BackgroundSettingDefinition): boolean {
 
     <SharedSettingsResetButton
       class="my-4"
-      label="Reset current background settings"
+      :label="t('display.background.reset')"
       :disabled="!hasOverrides"
-      disabled-reason="No settings have been changed for the current background."
+      :disabled-reason="t('display.background.resetDisabled')"
       @click="emit('reset-all')"
     />
   </div>

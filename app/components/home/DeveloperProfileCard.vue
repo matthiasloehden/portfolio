@@ -11,7 +11,7 @@ const lineNumber = (line: number) => String(line).padStart(2, '0');
 <template>
   <aside
     class="relative w-full border border-line-strong bg-raised/85 shadow-[1.5rem_1.5rem_0_color-mix(in_srgb,var(--primary)_2.5%,transparent),0_2rem_6rem_rgb(0_0_0/20%)] backdrop-blur-[18px] before:pointer-events-none before:absolute before:-top-px before:-left-px before:size-[0.65rem] before:border-t-2 before:border-l-2 before:border-primary-bright before:content-[''] after:pointer-events-none after:absolute after:-right-px after:-bottom-px after:size-[0.65rem] after:border-r-2 after:border-b-2 after:border-primary-bright after:content-[''] md:max-w-md"
-    aria-label="Developer profile summary"
+    :aria-label="$t('accessibility.developerProfile')"
   >
     <div
       class="flex items-center justify-between border-b border-line px-[0.9rem] py-3 font-mono text-[0.62rem] text-muted"

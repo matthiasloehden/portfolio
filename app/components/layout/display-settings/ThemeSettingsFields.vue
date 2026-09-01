@@ -1,10 +1,5 @@
 <script setup lang="ts">
-import {
-  THEME_BODY_FONTS,
-  THEME_COLOR_CONTROLS,
-  THEME_DISPLAY_FONTS,
-  getThemePreset,
-} from '@/config/themes/definitions';
+import { THEME_BODY_FONTS, THEME_COLOR_CONTROLS, THEME_DISPLAY_FONTS } from '@/config/themes/definitions';
 import type {
   ThemeBodyFontId,
   ThemeColorToken,
@@ -35,19 +30,26 @@ const emit = defineEmits<{
   reset: [];
 }>();
 
+const { t } = useI18n();
 const displayFontOptions = THEME_DISPLAY_FONTS.map(({ id, label }) => ({ value: id, label }));
 const bodyFontOptions = THEME_BODY_FONTS.map(({ id, label }) => ({ value: id, label }));
-const colorGroups = [
-  { key: 'canvas', label: 'Canvas & surfaces' },
-  { key: 'text', label: 'Text' },
-  { key: 'accent', label: 'Accents & states' },
-] as const;
+const colorGroups = computed(
+  () =>
+    [
+      { key: 'canvas', label: t('display.theme.groups.canvas') },
+      { key: 'text', label: t('display.theme.groups.text') },
+      { key: 'accent', label: t('display.theme.groups.accent') },
+    ] as const,
+);
 
-const groupedControls = colorGroups.map((group) => ({
-  ...group,
-  controls: THEME_COLOR_CONTROLS.filter((control) => control.group === group.key),
-}));
-const selectedPreset = computed(() => getThemePreset(props.activePreset));
+const groupedControls = computed(() =>
+  colorGroups.value.map((group) => ({
+    ...group,
+    controls: THEME_COLOR_CONTROLS.filter((control) => control.group === group.key),
+  })),
+);
+const selectedPresetLabel = computed(() => t(`display.theme.presets.${props.activePreset}`));
+const modeLabel = computed(() => t(`display.theme.modes.${props.mode}`));
 const hasCurrentThemeColorOverrides = computed(() => Object.keys(props.settings.colorOverrides[props.mode]).length > 0);
 const colorSettingsTitleId = useId();
 
@@ -58,19 +60,27 @@ function onDisplayFontChange(font: ThemeDisplayFontId): void {
 function onBodyFontChange(font: ThemeBodyFontId): void {
   emit('body-font-change', font);
 }
+
+function getColorLabel(token: ThemeColorToken): string {
+  return t(`display.theme.colors.${token}.label`);
+}
+
+function getColorDescription(token: ThemeColorToken): string {
+  return t(`display.theme.colors.${token}.description`);
+}
 </script>
 
 <template>
   <div>
     <SharedSelectField
-      label="Heading font"
+      :label="t('display.theme.headingFont')"
       :model-value="settings.fonts.display"
       :options="displayFontOptions"
       @update:model-value="onDisplayFontChange"
     />
     <SharedSelectField
       class="mt-3"
-      label="Body font"
+      :label="t('display.theme.bodyFont')"
       :model-value="settings.fonts.body"
       :options="bodyFontOptions"
       @update:model-value="onBodyFontChange"
@@ -85,13 +95,13 @@ function onBodyFontChange(font: ThemeBodyFontId): void {
           :id="colorSettingsTitleId"
           class="text-[0.6rem] text-foreground"
         >
-          Configure active color scheme
+          {{ t('display.theme.configureColors') }}
         </h3>
-        <span class="truncate text-[0.54rem] text-muted">{{ selectedPreset.label }}</span>
+        <span class="truncate text-[0.54rem] text-muted">{{ selectedPresetLabel }}</span>
       </div>
 
       <p class="pb-3 font-mono text-[0.54rem] leading-[1.4] text-muted">
-        Editing {{ mode }} custom colors. Overrides stay active when color schemes change.
+        {{ t('display.theme.editingColors', { mode: modeLabel }) }}
       </p>
 
       <SharedAccordionGroup :end-border="false">
@@ -105,11 +115,11 @@ function onBodyFontChange(font: ThemeBodyFontId): void {
             <SharedHexColorInput
               v-for="control in group.controls"
               :key="control.key"
-              :label="control.label"
-              :description="control.description"
+              :label="getColorLabel(control.key)"
+              :description="getColorDescription(control.key)"
               :model-value="values[control.key]"
               :overridden="settings.colorOverrides[mode][control.key] !== undefined"
-              :reset-label="`Use ${selectedPreset.label} ${mode} value`"
+              :reset-label="t('display.theme.usePresetValue', { preset: selectedPresetLabel, mode: modeLabel })"
               @update:model-value="emit('color-change', control.key, $event)"
               @reset="emit('color-reset', control.key)"
             />
@@ -119,10 +129,10 @@ function onBodyFontChange(font: ThemeBodyFontId): void {
 
       <SharedSettingsResetButton
         class="my-4"
-        label="Reset current theme colors"
+        :label="t('display.theme.resetColors')"
         :disabled="!hasCurrentThemeColorOverrides"
-        disabled-reason="No colors have been changed for the current theme."
-        :aria-label="`Reset current ${mode} theme colors`"
+        :disabled-reason="t('display.theme.resetColorsDisabled')"
+        :aria-label="t('display.theme.resetColorsLabel', { mode: modeLabel })"
         @click="emit('reset')"
       />
     </section>

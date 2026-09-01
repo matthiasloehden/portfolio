@@ -13,6 +13,7 @@ const emit = defineEmits<{
   'update:modelValue': [value: boolean];
   reset: [];
 }>();
+const { t } = useI18n();
 </script>
 
 <template>
@@ -28,10 +29,10 @@ const emit = defineEmits<{
       class="w-fit cursor-pointer font-mono text-[0.54rem] text-muted underline decoration-line underline-offset-2 transition-colors hover:text-foreground focus-visible:text-foreground"
       type="button"
       :title="resetLabel"
-      :aria-label="`${label}: ${resetLabel ?? 'reset override'}`"
+      :aria-label="`${label}: ${resetLabel ?? t('display.shared.resetOverride')}`"
       @click="emit('reset')"
     >
-      Reset
+      {{ t('form.reset') }}
     </button>
   </div>
 </template>

@@ -8,6 +8,14 @@ describe('background selection', () => {
     expect(resolveBackground('/work/', 'auto')).toBe('triangles');
     expect(resolveBackground('/academic', 'auto')).toBe('mesh');
     expect(resolveBackground('/personal', 'auto')).toBe('particles');
+    expect(resolveBackground('/de', 'auto')).toBe('wave');
+    expect(resolveBackground('/de/work/', 'auto')).toBe('triangles');
+    expect(resolveBackground('/de/academic', 'auto')).toBe('mesh');
+    expect(resolveBackground('/de/personal', 'auto')).toBe('particles');
+    expect(resolveBackground('/fr/work', 'auto')).toBe('triangles');
+    expect(resolveBackground('/es/academic', 'auto')).toBe('mesh');
+    expect(resolveBackground('/pl/personal', 'auto')).toBe('particles');
+    expect(resolveBackground('/it/work', 'auto')).toBe('triangles');
   });
 
   it('resolves random backgrounds from a stable random value', () => {

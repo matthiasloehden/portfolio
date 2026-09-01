@@ -2,7 +2,12 @@
 import { useActiveNavigation } from '@/composables/useActiveNavigation';
 import { footerNavigation, site } from '@/data/site';
 
-const navigationItems = useActiveNavigation(footerNavigation);
+const { t } = useI18n();
+const localePath = useLocalePath();
+const localizedNavigation = computed(() =>
+  footerNavigation.map(({ labelKey, ...item }) => ({ ...item, label: t(labelKey) })),
+);
+const navigationItems = useActiveNavigation(localizedNavigation);
 </script>
 
 <template>
@@ -21,9 +26,9 @@ const navigationItems = useActiveNavigation(footerNavigation);
         :href="site.sourceUrl"
         target="_blank"
         rel="noopener noreferrer"
-        aria-label="View source"
+        :aria-label="t('common.viewSource')"
       >
-        View source
+        {{ t('common.viewSource') }}
         <span
           class="ml-1 text-primary"
           aria-hidden="true"
@@ -33,7 +38,7 @@ const navigationItems = useActiveNavigation(footerNavigation);
     </p>
 
     <nav
-      aria-label="Footer navigation"
+      :aria-label="t('navigation.footerLabel')"
       class="grow sm:grow-0"
     >
       <ul class="m-0 flex list-none flex-wrap items-center gap-x-5 gap-y-3 p-0">
@@ -44,7 +49,7 @@ const navigationItems = useActiveNavigation(footerNavigation);
           <NuxtLink
             class="transition-colors hover:text-foreground focus-visible:text-foreground"
             :class="{ 'text-foreground underline decoration-primary underline-offset-4': item.active }"
-            :to="item.to"
+            :to="localePath(item.to)"
             :aria-current="item.active ? 'page' : undefined"
           >
             {{ item.label }}
@@ -55,7 +60,7 @@ const navigationItems = useActiveNavigation(footerNavigation);
             class="transition-colors hover:text-foreground focus-visible:text-foreground"
             :href="`mailto:${site.email}`"
           >
-            Contact
+            {{ t('navigation.contact') }}
             <span
               class="ml-1 text-primary"
               aria-hidden="true"

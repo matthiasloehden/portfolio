@@ -1,5 +1,5 @@
-import { streamingCase } from '@/data/academic';
-import { hardwareSection } from '@/data/personal';
+import { streamingCase } from '@/data/content/en/academic';
+import { hardwareSection } from '@/data/content/en/personal';
 import { expect, getDisplayHeadingText, test, waitForApp } from './support/app-test';
 
 test.describe('Motion preferences and scroll reveal', () => {

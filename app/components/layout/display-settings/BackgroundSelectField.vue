@@ -14,8 +14,18 @@ const emit = defineEmits<{
   'update:modelValue': [value: BackgroundPreference];
 }>();
 
+const { t } = useI18n();
 const route = useRoute();
 const automaticBackground = computed(() => resolveBackground(route.path, 'auto'));
+const backgroundOptions = computed(() =>
+  BACKGROUND_OPTIONS.map((option) => ({
+    value: option.value,
+    label:
+      option.value === 'auto' || option.value === 'none' || option.value === 'random'
+        ? t(`display.shared.${option.value === 'auto' ? 'automatic' : option.value}`)
+        : t(`display.background.scenes.${option.value}`),
+  })),
+);
 
 function resolveOptionBackground(preference: BackgroundPreference): BackgroundId | 'none' {
   if (preference === 'auto') return automaticBackground.value;
@@ -25,33 +35,25 @@ function resolveOptionBackground(preference: BackgroundPreference): BackgroundId
 
 <template>
   <SharedSelectField
-    label="Background"
+    :label="t('display.background.label')"
     :meta="meta"
     :model-value="modelValue"
-    :options="BACKGROUND_OPTIONS"
+    :options="backgroundOptions"
     @update:model-value="emit('update:modelValue', $event)"
   >
-    <template #value="{ option }">
-      <span
+    <template #value-indicator="{ option }">
+      <BackgroundPreviewIcon
         v-if="option"
-        class="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-3"
-      >
-        <span class="truncate">{{ option.label }}</span>
-        <BackgroundPreviewIcon
-          class="size-5"
-          :background="resolveOptionBackground(option.value)"
-        />
-      </span>
+        class="size-5"
+        :background="resolveOptionBackground(option.value)"
+      />
     </template>
 
-    <template #option="{ option }">
-      <span class="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
-        <span class="truncate text-[0.6rem] text-foreground">{{ option.label }}</span>
-        <BackgroundPreviewIcon
-          class="size-5"
-          :background="resolveOptionBackground(option.value)"
-        />
-      </span>
+    <template #option-indicator="{ option }">
+      <BackgroundPreviewIcon
+        class="size-5"
+        :background="resolveOptionBackground(option.value)"
+      />
     </template>
   </SharedSelectField>
 </template>

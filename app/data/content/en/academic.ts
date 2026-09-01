@@ -1,5 +1,6 @@
 import { createCaseStudyListItems } from '@/data/caseStudies';
 import { site } from '@/data/site';
+import { APP_ROUTES } from '@/config/routes';
 import type {
   AcademicAuthenticationPanelContent,
   AcademicCaseStudyContent,
@@ -42,7 +43,10 @@ export const passkeysCase: AcademicCaseStudyContent = {
   listCategory: 'Security design',
   category: 'Security design',
   type: 'Authentication architecture',
-  title: [['Passwordless', ' sign-in'], ['with ', 'FIDO2 passkeys.']],
+  title: [
+    ['Passwordless', ' sign-in'],
+    ['with ', 'FIDO2 passkeys.'],
+  ],
   accent: [true, false],
   lead: 'A proof of concept exploring secure system design and modern authentication, built around a FIDO2-based passwordless sign-in system.',
   description:
@@ -144,7 +148,7 @@ export const academicClosing: PageClosingContent = {
     'These projects connect my professional experience with academic work across the complete software lifecycle, distributed data processing, authentication and system security, and IT service operations.',
   actions: [
     { label: 'Start a conversation', href: `mailto:${site.email}` },
-    { label: 'View personal projects', symbol: '→', to: '/personal', variant: 'text' },
+    { label: 'View personal projects', symbol: '→', to: APP_ROUTES.personal, variant: 'text' },
   ],
 };
 

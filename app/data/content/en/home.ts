@@ -1,5 +1,6 @@
 import type { HomeAboutContent, HomeCapabilitiesContent, HomeHeroContent } from '@/types/content';
 import { site } from '@/data/site';
+import { APP_ROUTES } from '@/config/routes';
 
 export const homeHero = {
   kicker: 'Software Engineer · CS Student · Germany',
@@ -11,7 +12,7 @@ export const homeHero = {
   ],
   actions: [
     { label: 'Start a conversation', href: `mailto:${site.email}` },
-    { label: 'View experience', symbol: '↓', to: '/#about', variant: 'text' },
+    { label: 'View experience', symbol: '↓', to: { ...APP_ROUTES.home, hash: '#about' }, variant: 'text' },
   ],
   profile: {
     filename: 'profile.ts',
@@ -52,7 +53,7 @@ export const homeCapabilities = {
       number: '01',
       layer: 'Production experience',
       title: 'Professional',
-      to: '/work',
+      to: APP_ROUTES.work,
       skills: [
         'PHP',
         'Laravel',
@@ -70,7 +71,7 @@ export const homeCapabilities = {
       number: '02',
       layer: 'Coursework',
       title: 'Academic',
-      to: '/academic',
+      to: APP_ROUTES.academic,
       skills: [
         'Java',
         'Python',
@@ -88,7 +89,7 @@ export const homeCapabilities = {
       number: '03',
       layer: 'Independent practice',
       title: 'Personal',
-      to: '/personal',
+      to: APP_ROUTES.personal,
       skills: [
         'Open Source',
         'TypeScript',
@@ -106,3 +107,9 @@ export const homeCapabilities = {
     },
   ],
 } satisfies HomeCapabilitiesContent;
+
+export const homeMeta = {
+  title: 'Matthias Löhden | Software Engineer',
+  description:
+    'Portfolio of Matthias Löhden, a software engineer building fast, reliable, and maintainable applications and systems.',
+};

@@ -40,11 +40,12 @@ portfolio/
 │   ├── composables/             # Reusable reactive logic
 │   ├── config/                  # Application configuration
 │   ├── domain/                  # Application rules and validation
-│   ├── data/                    # Portfolio content
+│   ├── data/content/            # Typed portfolio content per locale
 │   ├── types/                   # Shared TypeScript definitions
 │   ├── utils/                   # Shared utility functions
 │   ├── assets/                  # Global styles and fonts
 │   └── plugins/                 # Nuxt application integrations
+├── i18n/locales/                # Interface and accessibility messages
 └── tests/
     ├── unit/                    # Unit tests
     └── e2e/                     # End-to-end tests

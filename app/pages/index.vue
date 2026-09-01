@@ -1,5 +1,11 @@
 <script setup lang="ts">
-import { homeAbout, homeCapabilities, homeHero } from '@/data/home';
+const portfolio = usePortfolioContent();
+const home = computed(() => portfolio.value.home);
+
+useSeoMeta({
+  title: () => home.value.homeMeta.title,
+  description: () => home.value.homeMeta.description,
+});
 </script>
 
 <template>
@@ -9,9 +15,9 @@ import { homeAbout, homeCapabilities, homeHero } from '@/data/home';
       id="content"
       class="site-container"
     >
-      <HomeHero :content="homeHero" />
-      <HomeAbout :content="homeAbout" />
-      <HomeCapabilities :content="homeCapabilities" />
+      <HomeHero :content="home.homeHero" />
+      <HomeAbout :content="home.homeAbout" />
+      <HomeCapabilities :content="home.homeCapabilities" />
     </main>
   </div>
 </template>

@@ -33,6 +33,7 @@ const props = defineProps<{
 }>();
 
 const descriptionId = useId();
+const { t } = useI18n();
 
 const emit = defineEmits<{
   'update:modelValue': [value: number];
@@ -108,13 +109,18 @@ const presetGroups = computed<readonly NumericSettingMarkerGroup[]>(() => {
 });
 
 const markerDescription = computed(() =>
-  presetGroups.value.map((marker) => `${marker.label} ${marker.value}${marker.active ? ' active' : ''}`).join(', '),
+  presetGroups.value
+    .map((marker) => `${marker.label} ${marker.value}${marker.active ? ` ${t('display.shared.active')}` : ''}`)
+    .join(', '),
 );
 
-const sliderValueText = computed(
-  () =>
-    `${sliderValue.value}; recommended range ${props.min} to ${props.max}` +
-    (markerDescription.value ? `; performance presets ${markerDescription.value}` : ''),
+const sliderValueText = computed(() =>
+  t('display.background.sliderValue', {
+    value: sliderValue.value,
+    min: props.min,
+    max: props.max,
+    presets: markerDescription.value ? t('display.background.sliderPresets', { presets: markerDescription.value }) : '',
+  }),
 );
 </script>
 
@@ -129,10 +135,10 @@ const sliderValueText = computed(
           class="cursor-pointer text-[0.54rem] text-muted underline decoration-line underline-offset-2 transition-colors hover:text-foreground focus-visible:text-foreground"
           type="button"
           :title="resetLabel"
-          :aria-label="`${label}: ${resetLabel ?? 'reset override'}`"
+          :aria-label="`${label}: ${resetLabel ?? t('display.shared.resetOverride')}`"
           @click="emit('reset')"
         >
-          Reset
+          {{ t('form.reset') }}
         </button>
       </span>
       <small
@@ -147,7 +153,7 @@ const sliderValueText = computed(
     <div class="grid grid-cols-[3.5rem_minmax(0,1fr)] items-center gap-x-3 gap-y-1">
       <SharedNumberInput
         :model-value="modelValue"
-        :label="`${label} value`"
+        :label="t('display.shared.value', { label })"
         :described-by="description ? descriptionId : undefined"
         :step="step"
         :disabled="disabled"
@@ -159,7 +165,7 @@ const sliderValueText = computed(
         :max="sliderBounds.max"
         :step="step"
         :step-base="min"
-        :label="`${label} range`"
+        :label="t('display.shared.range', { label })"
         :described-by="description ? descriptionId : undefined"
         :value-text="sliderValueText"
         :highlighted-range="{ min, max }"
@@ -171,18 +177,24 @@ const sliderValueText = computed(
         v-if="presetGroups.length > 0"
         class="col-start-2 flex min-w-0 items-start justify-between gap-2 text-[0.5rem] leading-[1.35]"
       >
-        <span class="shrink-0 tracking-[0.04em] text-muted uppercase">Presets</span>
+        <span class="shrink-0 tracking-[0.04em] text-muted uppercase">{{ t('display.shared.presets') }}</span>
         <span
           class="flex min-w-0 flex-wrap justify-end gap-x-2 gap-y-0.5"
           role="list"
-          :aria-label="`${label} performance presets`"
+          :aria-label="t('display.background.performancePresets', { label })"
         >
           <span
             v-for="marker in presetGroups"
             :key="`${marker.label}-${marker.value}`"
             :class="marker.active ? 'font-semibold text-primary-bright' : 'text-muted'"
             role="listitem"
-            :aria-label="`${marker.label} preset: ${marker.value}${marker.active ? ' (active)' : ''}`"
+            :aria-label="
+              t('display.background.presetValue', {
+                preset: marker.label,
+                value: marker.value,
+                active: marker.active ? ` (${t('display.shared.active')})` : '',
+              })
+            "
           >
             {{ marker.shortLabel }} {{ marker.value }}
           </span>

@@ -1,21 +1,13 @@
 <script setup lang="ts">
-import {
-  contributionPanel,
-  coolingPanel,
-  hardwareSection,
-  homelabPanel,
-  homelabSection,
-  learningPanel,
-  learningSection,
-  openSourceSection,
-  personalClosing,
-  personalHero,
-  personalMeta,
-  personalOverview,
-} from '@/data/personal';
 import CoolingLoopPanel from '~/components/personal/cooling/CoolingLoopPanel.vue';
 
-useSeoMeta(personalMeta);
+const portfolio = usePortfolioContent();
+const personal = computed(() => portfolio.value.personal);
+
+useSeoMeta({
+  title: () => personal.value.personalMeta.title,
+  description: () => personal.value.personalMeta.description,
+});
 </script>
 
 <template>
@@ -26,35 +18,35 @@ useSeoMeta(personalMeta);
     >
       <SharedDetailHero
         title-id="personal-title"
-        :content="personalHero"
+        :content="personal.personalHero"
       />
-      <SharedCaseStudyList v-bind="personalOverview" />
+      <SharedCaseStudyList v-bind="personal.personalOverview" />
 
-      <PersonalFeatureSection v-bind="openSourceSection">
-        <PersonalContributionPanel :content="contributionPanel" />
+      <PersonalFeatureSection v-bind="personal.openSourceSection">
+        <PersonalContributionPanel :content="personal.contributionPanel" />
       </PersonalFeatureSection>
 
       <PersonalFeatureSection
-        v-bind="homelabSection"
+        v-bind="personal.homelabSection"
         reverse
       >
-        <PersonalHomelabPanel :content="homelabPanel" />
+        <PersonalHomelabPanel :content="personal.homelabPanel" />
       </PersonalFeatureSection>
 
-      <PersonalFeatureSection v-bind="learningSection">
-        <PersonalLearningPanel :content="learningPanel" />
+      <PersonalFeatureSection v-bind="personal.learningSection">
+        <PersonalLearningPanel :content="personal.learningPanel" />
       </PersonalFeatureSection>
 
       <PersonalFeatureSection
-        v-bind="hardwareSection"
+        v-bind="personal.hardwareSection"
         reverse
       >
-        <CoolingLoopPanel :content="coolingPanel" />
+        <CoolingLoopPanel :content="personal.coolingPanel" />
       </PersonalFeatureSection>
 
       <SharedPageClosing
         id="personal-close"
-        :content="personalClosing"
+        :content="personal.personalClosing"
       />
     </main>
   </div>

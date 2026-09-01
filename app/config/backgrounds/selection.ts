@@ -1,5 +1,6 @@
 import { BACKGROUND_IDS, type BackgroundId, type BackgroundPreference } from '@/types/background';
 import { selectByRandomValue } from '@/utils/randomSelection';
+import { getCanonicalContentPath } from '@/utils/localizedPath';
 
 /** Route-aware choices exposed by the display-settings UI. */
 const BACKGROUND_LABELS: Readonly<Record<BackgroundId, string>> = {
@@ -38,7 +39,7 @@ export function resolveBackground(
   }
   if (preference !== 'auto') return preference;
 
-  const normalizedPath = path.replace(/\/+$/, '') || '/';
+  const normalizedPath = getCanonicalContentPath(path);
   return AUTOMATIC_BACKGROUNDS[normalizedPath] ?? 'none';
 }
 

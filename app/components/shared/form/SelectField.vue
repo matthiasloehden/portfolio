@@ -22,6 +22,8 @@ const emit = defineEmits<{
 defineSlots<{
   value(props: { option: SelectFieldOption<Value> | undefined }): unknown;
   option(props: { option: SelectFieldOption<Value>; selected: boolean; active: boolean }): unknown;
+  'value-indicator'(props: { option: SelectFieldOption<Value> | undefined }): unknown;
+  'option-indicator'(props: { option: SelectFieldOption<Value>; selected: boolean; active: boolean }): unknown;
 }>();
 
 const TYPEAHEAD_DELAY = 500;
@@ -352,7 +354,13 @@ onBeforeUnmount(() => {
         name="value"
         :option="selectedOption"
       >
-        <span class="truncate">{{ selectedOption?.label }}</span>
+        <span class="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
+          <span class="truncate">{{ selectedOption?.label }}</span>
+          <slot
+            name="value-indicator"
+            :option="selectedOption"
+          />
+        </span>
       </slot>
       <svg
         class="size-3 shrink-0 stroke-current transition-transform duration-150 motion-reduce:transition-none"
@@ -408,7 +416,15 @@ onBeforeUnmount(() => {
               :selected="modelValue === option.value"
               :active="activeIndex === index"
             >
-              <span class="truncate">{{ option.label }}</span>
+              <span class="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
+                <span class="truncate text-[0.6rem] text-foreground">{{ option.label }}</span>
+                <slot
+                  name="option-indicator"
+                  :option="option"
+                  :selected="modelValue === option.value"
+                  :active="activeIndex === index"
+                />
+              </span>
             </slot>
             <span
               class="size-1.5 rounded-full"

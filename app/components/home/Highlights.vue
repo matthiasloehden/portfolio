@@ -11,7 +11,7 @@ const revealDelayClasses = ['', '[--reveal-delay:75ms]', '[--reveal-delay:200ms]
 <template>
   <dl
     class="mt-20 grid grid-cols-1 border-y border-line p-0 md:mt-24 md:grid-cols-3 lg:mt-28 xl:mt-32"
-    aria-label="Career highlights"
+    :aria-label="$t('accessibility.careerHighlights')"
   >
     <div
       v-for="(item, index) in items"

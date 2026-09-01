@@ -45,7 +45,7 @@ const secondarySources = computed(() => props.content.groups.slice(1).flatMap((g
                   {{ source.name }}
                 </SharedDisplayHeading>
                 <p class="mt-[0.7rem] font-mono text-[0.55rem] leading-[1.5] text-muted">{{ source.focus }}</p>
-                <span class="sr-only"> on YouTube (opens in a new tab)</span>
+                <span class="sr-only">{{ $t('common.externalYouTube') }}</span>
               </div>
               <span
                 class="absolute top-4 right-4 font-mono text-sm text-primary transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"

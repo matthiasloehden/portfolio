@@ -1,12 +1,18 @@
 <script setup lang="ts">
 import { useActiveNavigation } from '@/composables/useActiveNavigation';
+import { APP_ROUTES } from '@/config/routes';
 import { site, siteNavigation } from '@/data/site';
 import SharedPanelTrigger from '@/components/shared/PanelTrigger.vue';
 
 const menuOpen = ref(false);
 const settingsOpen = ref(false);
 const header = ref<HTMLElement | null>(null);
-const navigationItems = useActiveNavigation(siteNavigation);
+const { t } = useI18n();
+const localePath = useLocalePath();
+const localizedNavigation = computed(() =>
+  siteNavigation.map(({ labelKey, ...item }) => ({ ...item, label: t(labelKey) })),
+);
+const navigationItems = useActiveNavigation(localizedNavigation);
 
 const route = useRoute();
 
@@ -49,8 +55,8 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onDocumentPoin
   >
     <NuxtLink
       class="group inline-flex items-center gap-3.5 transition-transform duration-[240ms] ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-[0.12rem] hover:scale-[1.015] focus-visible:-translate-y-[0.12rem] focus-visible:scale-[1.015]"
-      to="/"
-      :aria-label="`${site.name}, home`"
+      :to="localePath(APP_ROUTES.home)"
+      :aria-label="t('site.homeLabel', { name: site.name })"
     >
       <span
         class="grid size-8 place-items-center border border-primary font-mono text-[0.65rem] tracking-[-0.06em] text-primary-bright shadow-[inset_0_0_1rem_rgb(50_132_255/0.12)] transition-colors group-hover:bg-primary group-hover:text-primary-foreground"
@@ -60,12 +66,12 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onDocumentPoin
       </span>
       <span class="grid gap-0.5">
         <strong class="font-display text-[0.82rem] tracking-[0.03em] uppercase">{{ site.name }}</strong>
-        <small class="hidden font-mono text-[0.58rem] text-muted xs:block">{{ site.role }}</small>
+        <small class="hidden font-mono text-[0.58rem] text-muted xs:block">{{ t('site.role') }}</small>
       </span>
     </NuxtLink>
 
     <div class="flex items-center gap-2">
-      <nav aria-label="Main navigation">
+      <nav :aria-label="t('navigation.mainLabel')">
         <ul
           id="site-navigation"
           :class="[
@@ -93,8 +99,8 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onDocumentPoin
         class="md:hidden"
         :expanded="menuOpen"
         controls="site-navigation"
-        label="Open navigation"
-        expanded-label="Close navigation"
+        :label="t('navigation.open')"
+        :expanded-label="t('navigation.close')"
         @toggle="toggleMenu"
       >
         <svg

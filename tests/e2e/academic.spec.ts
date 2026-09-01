@@ -7,7 +7,7 @@ import {
   passkeysCase,
   servicePanel,
   streamingPanel,
-} from '@/data/academic';
+} from '@/data/content/en/academic';
 import { expect, expectHeadingInViewport, expectPageContract, getDisplayHeadingText, test } from './support/app-test';
 
 test.describe('Academic page', () => {

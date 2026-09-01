@@ -22,7 +22,7 @@ withDefaults(
     />
 
     <span class="pump-code">{{ code }}</span>
-    <strong class="pump-label">PUMP</strong>
+    <strong class="pump-label">{{ $t('hardwarePanel.pump') }}</strong>
     <i aria-hidden="true" />
   </div>
 </template>

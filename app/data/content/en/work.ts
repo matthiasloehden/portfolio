@@ -1,4 +1,5 @@
 import { site } from '@/data/site';
+import { APP_ROUTES } from '@/config/routes';
 import { createCaseStudyListItems } from '@/data/caseStudies';
 import type {
   WorkCaseStudyContent,
@@ -156,7 +157,7 @@ export const workClosing: WorkClosingContent = {
     'These client projects and the company-owned product are intentionally described at a system level. Together, they represent the range of production software I worked on: application workflows, user interfaces, data, permissions, search, integrations, maintenance, and software interacting with physical systems.',
   actions: [
     { label: 'Start a conversation', href: `mailto:${site.email}` },
-    { label: 'View university work', symbol: '→', to: '/academic', variant: 'text' },
+    { label: 'View university work', symbol: '→', to: APP_ROUTES.academic, variant: 'text' },
   ],
 };
 

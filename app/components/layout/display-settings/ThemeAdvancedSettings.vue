@@ -16,10 +16,11 @@ const {
 const activePalette = computed(() =>
   resolveThemePalette(themeSettings.value, resolvedThemeMode.value, resolvedThemePreset.value),
 );
+const { t } = useI18n();
 </script>
 
 <template>
-  <section aria-label="Advanced theme settings">
+  <section :aria-label="t('display.theme.advancedLabel')">
     <ThemeSettingsFields
       :settings="themeSettings"
       :mode="resolvedThemeMode"

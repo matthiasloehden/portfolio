@@ -1,10 +1,12 @@
+import type { AppRouteLocation } from '@/config/routes';
+
 interface NavigationItemBase {
   label: string;
   prefix?: string;
-  activePath?: string;
 }
 
-export type NavigationItem = NavigationItemBase & ({ to: string; href?: never } | { href: string; to?: never });
+export type NavigationItem = NavigationItemBase &
+  ({ to: AppRouteLocation; href?: never } | { href: string; to?: never });
 
 export type DisplayHeadingLine = string | string[];
 
@@ -35,7 +37,7 @@ export interface Capability {
   number: string;
   layer: string;
   title: string;
-  to: string;
+  to: AppRouteLocation;
   skills: string[];
 }
 
@@ -43,7 +45,7 @@ export type HomeAction = {
   label: string;
   symbol?: string;
   variant?: 'primary' | 'text';
-} & ({ to: string; href?: never } | { href: string; to?: never });
+} & ({ to: AppRouteLocation; href?: never } | { href: string; to?: never });
 
 export interface HomeHighlight {
   number: string;

@@ -60,6 +60,14 @@ describe('theme configuration', () => {
     expect(resolveThemePreset('/work/', 'auto')).toBe('crimson');
     expect(resolveThemePreset('/academic', 'auto')).toBe('aurora');
     expect(resolveThemePreset('/personal', 'auto')).toBe('teal');
+    expect(resolveThemePreset('/de', 'auto')).toBe('arctic');
+    expect(resolveThemePreset('/de/work/', 'auto')).toBe('crimson');
+    expect(resolveThemePreset('/de/academic', 'auto')).toBe('aurora');
+    expect(resolveThemePreset('/de/personal', 'auto')).toBe('teal');
+    expect(resolveThemePreset('/fr/work', 'auto')).toBe('crimson');
+    expect(resolveThemePreset('/es/academic', 'auto')).toBe('aurora');
+    expect(resolveThemePreset('/pl/personal', 'auto')).toBe('teal');
+    expect(resolveThemePreset('/it/work', 'auto')).toBe('crimson');
     expect(resolveThemePreset('/work', 'verdant')).toBe('verdant');
   });
 

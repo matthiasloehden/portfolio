@@ -1,9 +1,11 @@
 <script setup lang="ts">
+import type { AppRouteLocation } from '@/config/routes';
+
 const props = withDefaults(
   defineProps<{
     label: string;
     symbol?: string;
-    to?: string;
+    to?: AppRouteLocation;
     href?: string;
     variant?: 'primary' | 'text';
   }>(),
@@ -14,8 +16,9 @@ const props = withDefaults(
 );
 
 const NuxtLinkComponent = resolveComponent('NuxtLink');
+const localePath = useLocalePath();
 const linkComponent = computed(() => (props.to ? NuxtLinkComponent : 'a'));
-const linkAttributes = computed(() => (props.to ? { to: props.to } : { href: props.href }));
+const linkAttributes = computed(() => (props.to ? { to: localePath(props.to) } : { href: props.href }));
 
 const baseClasses =
   'action-link inline-flex items-center gap-2.5 font-mono text-[0.72rem] font-semibold transition duration-150 ease-out';

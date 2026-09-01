@@ -3,7 +3,6 @@ import {
   getBackgroundSettingControls,
   resolveBackgroundSettingsForEditor,
 } from '@/config/backgrounds/settingsRegistry';
-import { getBackgroundLabel } from '@/config/backgrounds/selection';
 import type {
   BackgroundAnimation,
   BackgroundId,
@@ -20,6 +19,7 @@ import SharedSelectField from '@/components/shared/form/SelectField.vue';
 import SharedSettingsResetButton from '@/components/shared/form/SettingsResetButton.vue';
 import SharedToggleField from '@/components/shared/form/ToggleField.vue';
 import BackgroundSelectField from './display-settings/BackgroundSelectField.vue';
+import LanguageSelectField from './display-settings/LanguageSelectField.vue';
 import SettingsBackgroundFields from './display-settings/BackgroundSettingsFields.vue';
 import SettingsPageButton from './display-settings/SettingsPageButton.vue';
 import ThemeAdvancedSettings from './display-settings/ThemeAdvancedSettings.vue';
@@ -39,8 +39,15 @@ const {
   resetBackgroundSettings,
   setBackgroundPerformanceMode,
   setBackgroundPerformanceStatsEnabled,
-  restoreDefaultSettings,
+  restoreDefaultSettings: restoreDefaultDisplayPreferences,
 } = useDisplayPreferences();
+const {
+  automaticLocale,
+  hasLanguagePreferenceChanges,
+  restoreDefaultLanguagePreference,
+  selectedPreference: languagePreference,
+  setLanguagePreference,
+} = useLanguagePreference();
 
 interface PanelTriggerHandle {
   focus: (options?: FocusOptions) => void;
@@ -62,23 +69,35 @@ const pendingPageFocus = ref<PendingPageFocus>(null);
 const backgroundSettingsTitleId = useId();
 const open = defineModel<boolean>('open', { default: false });
 const { performanceStats } = useBackgroundRuntimeStatus();
+const { t } = useI18n();
+const hasSettingsChanges = computed(() => hasDisplayPreferenceChanges.value || hasLanguagePreferenceChanges.value);
 
-const animationOptions: readonly {
-  key: BackgroundAnimation;
-  label: string;
-  description: string;
-}[] = [
-  { key: 'idle', label: 'Idle motion', description: 'Animate the scene while it is idle.' },
-  { key: 'cursorMovement', label: 'Pointer movement', description: 'React to mouse, pen and touch movement.' },
-  { key: 'cursorClick', label: 'Pointer presses', description: 'React to mouse, pen and touch presses.' },
-  { key: 'scroll', label: 'Scroll response', description: 'React to scrolling and wheel gestures.' },
-];
+const animationOptions = computed<
+  readonly {
+    key: BackgroundAnimation;
+    label: string;
+    description: string;
+  }[]
+>(() =>
+  (['idle', 'cursorMovement', 'cursorClick', 'scroll'] as const).map((key) => ({
+    key,
+    label: t(`display.background.animationOptions.${key}.label`),
+    description: t(`display.background.animationOptions.${key}.description`),
+  })),
+);
 
 const pageEnterFromClass = computed(() => (pageTransitionDirection.value === 'forward' ? 'opacity-0' : 'opacity-0'));
 const pageLeaveToClass = computed(() => (pageTransitionDirection.value === 'forward' ? 'opacity-0' : 'opacity-0'));
 
 const activeBackground = computed(() => resolvedBackground.value);
-const activeBackgroundLabel = computed(() => getBackgroundLabel(activeBackground.value));
+const editableBackground = computed<BackgroundId | null>(() =>
+  activeBackground.value === 'none' ? null : activeBackground.value,
+);
+const activeBackgroundLabel = computed(() =>
+  activeBackground.value === 'none'
+    ? t('display.shared.none')
+    : t(`display.background.scenes.${activeBackground.value}`),
+);
 const controlsDisabled = computed(() => activeBackground.value === 'none');
 
 const backgroundMeta = computed(() =>
@@ -87,12 +106,12 @@ const backgroundMeta = computed(() =>
     : undefined,
 );
 
-const performanceOptions: readonly { value: BackgroundPerformanceMode; label: string }[] = [
-  { value: 'auto', label: 'Auto' },
-  { value: 'high', label: 'High' },
-  { value: 'medium', label: 'Medium' },
-  { value: 'low', label: 'Low' },
-];
+const performanceOptions = computed<readonly { value: BackgroundPerformanceMode; label: string }[]>(() => [
+  { value: 'auto', label: t('display.shared.auto') },
+  { value: 'high', label: t('display.shared.high') },
+  { value: 'medium', label: t('display.shared.medium') },
+  { value: 'low', label: t('display.shared.low') },
+]);
 
 const activePerformancePreset = computed<BackgroundQualityId>(() => {
   if (backgroundPerformance.value.mode !== 'auto') return backgroundPerformance.value.mode;
@@ -103,7 +122,7 @@ const performanceMeta = computed(() => {
   if (backgroundPerformance.value.mode !== 'auto') return undefined;
 
   const preset = activePerformancePreset.value;
-  return `${preset.charAt(0).toUpperCase()}${preset.slice(1)}`;
+  return t(`display.shared.${preset}`);
 });
 
 const activeSettingsControls = computed(() =>
@@ -126,6 +145,11 @@ const activeSettingOverrides = computed<Readonly<Record<string, BackgroundSettin
 
 function onBackgroundChange(value: BackgroundPreference): void {
   setBackgroundPreference(value);
+}
+
+async function restoreDefaultSettings(): Promise<void> {
+  restoreDefaultDisplayPreferences();
+  await restoreDefaultLanguagePreference();
 }
 
 function onPerformanceModeChange(value: BackgroundPerformanceMode): void {
@@ -223,8 +247,8 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onDocumentPoin
       ref="panelTrigger"
       :expanded="open"
       controls="display-settings"
-      label="Open display settings"
-      expanded-label="Close display settings"
+      :label="t('display.open')"
+      :expanded-label="t('display.close')"
       popup="dialog"
       @toggle="open = !open"
     >
@@ -265,7 +289,7 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onDocumentPoin
         class="absolute top-full right-0 left-0 z-50 origin-top-right border-b border-line bg-raised/95 shadow-2xl backdrop-blur-xl md:top-[calc(100%+0.75rem)] md:left-auto md:w-[min(20rem,calc(100vw-2rem))] md:border"
         role="dialog"
         tabindex="-1"
-        aria-label="Display settings"
+        :aria-label="t('display.dialogLabel')"
       >
         <div
           ref="panelScroller"
@@ -285,8 +309,10 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onDocumentPoin
                   v-if="activePage === 'overview'"
                   class="mb-4 flex items-center justify-between gap-4 border-b border-line pb-3"
                 >
-                  <span class="font-display text-sm tracking-[0.04em] text-foreground uppercase">Display</span>
-                  <span class="font-mono text-[0.58rem] text-muted">Preferences</span>
+                  <span class="font-display text-sm tracking-[0.04em] text-foreground uppercase">{{
+                    t('display.title')
+                  }}</span>
+                  <span class="font-mono text-[0.58rem] text-muted">{{ t('display.subtitle') }}</span>
                 </h2>
                 <div
                   v-else
@@ -296,7 +322,7 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onDocumentPoin
                     ref="backButton"
                     class="grid size-7 shrink-0 cursor-pointer place-items-center border border-line text-muted transition-colors hover:border-line-strong hover:text-foreground focus-visible:border-line-strong focus-visible:text-foreground"
                     type="button"
-                    aria-label="Back to display settings"
+                    :aria-label="t('display.back')"
                     @click="returnToOverview"
                   >
                     <svg
@@ -310,15 +336,21 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onDocumentPoin
                   </button>
                   <h2 class="flex min-w-0 flex-1 items-baseline justify-between gap-3">
                     <span class="font-display text-sm tracking-[0.04em] text-foreground uppercase">
-                      {{ activePage === 'theme' ? 'Theme' : 'Background' }}
+                      {{ activePage === 'theme' ? t('display.theme.label') : t('display.background.label') }}
                     </span>
-                    <span class="truncate font-mono text-[0.58rem] text-muted">Advanced settings</span>
+                    <span class="truncate font-mono text-[0.58rem] text-muted">{{ t('display.advanced') }}</span>
                   </h2>
                 </div>
 
                 <template v-if="activePage === 'overview'">
+                  <LanguageSelectField
+                    :model-value="languagePreference"
+                    :automatic-locale="automaticLocale"
+                    @update:model-value="setLanguagePreference"
+                  />
                   <ThemeSettingsSection
                     ref="themePageTrigger"
+                    class="mt-3"
                     @open-advanced="openSettingsPage('theme')"
                   />
                   <BackgroundSelectField
@@ -331,15 +363,15 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onDocumentPoin
                   <SettingsPageButton
                     ref="backgroundPageTrigger"
                     class="mt-3"
-                    label="Advanced background settings"
+                    :label="t('display.background.advancedLabel')"
                     @select="openSettingsPage('background')"
                   />
 
                   <SharedSettingsResetButton
                     class="mt-4"
-                    label="Restore default settings"
-                    :disabled="!hasDisplayPreferenceChanges"
-                    disabled-reason="All display settings already use their defaults."
+                    :label="t('display.restore')"
+                    :disabled="!hasSettingsChanges"
+                    :disabled-reason="t('display.restoreDisabled')"
                     @click="restoreDefaultSettings"
                   />
                 </template>
@@ -348,10 +380,10 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onDocumentPoin
 
                 <section
                   v-else
-                  aria-label="Advanced background settings"
+                  :aria-label="t('display.background.advancedLabel')"
                 >
                   <SharedSelectField
-                    label="Background performance"
+                    :label="t('display.background.performance')"
                     :meta="performanceMeta"
                     :model-value="backgroundPerformance.mode"
                     :options="performanceOptions"
@@ -361,8 +393,8 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onDocumentPoin
 
                   <SharedToggleField
                     class="mt-4"
-                    label="Performance stats"
-                    description="Show diagnostics for the active background."
+                    :label="t('display.background.performanceStats')"
+                    :description="t('display.background.performanceStatsDescription')"
                     :checked="backgroundPerformance.showStats"
                     :disabled="controlsDisabled"
                     @change="setBackgroundPerformanceStatsEnabled"
@@ -373,11 +405,11 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onDocumentPoin
                     :end-border="false"
                   >
                     <SharedAccordion
-                      label="Animations"
+                      :label="t('display.background.animations')"
                       :heading-level="3"
                     >
                       <fieldset class="grid gap-3">
-                        <legend class="sr-only">Animations</legend>
+                        <legend class="sr-only">{{ t('display.background.animations') }}</legend>
                         <SharedToggleField
                           v-for="option in animationOptions"
                           :key="option.key"
@@ -400,14 +432,15 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onDocumentPoin
                         :id="backgroundSettingsTitleId"
                         class="text-[0.6rem] text-foreground"
                       >
-                        Configure active background
+                        {{ t('display.background.configure') }}
                       </h3>
                       <span class="truncate text-[0.54rem] text-muted">{{ activeBackgroundLabel }}</span>
                     </div>
 
                     <SettingsBackgroundFields
-                      v-if="activeBackground !== 'none'"
+                      v-if="editableBackground"
                       :background-label="activeBackgroundLabel"
+                      :background="editableBackground"
                       :controls="activeSettingsControls"
                       :values="activeSettingsValues"
                       :overrides="activeSettingOverrides"

@@ -15,7 +15,7 @@ defineProps<{
         'grid content-start gap-[0.35rem] overflow-hidden border-b border-line pb-3 sm:grid-cols-1 sm:border-r sm:border-b-0 sm:pr-4 sm:pb-0',
         navigation.length > 4 ? 'grid-cols-3' : 'grid-cols-4',
       ]"
-      :aria-label="`${ariaLabel} navigation`"
+      :aria-label="$t('accessibility.previewNavigation', { label: ariaLabel })"
     >
       <span
         v-for="(item, index) in navigation"

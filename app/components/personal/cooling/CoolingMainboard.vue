@@ -8,7 +8,7 @@ import CoolingRamBlock from './CoolingRamBlock.vue';
   <div class="motherboard">
     <div class="board-header">
       <span>MB01</span>
-      <span>MAINBOARD</span>
+      <span>{{ $t('hardwarePanel.mainboard') }}</span>
     </div>
 
     <div

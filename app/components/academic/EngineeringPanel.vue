@@ -14,7 +14,7 @@ defineProps<{
     >
       <div class="grid content-start gap-4">
         <header class="border-b border-line pb-2">
-          <h3 class="font-display text-lg uppercase sm:text-xl">Learning progress overview</h3>
+          <h3 class="font-display text-lg uppercase sm:text-xl">{{ $t('academicPanel.progressOverview') }}</h3>
         </header>
 
         <dl class="grid grid-cols-3 gap-2">
@@ -31,7 +31,7 @@ defineProps<{
 
         <div class="grid gap-3 md:grid-cols-2">
           <section class="border border-line bg-surface p-3">
-            <span class="font-mono text-[0.5rem] text-primary uppercase">Active learning goals</span>
+            <span class="font-mono text-[0.5rem] text-primary uppercase">{{ $t('academicPanel.activeGoals') }}</span>
             <div
               v-for="goal in content.goals"
               :key="goal.title"
@@ -44,7 +44,7 @@ defineProps<{
           </section>
 
           <section class="border border-line bg-surface p-3">
-            <span class="font-mono text-[0.5rem] text-primary uppercase">Planned blocks</span>
+            <span class="font-mono text-[0.5rem] text-primary uppercase">{{ $t('academicPanel.plannedBlocks') }}</span>
             <div
               v-for="item in content.schedule"
               :key="`${item.date}-${item.title}`"

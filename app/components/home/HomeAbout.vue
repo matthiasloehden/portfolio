@@ -47,7 +47,7 @@ const revealDelayClasses = ['', '[--reveal-delay:100ms]'];
       <div
         class="mt-2 flex flex-wrap gap-2 [--reveal-delay:150ms]"
         data-reveal="up"
-        aria-label="Development principles"
+        :aria-label="$t('accessibility.developmentPrinciples')"
       >
         <span
           v-for="principle in content.principles"

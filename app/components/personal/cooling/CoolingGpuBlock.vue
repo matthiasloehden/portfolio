@@ -77,7 +77,7 @@ onMounted(() => {
 
     <div class="gpu-edge">
       <span>GPU</span>
-      <small>VERTICAL</small>
+      <small>{{ $t('hardwarePanel.vertical') }}</small>
     </div>
 
     <div

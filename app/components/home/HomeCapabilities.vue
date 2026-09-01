@@ -5,6 +5,8 @@ defineProps<{
   content: HomeCapabilitiesContent;
 }>();
 
+const { t } = useI18n();
+const localePath = useLocalePath();
 const revealDelayClasses = ['', '[--reveal-delay:75ms]', '[--reveal-delay:150ms]'];
 </script>
 
@@ -39,9 +41,9 @@ const revealDelayClasses = ['', '[--reveal-delay:75ms]', '[--reveal-delay:150ms]
       <NuxtLink
         v-for="(capability, index) in content.items"
         :key="capability.title"
-        :to="capability.to"
+        :to="localePath(capability.to)"
         class="group border-t border-line first:border-t-0 md:border-t-0 md:border-l md:first:border-l-0"
-        :aria-label="`View ${capability.title} section`"
+        :aria-label="t('accessibility.viewSection', { section: capability.title })"
       >
         <HomeCapabilityCard
           v-bind="capability"

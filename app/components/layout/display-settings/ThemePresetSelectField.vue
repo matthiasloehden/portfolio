@@ -14,7 +14,16 @@ const emit = defineEmits<{
   'update:modelValue': [value: ThemePresetPreference];
 }>();
 
-const presetOptions = THEME_PRESET_OPTIONS;
+const { t } = useI18n();
+const presetOptions = computed(() =>
+  THEME_PRESET_OPTIONS.map((option) => ({
+    value: option.value,
+    label:
+      option.value === 'auto' || option.value === 'random'
+        ? t(`display.shared.${option.value === 'auto' ? 'automatic' : 'random'}`)
+        : t(`display.theme.presets.${option.value}`),
+  })),
+);
 const route = useRoute();
 const automaticPreset = computed(() => resolveThemePreset(route.path, 'auto'));
 
@@ -26,50 +35,46 @@ function resolveOptionPreset(preference: ThemePresetPreference): ThemePresetId {
 function getPreviewColors(palette: ThemePalette): readonly string[] {
   return [palette.background, palette.primary, palette.foreground];
 }
+
+function getPresetLabel(preset: ThemePresetId): string {
+  return t(`display.theme.presets.${preset}`);
+}
 </script>
 
 <template>
   <SharedSelectField
-    label="Color scheme"
-    :meta="modelValue === 'auto' || modelValue === 'random' ? getThemePreset(activePreset).label : undefined"
+    :label="t('display.theme.colorScheme')"
+    :meta="modelValue === 'auto' || modelValue === 'random' ? getPresetLabel(activePreset) : undefined"
     :model-value="modelValue"
     :options="presetOptions"
     @update:model-value="emit('update:modelValue', $event)"
   >
-    <template #value="{ option }">
+    <template #value-indicator="{ option }">
       <span
         v-if="option"
-        class="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-3"
+        class="flex -space-x-1"
+        aria-hidden="true"
       >
-        <span class="truncate">{{ option.label }}</span>
         <span
-          class="flex -space-x-1"
-          aria-hidden="true"
-        >
-          <span
-            v-for="color in getPreviewColors(getThemePreset(resolveOptionPreset(option.value)).palettes[mode])"
-            :key="color"
-            class="size-5 rounded-full border border-line-strong"
-            :style="{ backgroundColor: color }"
-          />
-        </span>
+          v-for="color in getPreviewColors(getThemePreset(resolveOptionPreset(option.value)).palettes[mode])"
+          :key="color"
+          class="size-5 rounded-full border border-line-strong"
+          :style="{ backgroundColor: color }"
+        />
       </span>
     </template>
 
-    <template #option="{ option }">
-      <span class="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
-        <span class="truncate text-[0.6rem] text-foreground">{{ option.label }}</span>
+    <template #option-indicator="{ option }">
+      <span
+        class="flex -space-x-1"
+        aria-hidden="true"
+      >
         <span
-          class="flex -space-x-1"
-          aria-hidden="true"
-        >
-          <span
-            v-for="color in getPreviewColors(getThemePreset(resolveOptionPreset(option.value)).palettes[mode])"
-            :key="color"
-            class="size-4 rounded-full border border-line-strong"
-            :style="{ backgroundColor: color }"
-          />
-        </span>
+          v-for="color in getPreviewColors(getThemePreset(resolveOptionPreset(option.value)).palettes[mode])"
+          :key="color"
+          class="size-4 rounded-full border border-line-strong"
+          :style="{ backgroundColor: color }"
+        />
       </span>
     </template>
   </SharedSelectField>

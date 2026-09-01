@@ -9,7 +9,7 @@ import {
   personalMeta,
   personalOverview,
   personalSections,
-} from '@/data/personal';
+} from '@/data/content/en/personal';
 import { expect, expectHeadingInViewport, expectPageContract, getDisplayHeadingText, test } from './support/app-test';
 
 test.describe('Personal page', () => {

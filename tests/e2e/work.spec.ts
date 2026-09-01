@@ -1,4 +1,4 @@
-import { clientCase, workCases, workClosing, workHero, workMeta, workOverview } from '@/data/work';
+import { clientCase, workCases, workClosing, workHero, workMeta, workOverview } from '@/data/content/en/work';
 import { expect, expectHeadingInViewport, expectPageContract, getDisplayHeadingText, test } from './support/app-test';
 
 test.describe('Work page', () => {

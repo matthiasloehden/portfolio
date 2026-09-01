@@ -1,6 +1,13 @@
 import tailwindcss from '@tailwindcss/vite';
+import { DEFAULT_LOCALE, LOCALE_DEFINITIONS } from './app/config/locales';
+import { APP_ROUTE_PATHS } from './app/config/routes';
 
 const baseURL = process.env.NUXT_APP_BASE_URL || '/';
+const prerenderRoutes = LOCALE_DEFINITIONS.flatMap(({ code }) =>
+  Object.values(APP_ROUTE_PATHS).map((path) =>
+    code === DEFAULT_LOCALE ? path : `/${code}${path === '/' ? '' : path}`,
+  ),
+);
 const googleFontFamilies = [
   'Archivo+Narrow:wght@400..700',
   'Cinzel:wght@400..900',
@@ -34,16 +41,7 @@ export default defineNuxtConfig({
       mode: 'out-in',
     },
     head: {
-      htmlAttrs: {
-        lang: 'en',
-      },
-      title: 'Matthias Löhden | Software Engineer',
       meta: [
-        {
-          name: 'description',
-          content:
-            'Portfolio of Matthias Löhden, a software engineer building fast, reliable, and maintainable applications and systems.',
-        },
         { name: 'color-scheme', content: 'dark light' },
         { name: 'theme-color', content: '#030509', media: '(prefers-color-scheme: dark)' },
         { name: 'theme-color', content: '#f3f7fc', media: '(prefers-color-scheme: light)' },
@@ -57,6 +55,20 @@ export default defineNuxtConfig({
           href: googleFontsStylesheet,
         },
       ],
+    },
+  },
+
+  modules: ['@nuxtjs/i18n'],
+
+  i18n: {
+    baseUrl: process.env.NUXT_PUBLIC_I18N_BASE_URL || 'https://matthiasloehden.github.io/portfolio/',
+    defaultLocale: DEFAULT_LOCALE,
+    strategy: 'prefix_except_default',
+    detectBrowserLanguage: false,
+    langDir: 'locales',
+    locales: LOCALE_DEFINITIONS.map(({ code, name, language, file }) => ({ code, name, language, file })),
+    experimental: {
+      prerenderMessages: true,
     },
   },
 
@@ -81,6 +93,9 @@ export default defineNuxtConfig({
 
   nitro: {
     preset: 'static',
+    prerender: {
+      routes: prerenderRoutes,
+    },
   },
 
   compatibilityDate: '2024-12-05',

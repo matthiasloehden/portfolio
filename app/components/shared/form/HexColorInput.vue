@@ -20,6 +20,7 @@ const draft = ref(props.modelValue);
 const valid = computed(() => isHexColor(draft.value));
 const displayedColor = computed(() => (valid.value ? draft.value : props.modelValue));
 const pickerValue = computed(() => displayedColor.value.slice(0, 7).toLowerCase());
+const { t } = useI18n();
 
 watch(
   () => props.modelValue,
@@ -58,10 +59,10 @@ function onPickerInput(event: Event): void {
           class="cursor-pointer text-[0.54rem] text-muted underline decoration-line underline-offset-2 transition-colors hover:text-foreground focus-visible:text-foreground"
           type="button"
           :title="resetLabel"
-          :aria-label="`${label}: ${resetLabel ?? 'reset override'}`"
+          :aria-label="`${label}: ${resetLabel ?? t('display.shared.resetOverride')}`"
           @click.prevent="emit('reset')"
         >
-          Reset
+          {{ t('form.reset') }}
         </button>
       </span>
       <small
@@ -88,7 +89,7 @@ function onPickerInput(event: Event): void {
           class="peer absolute inset-0 z-10 m-0 size-full cursor-pointer opacity-0"
           type="color"
           :value="pickerValue"
-          :aria-label="`Choose ${label} color`"
+          :aria-label="t('form.chooseColor', { label })"
           :aria-describedby="description ? descriptionId : undefined"
           @input="onPickerInput"
         />
@@ -115,7 +116,7 @@ function onPickerInput(event: Event): void {
         maxlength="9"
         pattern="#[0-9a-fA-F]{6}([0-9a-fA-F]{2})?"
         :value="draft"
-        :aria-label="`${label} hex color`"
+        :aria-label="t('form.hexColor', { label })"
         :aria-describedby="
           [description ? descriptionId : undefined, !valid ? errorId : undefined].filter(Boolean).join(' ')
         "
@@ -130,7 +131,7 @@ function onPickerInput(event: Event): void {
       class="text-[0.54rem] text-red-400"
       role="alert"
     >
-      Enter #RRGGBB or #RRGGBBAA.
+      {{ t('form.invalidHex') }}
     </small>
   </fieldset>
 </template>

@@ -37,7 +37,7 @@ const paragraphDelayClasses = ['[--reveal-delay:70ms]', '[--reveal-delay:135ms]'
       </p>
       <ul
         class="mt-9 flex list-none flex-wrap gap-2 p-0 [--reveal-delay:210ms]"
-        aria-label="Related topics"
+        :aria-label="$t('accessibility.relatedTopics')"
         data-reveal="up"
       >
         <li

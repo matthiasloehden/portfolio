@@ -1,20 +1,11 @@
 <script setup lang="ts">
-import {
-  academicClosing,
-  academicHero,
-  academicMeta,
-  academicOverview,
-  authenticationPanel,
-  engineeringPanel,
-  itsmCase,
-  passkeysCase,
-  servicePanel,
-  softwareEngineeringCase,
-  streamingCase,
-  streamingPanel,
-} from '@/data/academic';
+const portfolio = usePortfolioContent();
+const academic = computed(() => portfolio.value.academic);
 
-useSeoMeta(academicMeta);
+useSeoMeta({
+  title: () => academic.value.academicMeta.title,
+  description: () => academic.value.academicMeta.description,
+});
 </script>
 
 <template>
@@ -25,35 +16,35 @@ useSeoMeta(academicMeta);
     >
       <SharedDetailHero
         title-id="projects-title"
-        :content="academicHero"
+        :content="academic.academicHero"
       />
-      <SharedCaseStudyList v-bind="academicOverview" />
+      <SharedCaseStudyList v-bind="academic.academicOverview" />
 
-      <AcademicCaseStudy v-bind="softwareEngineeringCase">
-        <AcademicEngineeringPanel :content="engineeringPanel" />
+      <AcademicCaseStudy v-bind="academic.softwareEngineeringCase">
+        <AcademicEngineeringPanel :content="academic.engineeringPanel" />
       </AcademicCaseStudy>
 
       <AcademicCaseStudy
-        v-bind="streamingCase"
+        v-bind="academic.streamingCase"
         reverse
       >
-        <AcademicStreamingPanel :content="streamingPanel" />
+        <AcademicStreamingPanel :content="academic.streamingPanel" />
       </AcademicCaseStudy>
 
-      <AcademicCaseStudy v-bind="passkeysCase">
-        <AcademicAuthenticationPanel :content="authenticationPanel" />
+      <AcademicCaseStudy v-bind="academic.passkeysCase">
+        <AcademicAuthenticationPanel :content="academic.authenticationPanel" />
       </AcademicCaseStudy>
 
       <AcademicCaseStudy
-        v-bind="itsmCase"
+        v-bind="academic.itsmCase"
         reverse
       >
-        <AcademicServicePanel :content="servicePanel" />
+        <AcademicServicePanel :content="academic.servicePanel" />
       </AcademicCaseStudy>
 
       <SharedPageClosing
         id="projects-close"
-        :content="academicClosing"
+        :content="academic.academicClosing"
         width="narrow"
       />
     </main>

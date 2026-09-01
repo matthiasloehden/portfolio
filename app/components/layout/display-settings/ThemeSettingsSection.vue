@@ -18,25 +18,26 @@ defineExpose({ focus: focusAdvancedButton });
 
 const { themePreference, resolvedThemeMode, resolvedThemePreset, themeSettings, setThemePreference, setThemePreset } =
   useDisplayPreferences();
+const { t } = useI18n();
 
-const themeOptions: readonly { value: ThemePreference; label: string }[] = [
-  { value: 'system', label: 'System' },
-  { value: 'dark', label: 'Dark' },
-  { value: 'light', label: 'Light' },
-];
+const themeOptions = computed<readonly { value: ThemePreference; label: string }[]>(() => [
+  { value: 'system', label: t('display.theme.modes.system') },
+  { value: 'dark', label: t('display.theme.modes.dark') },
+  { value: 'light', label: t('display.theme.modes.light') },
+]);
 
 const resolvedModeLabel = computed(() => {
   if (themePreference.value !== 'system') return undefined;
 
   const mode = resolvedThemeMode.value;
-  return `${mode.charAt(0).toUpperCase()}${mode.slice(1)}`;
+  return t(`display.theme.modes.${mode}`);
 });
 </script>
 
 <template>
-  <section aria-label="Theme settings">
+  <section :aria-label="t('display.theme.settingsLabel')">
     <SharedSelectField
-      label="Theme"
+      :label="t('display.theme.label')"
       :meta="resolvedModeLabel"
       :model-value="themePreference"
       :options="themeOptions"
@@ -52,7 +53,7 @@ const resolvedModeLabel = computed(() => {
     <SettingsPageButton
       ref="pageButton"
       class="mt-3"
-      label="Advanced theme settings"
+      :label="t('display.theme.openAdvanced')"
       @select="emit('open-advanced')"
     />
   </section>

@@ -18,7 +18,14 @@ const {
 } = useDisplayPreferences();
 const route = useRoute();
 const nuxtApp = useNuxtApp();
+const localeHead = useLocaleHead();
 const removeThemeRouteHook = nuxtApp.hook('page:transition:finish', syncThemeForRoute);
+
+useHead(() => ({
+  htmlAttrs: localeHead.value.htmlAttrs,
+  link: localeHead.value.link,
+  meta: localeHead.value.meta,
+}));
 
 watch(
   () => route.path,
