@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const portfolio = usePortfolioContent();
+const portfolio = await usePortfolioContent();
 const home = computed(() => portfolio.value.home);
 
 useSeoMeta({

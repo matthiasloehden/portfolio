@@ -69,6 +69,7 @@ export interface BackgroundPerformanceStats {
 
 export type BackgroundSceneEmits = {
   performanceStats: [stats: BackgroundPerformanceStats];
+  ready: [];
 };
 
 export interface BackgroundSceneProps {

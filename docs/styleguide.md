@@ -47,12 +47,16 @@ broader reading faces belong in the body-font registry instead.
 
 - The default Nuxt layout owns the skip link, header, footer, and `BackgroundOrchestrator`; pages render only their main
   content and metadata.
-- `LayoutSiteHeader`: one central page list with active-page state, responsive menu, and theme control
+- `LayoutSiteHeader`: one central page list with active-page state, responsive menu, and display-settings control
 - `LayoutSiteFooter`: shared site navigation and contact action
 - `SharedActionLink`: primary and text call-to-action variants
 - `SharedSectionKicker`: numbered or categorized section label
 - `SharedPanelFrame`: common frame and caption for technical visualizations
 - `SharedCaseStudyList`: common linked overview for work and university case studies
+
+The display-settings trigger is part of the initial header so it remains immediately available. The larger settings
+panel is a Nuxt lazy-component boundary that loads and mounts through the shared idle queue after the first paint. A click
+before idle mounts the same component immediately, while the eager shell preserves trigger state, dismissal, and focus.
 
 ## Accessibility
 

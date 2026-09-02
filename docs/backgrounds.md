@@ -67,10 +67,12 @@ migrates the earlier multi-key settings format once. Vue state and DOM effects r
 
 `useDisplayPreferences.ts` resolves the active scene from the route and saved preference. Automatic selection follows the
 current page; random selection draws one of the four scenes and stays stable until it is selected again or navigation
-changes the page. `BackgroundOrchestrator.vue` presents that resolved scene. All four components remain mounted because
-destroying and recreating a canvas can produce an empty white frame. CSS opacity performs the crossfade, while inactive
-scenes stop continuous rendering. Scroll-dependent Canvas2D scenes still draw a cheap synchronization frame so their
-first visible frame is current.
+changes the page. `BackgroundOrchestrator.vue` presents that resolved scene. The active async scene loads with hydration.
+After the initial page has painted, Nuxt lazy-loads and mounts the remaining scenes through a shared idle queue. The queue
+waits for one scene to finish its initial setup before scheduling the next idle mount, avoiding overlapping Canvas or
+WebGL initialization phases on the main thread. All four then remain mounted because destroying and recreating a canvas
+can produce an empty white frame. CSS opacity performs the crossfade, while inactive scenes stop continuous rendering.
+Scroll-dependent Canvas2D scenes still draw a cheap synchronization frame so their first visible frame is current.
 
 Animation channels are independent: idle motion, cursor movement, cursor click, and scroll response can each be
 disabled. `prefers-reduced-motion` suppresses motion at the shared environment boundary without changing saved user

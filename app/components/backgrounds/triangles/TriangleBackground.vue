@@ -336,6 +336,7 @@ onMounted(() => {
   window.addEventListener('blur', clearPointer);
 
   initialize();
+  emit('ready');
 });
 
 onBeforeUnmount(() => {

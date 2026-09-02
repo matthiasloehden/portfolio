@@ -374,66 +374,57 @@ onBeforeUnmount(() => {
     </button>
 
     <Teleport to="body">
-      <Transition
-        enter-active-class="transition duration-100 ease-out motion-reduce:transition-none"
-        enter-from-class="-translate-y-1 opacity-0"
-        leave-active-class="transition duration-75 ease-in motion-reduce:transition-none"
-        leave-to-class="-translate-y-1 opacity-0"
+      <ul
+        v-show="open"
+        :id="listboxId"
+        ref="listbox"
+        class="fixed z-[100] grid list-none gap-1 overflow-y-auto overscroll-contain border border-line-strong bg-raised p-1.5 shadow-2xl"
+        :style="listboxPosition"
+        :data-state="open ? 'open' : 'closed'"
+        role="listbox"
+        :aria-labelledby="labelId"
+        @pointerdown.stop
       >
-        <ul
-          v-show="open"
-          :id="listboxId"
-          ref="listbox"
-          class="fixed z-[100] grid list-none gap-1 overflow-y-auto overscroll-contain border border-line-strong bg-raised p-1.5 shadow-2xl"
-          :style="listboxPosition"
-          :data-state="open ? 'open' : 'closed'"
-          role="listbox"
-          :aria-labelledby="labelId"
-          @pointerdown.stop
+        <li
+          v-for="(option, index) in options"
+          :id="getOptionId(index)"
+          :key="option.value"
+          :ref="(element) => setOptionElement(element, index)"
+          class="grid cursor-pointer grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border px-2.5 py-2 text-left text-[0.6rem] transition-colors outline-none"
+          :class="[
+            activeIndex === index
+              ? 'border-primary bg-[color-mix(in_srgb,var(--primary)_8%,var(--surface))] text-foreground'
+              : 'border-transparent bg-background text-foreground hover:border-line-strong',
+            modelValue === option.value ? 'outline outline-1 outline-offset-[-2px] outline-primary-bright' : undefined,
+          ]"
+          role="option"
+          :aria-selected="activeIndex === index"
+          @mousedown.prevent
+          @click="onOptionClick(index)"
         >
-          <li
-            v-for="(option, index) in options"
-            :id="getOptionId(index)"
-            :key="option.value"
-            :ref="(element) => setOptionElement(element, index)"
-            class="grid cursor-pointer grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border px-2.5 py-2 text-left text-[0.6rem] transition-colors outline-none"
-            :class="[
-              activeIndex === index
-                ? 'border-primary bg-[color-mix(in_srgb,var(--primary)_8%,var(--surface))] text-foreground'
-                : 'border-transparent bg-background text-foreground hover:border-line-strong',
-              modelValue === option.value
-                ? 'outline outline-1 outline-offset-[-2px] outline-primary-bright'
-                : undefined,
-            ]"
-            role="option"
-            :aria-selected="activeIndex === index"
-            @mousedown.prevent
-            @click="onOptionClick(index)"
+          <slot
+            name="option"
+            :option="option"
+            :selected="modelValue === option.value"
+            :active="activeIndex === index"
           >
-            <slot
-              name="option"
-              :option="option"
-              :selected="modelValue === option.value"
-              :active="activeIndex === index"
-            >
-              <span class="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
-                <span class="truncate text-[0.6rem] text-foreground">{{ option.label }}</span>
-                <slot
-                  name="option-indicator"
-                  :option="option"
-                  :selected="modelValue === option.value"
-                  :active="activeIndex === index"
-                />
-              </span>
-            </slot>
-            <span
-              class="size-1.5 rounded-full"
-              :class="activeIndex === index ? 'bg-primary shadow-[0_0_0.4rem_var(--primary)]' : 'bg-line'"
-              aria-hidden="true"
-            />
-          </li>
-        </ul>
-      </Transition>
+            <span class="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
+              <span class="truncate text-[0.6rem] text-foreground">{{ option.label }}</span>
+              <slot
+                name="option-indicator"
+                :option="option"
+                :selected="modelValue === option.value"
+                :active="activeIndex === index"
+              />
+            </span>
+          </slot>
+          <span
+            class="size-1.5 rounded-full"
+            :class="activeIndex === index ? 'bg-primary shadow-[0_0_0.4rem_var(--primary)]' : 'bg-line'"
+            aria-hidden="true"
+          />
+        </li>
+      </ul>
     </Teleport>
   </div>
 </template>

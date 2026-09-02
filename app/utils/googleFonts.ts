@@ -14,9 +14,7 @@ function getSelectedGoogleFontQueries(settings: ThemeSettings): string[] {
   return [
     getThemeDisplayFont(settings.fonts.display).googleFontsQuery,
     getThemeBodyFont(settings.fonts.body).googleFontsQuery,
-  ].filter(
-    (font, index, fonts): font is string => typeof font === 'string' && fonts.indexOf(font) === index,
-  );
+  ].filter((font, index, fonts): font is string => typeof font === 'string' && fonts.indexOf(font) === index);
 }
 
 function syncPreconnect(connection: (typeof GOOGLE_FONT_PRECONNECTS)[number]): void {

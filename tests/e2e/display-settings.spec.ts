@@ -53,9 +53,12 @@ function getSelectOptions(select: Locator): Locator {
 
 async function chooseSelectOption(select: Locator, option: string | RegExp): Promise<void> {
   await select.click();
-  await getSelectListbox(select)
-    .getByRole('option', { name: option, exact: typeof option === 'string' })
-    .click();
+  const optionLocator = getSelectListbox(select).getByRole('option', {
+    name: option,
+    exact: typeof option === 'string',
+  });
+  await optionLocator.scrollIntoViewIfNeeded();
+  await optionLocator.click();
 }
 
 async function selectThemePreset(dialog: Locator, preset: string | RegExp): Promise<void> {
@@ -515,11 +518,11 @@ test.describe('Display settings', () => {
     await page.reload();
     await waitForApp(page);
     dialog = await openDisplaySettings(page);
+    await expect(getPerformanceSelect(dialog)).toHaveText('High');
     await openTriangleAppearanceSettings(dialog);
     density = dialog.getByRole('spinbutton', { name: 'Triangle density value' });
     resetCurrentBackground = dialog.getByRole('button', { name: 'Reset current background settings' });
 
-    await expect(getPerformanceSelect(dialog)).toHaveText('High');
     await expect(density).toHaveValue('1.2');
 
     await dialog.getByRole('button', { name: 'Triangle density: Use high performance value' }).click();

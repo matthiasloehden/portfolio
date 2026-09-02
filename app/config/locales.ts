@@ -20,5 +20,11 @@ export function isSupportedLocale(locale: string): locale is SupportedLocale {
 }
 
 export function getLocaleDefinition(locale: SupportedLocale) {
-  return LOCALE_DEFINITIONS.find(({ code }) => code === locale)!;
+  const definition = LOCALE_DEFINITIONS.find(({ code }) => code === locale);
+
+  if (!definition) {
+    throw new Error(`Missing locale definition for supported locale: ${locale}`);
+  }
+
+  return definition;
 }

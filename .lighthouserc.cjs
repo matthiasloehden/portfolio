@@ -4,17 +4,14 @@ module.exports = {
   ci: {
     collect: {
       staticDistDir: './.output/public',
-      url: [
-        `${baseUrl}/`,
-        `${baseUrl}/work/`,
-        `${baseUrl}/academic/`,
-        `${baseUrl}/personal/`,
-      ],
-      numberOfRuns: 1,
+      url: [`${baseUrl}/`, `${baseUrl}/work/`, `${baseUrl}/academic/`, `${baseUrl}/personal/`],
+      numberOfRuns: 3,
     },
     upload: {
       target: 'filesystem',
       outputDir: './.lighthouseci',
+      // LHCI writes the representative run last, leaving one stable report per route.
+      reportFilenamePattern: '%%HOSTNAME%%-%%PATHNAME%%.report.%%EXTENSION%%',
     },
   },
 };

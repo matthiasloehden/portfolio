@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import CoolingLoopPanel from '~/components/personal/cooling/CoolingLoopPanel.vue';
 
-const portfolio = usePortfolioContent();
+const portfolio = await usePortfolioContent();
 const personal = computed(() => portfolio.value.personal);
 
 useSeoMeta({

@@ -107,7 +107,8 @@ The settings interface is split into focused components:
 | `ThemePresetSelectField.vue` | Main-menu color-scheme listbox, palette previews, and keyboard interaction |
 | `ThemeSettingsFields.vue` | Advanced typography and grouped color controls |
 | `HexColorInput.vue` | Draft input state, hex validation, preview swatch, and per-token reset |
-| `DisplaySettings.vue` | Display-panel layout, background controls, and global reset |
+| `DisplaySettings.vue` | Eager trigger shell, dismissal, focus restoration, and idle scheduling |
+| `display-settings/Panel.vue` | Lazy display-panel layout, preference controls, and global reset |
 
 The custom preset listbox supports pointer input, arrow keys, Home, End, and Escape. The closed control shows the current
 palette preview without requiring the advanced section to be opened.

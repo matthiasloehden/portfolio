@@ -67,6 +67,7 @@ test.describe('Shared navigation', () => {
 
     await mainNavigation.getByRole('link', { name: academicRoute.label, exact: true }).click();
     await expect(page).toHaveURL((url) => url.pathname === academicRoute.to);
+    await expect(page.locator('main#content').locator('..')).toHaveCSS('opacity', '1');
 
     if (isMobile) {
       await expect(mainMenu).toBeHidden();
@@ -83,7 +84,9 @@ test.describe('Shared navigation', () => {
       await page.getByRole('button', { name: 'Close navigation' }).click();
     }
 
-    await footerNavigation.scrollIntoViewIfNeeded();
+    await footerNavigation.evaluate((navigation) =>
+      navigation.scrollIntoView({ behavior: 'instant', block: 'center' }),
+    );
     await footerNavigation.getByRole('link', { name: personalRoute.label, exact: true }).click();
     await expect(page).toHaveURL((url) => url.pathname === personalRoute.to);
     await expect(footerNavigation.getByRole('link', { name: personalRoute.label, exact: true })).toHaveAttribute(

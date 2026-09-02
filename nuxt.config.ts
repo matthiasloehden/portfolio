@@ -27,9 +27,7 @@ export default defineNuxtConfig({
         { name: 'theme-color', content: '#030509', media: '(prefers-color-scheme: dark)' },
         { name: 'theme-color', content: '#f3f7fc', media: '(prefers-color-scheme: light)' },
       ],
-      link: [
-        { rel: 'icon', type: 'image/svg+xml', href: `${baseURL}favicon.svg` },
-      ],
+      link: [{ rel: 'icon', type: 'image/svg+xml', href: `${baseURL}favicon.svg` }],
     },
   },
 

@@ -9,18 +9,25 @@ import { resolveBrowserLocale } from '@/utils/languageDetection';
 
 const LANGUAGE_PREFERENCE_COOKIE = 'portfolio-language-preference';
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
+let initialized = false;
 
 export function useLanguagePreference() {
   const { locale } = useI18n();
   const route = useRoute();
   const switchLocalePath = useSwitchLocalePath();
-  const automaticPreference = useCookie<typeof AUTOMATIC_LOCALE | null>(LANGUAGE_PREFERENCE_COOKIE, {
+  const storedAutomaticPreference = useCookie<typeof AUTOMATIC_LOCALE | null>(LANGUAGE_PREFERENCE_COOKIE, {
     default: () => null,
     maxAge: COOKIE_MAX_AGE,
     sameSite: 'lax',
   });
-  const clientReady = ref(false);
-  const automaticLocale = ref<SupportedLocale>(DEFAULT_LOCALE);
+  // The layout runtime and lazy settings panel need one reactive source of truth;
+  // the cookie remains the persistence boundary instead of coordinating instances.
+  const automaticPreference = useState<typeof AUTOMATIC_LOCALE | null>(
+    'portfolio-automatic-language-preference',
+    () => null,
+  );
+  const clientReady = useState('portfolio-language-preference-ready', () => false);
+  const automaticLocale = useState<SupportedLocale>('portfolio-automatic-locale', () => DEFAULT_LOCALE);
 
   const selectedPreference = computed<LanguagePreference>(() => {
     if (clientReady.value && automaticPreference.value === AUTOMATIC_LOCALE) {
@@ -50,19 +57,24 @@ export function useLanguagePreference() {
     await switchToLocale(automaticLocale.value, replace);
   }
 
+  function persistAutomaticPreference(preference: typeof AUTOMATIC_LOCALE | null): void {
+    automaticPreference.value = preference;
+    storedAutomaticPreference.value = preference;
+  }
+
   async function setLanguagePreference(preference: LanguagePreference): Promise<void> {
     if (preference === AUTOMATIC_LOCALE) {
-      automaticPreference.value = AUTOMATIC_LOCALE;
+      persistAutomaticPreference(AUTOMATIC_LOCALE);
       await applyAutomaticLocale();
       return;
     }
 
-    automaticPreference.value = null;
+    persistAutomaticPreference(null);
     await switchToLocale(preference);
   }
 
   async function restoreDefaultLanguagePreference(): Promise<void> {
-    automaticPreference.value = null;
+    persistAutomaticPreference(null);
     automaticLocale.value = DEFAULT_LOCALE;
     await switchToLocale(DEFAULT_LOCALE);
   }
@@ -71,16 +83,28 @@ export function useLanguagePreference() {
     if (automaticPreference.value === AUTOMATIC_LOCALE) void applyAutomaticLocale(true);
   }
 
-  onMounted(() => {
+  function initializeLanguagePreference(): void {
+    if (!import.meta.client || initialized) return;
+
+    automaticPreference.value = storedAutomaticPreference.value;
     clientReady.value = true;
     if (automaticPreference.value === AUTOMATIC_LOCALE) void applyAutomaticLocale(true);
     window.addEventListener('languagechange', onBrowserLanguageChange);
-  });
-  onBeforeUnmount(() => window.removeEventListener('languagechange', onBrowserLanguageChange));
+    initialized = true;
+  }
+
+  function disposeLanguagePreference(): void {
+    if (!initialized) return;
+
+    window.removeEventListener('languagechange', onBrowserLanguageChange);
+    initialized = false;
+  }
 
   return {
     automaticLocale: readonly(automaticLocale),
+    disposeLanguagePreference,
     hasLanguagePreferenceChanges,
+    initializeLanguagePreference,
     restoreDefaultLanguagePreference,
     selectedPreference,
     setLanguagePreference,

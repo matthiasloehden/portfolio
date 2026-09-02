@@ -267,6 +267,7 @@ onMounted(() => {
   window.addEventListener('pointerup', clearPointer, { passive: true });
   window.addEventListener('pointercancel', clearPointer, { passive: true });
   window.addEventListener('scroll', handleScroll, { passive: true });
+  emit('ready');
 });
 
 onBeforeUnmount(() => {

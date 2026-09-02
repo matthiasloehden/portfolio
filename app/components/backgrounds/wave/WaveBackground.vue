@@ -455,6 +455,7 @@ onMounted(() => {
   }
 
   initialize();
+  emit('ready');
 });
 
 onBeforeUnmount(() => {

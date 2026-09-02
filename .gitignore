@@ -17,6 +17,9 @@ playwright-report/
 test-results/
 .lighthouseci/
 
+# WSL tools can expose Windows temporary paths as root-level directory names.
+/C:*
+
 # Local configuration
 .env
 .env.*

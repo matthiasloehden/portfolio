@@ -1,19 +1,17 @@
 <!--
-  Presents the resolved ambient scene. Scenes remain mounted so selection
-  changes can crossfade without an empty frame; inactive render loops are paused.
+  Loads the active scene with hydration, prewarms the others during idle, and
+  keeps every mounted scene available for seamless later transitions.
 -->
 <script setup lang="ts">
-import type {
-  BackgroundAnimationSettings,
-  BackgroundId,
-  BackgroundPerformanceSettings,
-  BackgroundPerformanceStats,
-  BackgroundSettingOverridesMap,
+import {
+  BACKGROUND_IDS,
+  type BackgroundAnimationSettings,
+  type BackgroundId,
+  type BackgroundPerformanceSettings,
+  type BackgroundPerformanceStats,
+  type BackgroundSettingOverridesMap,
 } from '@/types/background';
-import ParticleBackground from '@/components/backgrounds/particles/ParticleBackground.vue';
-import MeshBackground from '@/components/backgrounds/mesh/MeshBackground.vue';
-import TriangleBackground from '@/components/backgrounds/triangles/TriangleBackground.vue';
-import WaveBackground from '@/components/backgrounds/wave/WaveBackground.vue';
+import { enqueueIdleTask } from '@/utils/idleTask';
 import PerformanceStatsOverlay from '@/components/backgrounds/shared/PerformanceStatsOverlay.vue';
 
 const props = defineProps<{
@@ -24,27 +22,83 @@ const props = defineProps<{
 }>();
 
 const { performanceStats } = useBackgroundRuntimeStatus();
+const initiallyMountedBackgrounds = props.background === 'none' ? [] : [props.background];
+const mountedBackgrounds = shallowRef<ReadonlySet<BackgroundId>>(new Set(initiallyMountedBackgrounds));
+const pendingBackgrounds: BackgroundId[] = [];
+let prewarmingBackground: BackgroundId | undefined;
+let cancelBackgroundPrewarm: (() => void) | undefined;
+
+function mountBackground(background: BackgroundId): void {
+  if (mountedBackgrounds.value.has(background)) return;
+  mountedBackgrounds.value = new Set([...mountedBackgrounds.value, background]);
+}
+
+function isSceneMounted(background: BackgroundId): boolean {
+  return mountedBackgrounds.value.has(background);
+}
 
 function isSceneActive(background: BackgroundId): boolean {
   return props.background === background;
 }
 
 function setPerformanceStats(background: BackgroundId, stats: BackgroundPerformanceStats): void {
-  if (!isSceneActive(background)) return;
+  if (isSceneActive(background)) performanceStats.value = stats;
+}
 
-  performanceStats.value = stats;
+function scheduleNextBackgroundPrewarm(): void {
+  if (cancelBackgroundPrewarm || prewarmingBackground) return;
+
+  let background = pendingBackgrounds.shift();
+  while (background && mountedBackgrounds.value.has(background)) background = pendingBackgrounds.shift();
+  if (!background) return;
+  const nextBackground = background;
+
+  cancelBackgroundPrewarm = enqueueIdleTask(
+    () => {
+      cancelBackgroundPrewarm = undefined;
+      prewarmingBackground = nextBackground;
+      mountBackground(nextBackground);
+    },
+    { priority: 10 },
+  );
+}
+
+function onBackgroundReady(background: BackgroundId): void {
+  if (prewarmingBackground !== background) return;
+
+  prewarmingBackground = undefined;
+  scheduleNextBackgroundPrewarm();
 }
 
 watch(
   () => props.background,
-  () => {
+  (background) => {
     performanceStats.value = null;
+    if (background === 'none') return;
+
+    mountBackground(background);
   },
 );
+
+onMounted(() => {
+  const activeIndex = props.background === 'none' ? -1 : BACKGROUND_IDS.indexOf(props.background);
+  const prewarmOrder =
+    activeIndex === -1
+      ? BACKGROUND_IDS
+      : [...BACKGROUND_IDS.slice(activeIndex + 1), ...BACKGROUND_IDS.slice(0, activeIndex)];
+
+  pendingBackgrounds.push(...prewarmOrder);
+  scheduleNextBackgroundPrewarm();
+});
+onBeforeUnmount(() => {
+  cancelBackgroundPrewarm?.();
+  pendingBackgrounds.length = 0;
+});
 </script>
 
 <template>
-  <WaveBackground
+  <LazyBackgroundsWaveBackground
+    v-if="isSceneMounted('wave')"
     class="background-scene"
     :class="{ 'background-scene-active': isSceneActive('wave') }"
     :active="isSceneActive('wave')"
@@ -52,9 +106,11 @@ watch(
     :setting-overrides="settingOverrides.wave"
     :performance="performance"
     @performance-stats="setPerformanceStats('wave', $event)"
+    @ready="onBackgroundReady('wave')"
   />
 
-  <TriangleBackground
+  <LazyBackgroundsTrianglesTriangleBackground
+    v-if="isSceneMounted('triangles')"
     class="background-scene"
     :class="{ 'background-scene-active': isSceneActive('triangles') }"
     :active="isSceneActive('triangles')"
@@ -62,9 +118,11 @@ watch(
     :setting-overrides="settingOverrides.triangles"
     :performance="performance"
     @performance-stats="setPerformanceStats('triangles', $event)"
+    @ready="onBackgroundReady('triangles')"
   />
 
-  <ParticleBackground
+  <LazyBackgroundsParticlesParticleBackground
+    v-if="isSceneMounted('particles')"
     class="background-scene"
     :class="{ 'background-scene-active': isSceneActive('particles') }"
     :active="isSceneActive('particles')"
@@ -72,9 +130,11 @@ watch(
     :setting-overrides="settingOverrides.particles"
     :performance="performance"
     @performance-stats="setPerformanceStats('particles', $event)"
+    @ready="onBackgroundReady('particles')"
   />
 
-  <MeshBackground
+  <LazyBackgroundsMeshBackground
+    v-if="isSceneMounted('mesh')"
     class="background-scene"
     :class="{ 'background-scene-active': isSceneActive('mesh') }"
     :active="isSceneActive('mesh')"
@@ -82,6 +142,7 @@ watch(
     :setting-overrides="settingOverrides.mesh"
     :performance="performance"
     @performance-stats="setPerformanceStats('mesh', $event)"
+    @ready="onBackgroundReady('mesh')"
   />
 
   <Teleport to="body">

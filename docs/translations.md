@@ -10,6 +10,10 @@ English remains the default locale. Automatic language selection is an explicit,
 
 Language is part of the display-settings reset contract. Restoring defaults disables automatic detection, removes its persisted preference, and returns the equivalent localized route to English.
 
+The default layout initializes automatic-language detection independently from the lazy display-settings panel. Keeping
+that runtime responsibility in the application shell ensures language changes and browser `languagechange` events remain
+active before the settings UI is mounted.
+
 ## Content structure
 
 Long-form, typed content lives in `app/data/content/<locale>`. Every locale must export the same modules and named values as `app/data/content/en`. Type parity is checked by the locale index files.
