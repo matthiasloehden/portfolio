@@ -54,7 +54,7 @@ defineProps<{
 
     <div
       :class="[
-        'mt-16 grid grid-cols-1 items-center gap-14 md:mt-20 md:gap-16 lg:gap-24 xl:mt-28 xl:gap-36',
+        'mt-14 grid grid-cols-1 items-center gap-14 md:mt-18 md:gap-16 lg:gap-24 xl:mt-24 xl:gap-36',
         reverse
           ? 'md:grid-cols-[minmax(0,1.28fr)_minmax(18rem,0.72fr)]'
           : 'md:grid-cols-[minmax(18rem,0.72fr)_minmax(0,1.28fr)]',

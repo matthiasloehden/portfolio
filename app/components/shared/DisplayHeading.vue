@@ -51,7 +51,7 @@ const sizeClasses: Record<HeadingSize, string> = {
     'mt-6 max-w-[16ch] text-[2.8rem] leading-[0.92] tracking-[-0.065em] xs:text-[3.2rem] sm:text-[3.6rem] md:text-[4rem] xl:text-[4.5rem]',
   section:
     'mt-6 max-w-[16ch] text-[3.2rem] leading-[0.9] tracking-[-0.065em] xs:text-[4rem] sm:text-[5rem] lg:text-[5.5rem] xl:text-[6.2rem]',
-  case: 'mt-4 max-w-[17ch] text-[3.4rem] leading-[0.9] tracking-[-0.065em] sm:text-[4rem] md:text-[5.4rem] lg:text-[5.9rem] xl:text-[6.3rem] 2xl:text-[6.8rem]',
+  case: 'mt-4 max-w-[17ch] text-[3.1rem] leading-[0.9] tracking-[-0.065em] sm:text-[3.7rem] md:text-[4.9rem] lg:text-[5.4rem] xl:text-[5.8rem] 2xl:text-[6.2rem]',
   closing:
     'text-[3.8rem] leading-[0.9] tracking-[-0.065em] xs:text-[4.5rem] sm:text-[5.25rem] md:text-[6rem] lg:text-[6.75rem] xl:text-[7.2rem] 2xl:text-[7.5rem]',
   card: 'text-[1.8rem] leading-none tracking-[-0.045em] md:text-[2.2rem] xl:text-[2.7rem]',

@@ -48,9 +48,9 @@ export const passkeysCase: AcademicCaseStudyContent = {
     ['with ', 'FIDO2 passkeys.'],
   ],
   accent: [true, false],
-  lead: 'A proof of concept exploring secure system design and modern authentication, built around a FIDO2-based passwordless sign-in system.',
+  lead: 'A proof of concept exploring secure system design through a FIDO2-based passwordless authentication system.',
   description:
-    'Rather than treating security as an additional layer, the system was designed around authentication flows, credentials, trust boundaries, and sensitive operations. Registration associated a public key with the user, while authentication used a scoped challenge-response ceremony protected by the browser and authenticator.',
+    'Security was treated as a core design constraint, shaping authentication flows, credential handling, trust boundaries, and sensitive operations. Authentication was built around public-key credentials and scoped challenge-response flows.',
   notes: [
     {
       title: 'Engineering question',
@@ -74,7 +74,7 @@ export const softwareEngineeringCase: AcademicCaseStudyContent = {
   accent: [false, false, true],
   lead: 'A completed group project bringing methods from earlier software-engineering courses together across the full development lifecycle.',
   description:
-    'Our team developed a TypeScript web application for planning and tracking learning time, organizing the work through tickets and milestones. We collaborated on requirements, specification, design, implementation, testing, and documentation. I contributed across these stages while taking primary responsibility for architecture and quality management.',
+    'Our team developed a web application for tracking learning time, organizing the work through tickets and milestones. We collaborated on requirements, specification, design, implementation, testing, and documentation. My primary responsibility was architecture and quality management.',
   notes: [
     {
       title: 'Engineering question',

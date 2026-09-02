@@ -19,6 +19,7 @@ useSeoMeta({
       <SharedDetailHero
         title-id="personal-title"
         :content="personal.personalHero"
+        desktop-alignment="start"
       />
       <SharedCaseStudyList v-bind="personal.personalOverview" />
 
