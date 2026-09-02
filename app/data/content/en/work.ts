@@ -45,9 +45,8 @@ export const retailCase: WorkCaseStudyContent = {
   accent: [true, false],
   summary: 'Operational platform for shop data, tasks, workflows, and Excel-based reporting.',
   paragraphs: [
-    'Our team built a central platform where shop employees received and completed operational tasks, including documenting completed work with photo uploads.',
-    'Each shop had its own profile containing location data, floor layouts, opening hours, open and closed tasks, and workflows for location and postal changes.',
-    'The platform’s analytics brought shop, task, and related platform data together in Excel reports. The flow also worked in reverse: edited spreadsheets could be uploaded and synchronized back to the database.',
+    'Our team built a central platform for managing shop data, operational tasks, and workflows. Each shop had a structured profile covering location data, floor layouts, opening hours, and processes such as location and postal changes.',
+    'Shop, task, and related platform data could be exported into Excel reports for further analysis. The process also worked in reverse: edited spreadsheets could be uploaded and synchronized back to the database.',
   ],
   facts: [
     { label: 'Purpose', value: 'Shop and task management' },
@@ -63,12 +62,12 @@ export const signageCase: WorkCaseStudyContent = {
   listCategory: 'Digital signage',
   category: 'Enterprise client',
   type: 'Digital signage',
-  title: ['Digital', ['signage', ' control'], 'system'],
-  accent: [false, true, false],
+  title: [['Digital ', 'signage'], 'control system'],
+  accent: [false, false],
   summary: 'Python service and Electron UI for remote display control and operational monitoring.',
   paragraphs: [
-    'I was responsible for a Python service with an Electron frontend that ran on digital-signage players and controlled their connected displays while advertisements were playing.',
-    'The service communicated with each display over RS-232 and sent player status back to the central retail operations platform for analytics. Operators could connect through remote administration and use the Electron interface to control the service.',
+    'I was responsible for a Python service with an Electron frontend that ran on digital-signage players and controlled connected displays during advertisement playback.',
+    'The service communicated with displays over RS-232, reported player status to the central platform, and could be managed remotely through the Electron interface.',
   ],
   facts: [
     { label: 'My responsibility', value: 'Python service and Electron UI' },
@@ -87,13 +86,14 @@ export const clientCase: WorkCaseStudyContent = {
   title: ['Configurable', 'client platform'],
   accent: [true, false],
   summary:
-    'A shared application foundation with client-specific modules for content, communication, and access control.',
+    'Reusable application packages combined into client-specific platforms for content, communication, and access control.',
   paragraphs: [
-    'Our team consolidated reusable packages and features from other projects into a configurable product platform that TopRed Media offered to clients. Modules such as CMS content, articles, live chat, events, teams, roles, and permissions could be enabled and configured individually for each client.',
-    'The same foundation supported use cases as different as communication between a personal trainer and customers or coordination within a kindergarten, without maintaining a separate product for each client.',
+    'Across our projects, recurring functionality was developed as reusable packages instead of being rebuilt for each application.',
+    'These packages became the foundation of a configurable platform that TopRed Media could adapt for individual clients.',
+    'Features such as CMS content, live chat, events, teams, roles, and permissions could be combined and configured per client, supporting different use cases from personal training to kindergarten communication.',
   ],
   facts: [
-    { label: 'Purpose', value: 'Content and communication' },
+    { label: 'Architecture', value: 'Reusable feature packages' },
     { label: 'Modules', value: 'Content, chat, events, teams, access' },
     { label: 'Model', value: 'Features enabled per client' },
   ],
@@ -107,8 +107,8 @@ export const workHero: WorkHeroContent = {
   title: ['Production', 'software.'],
   accent: [false, true],
   introduction: [
-    'At TopRed Media GmbH, I contributed across the full lifecycle of production enterprise applications, from initial development through years of feature development, refactoring, integrations, and maintenance.',
-    'Working in a three-developer team, I contributed across the stack as requirements, workflows, and the products themselves continuously evolved.',
+    'At TopRed Media GmbH, I contributed across the full lifecycle of production enterprise applications, from initial development through years of feature development, reusable package development, CI/CD, and long-term maintenance.',
+    'Working in a three-developer team, I contributed across the stack as requirements, workflows, infrastructure, and the products themselves continuously evolved.',
   ],
   facts: [
     { label: 'Company', value: 'TopRed Media GmbH' },
@@ -139,7 +139,8 @@ export const workContext: WorkContextContent = {
   },
   highlightsLabel: 'Highlights',
   highlights: [
-    'Backend architecture, data modeling, and application workflows',
+    'Backend development, reusable packages, and modular application design',
+    'Automated testing, CI/CD, deployment, and server configuration',
     'Single-page applications with Laravel, Vue, and Inertia.js',
     'Caching and evaluating complex user permissions with Redis',
     'Search and filtering of large datasets with Meilisearch',
@@ -154,7 +155,7 @@ export const workClosing: WorkClosingContent = {
   title: ['About these', 'projects.'],
   accent: [false, true],
   description:
-    'These client projects and the company-owned product are intentionally described at a system level. Together, they represent the range of production software I worked on: application workflows, user interfaces, data, permissions, search, integrations, maintenance, and software interacting with physical systems.',
+    'Together, these projects represent the breadth of my production software engineering work, from reusable packages and application workflows to integrations, deployment, long-term maintenance, and software interacting with physical systems.',
   actions: [
     { label: 'Start a conversation', href: `mailto:${site.email}` },
     { label: 'View university work', symbol: '→', to: APP_ROUTES.academic, variant: 'text' },
