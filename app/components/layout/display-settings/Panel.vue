@@ -197,6 +197,15 @@ function returnToOverview(): void {
 function onPageTransitionAfterEnter(): void {
   if (!open.value || pendingPageFocus.value === null) return;
 
+  const focusedElement = document.activeElement;
+  const focusWasMovedDuringTransition =
+    focusedElement instanceof HTMLElement && focusedElement !== panel.value && panel.value?.contains(focusedElement);
+
+  if (focusWasMovedDuringTransition) {
+    pendingPageFocus.value = null;
+    return;
+  }
+
   if (pendingPageFocus.value === 'back') {
     backButton.value?.focus({ preventScroll: true });
   } else {

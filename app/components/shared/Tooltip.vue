@@ -50,7 +50,7 @@ watch(() => props.active, restore);
     <span
       v-if="active && !dismissed"
       :id="tooltipId"
-      class="tooltip pointer-events-auto absolute right-0 bottom-[calc(100%+0.45rem)] z-[70] w-max max-w-[min(14rem,calc(100vw-2rem))] border border-line-strong bg-raised px-2.5 py-2 font-mono text-[0.54rem] leading-[1.4] text-foreground shadow-xl"
+      class="tooltip pointer-events-none absolute right-0 bottom-[calc(100%+0.45rem)] z-[70] w-max max-w-[min(14rem,calc(100vw-2rem))] border border-line-strong bg-raised px-2.5 py-2 font-mono text-[0.54rem] leading-[1.4] text-foreground shadow-xl"
       role="tooltip"
     >
       {{ text }}
