@@ -16,6 +16,7 @@ on:
         type: choice
         options:
           - ci
+          - lighthouse
           - auto-fix
 
 concurrency:
@@ -147,18 +148,16 @@ jobs:
           retention-days: 1
 
   # ============================================================
-  # Lighthouse
+  # Lighthouse (manual only)
   #
-  # Audits the exact static site produced by build-and-e2e.
+  # Runs on-demand against the built static output and does not gate
+  # the standard CI/CD deploy flow.
   # ============================================================
   lighthouse:
     name: Lighthouse
     if: >
-      github.event_name != 'workflow_dispatch' ||
-      inputs.mode == 'ci'
-
-    needs:
-      - build-and-e2e
+      github.event_name == 'workflow_dispatch' &&
+      inputs.mode == 'lighthouse'
 
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -182,11 +181,8 @@ jobs:
       - name: Install dependencies
         run: yarn install --immutable
 
-      - name: Download static site
-        uses: actions/download-artifact@v4
-        with:
-          name: static-site
-          path: .output/public
+      - name: Generate static site
+        run: yarn generate
 
       - name: Run Lighthouse CI
         run: yarn lhci autorun
@@ -218,7 +214,6 @@ jobs:
     needs:
       - static-check
       - build-and-e2e
-      - lighthouse
 
     runs-on: ubuntu-latest
     timeout-minutes: 10
