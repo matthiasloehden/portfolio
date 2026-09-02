@@ -147,6 +147,60 @@ jobs:
           retention-days: 1
 
   # ============================================================
+  # Lighthouse
+  #
+  # Audits the exact static site produced by build-and-e2e.
+  # ============================================================
+  lighthouse:
+    name: Lighthouse
+    if: >
+      github.event_name != 'workflow_dispatch' ||
+      inputs.mode == 'ci'
+
+    needs:
+      - build-and-e2e
+
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          package-manager-cache: false
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Activate Yarn
+        run: corepack prepare yarn@4.13.0 --activate
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Download static site
+        uses: actions/download-artifact@v4
+        with:
+          name: static-site
+          path: .output/public
+
+      - name: Run Lighthouse CI
+        run: yarn lhci autorun
+
+      - name: Upload Lighthouse report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse-report
+          path: .lighthouseci
+          if-no-files-found: ignore
+          retention-days: 7
+
+  # ============================================================
   # Deploy
   #
   # Uses the exact artifact produced by build-and-e2e.
@@ -164,6 +218,7 @@ jobs:
     needs:
       - static-check
       - build-and-e2e
+      - lighthouse
 
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -212,6 +267,7 @@ jobs:
     timeout-minutes: 10
 
     permissions:
+      actions: write
       contents: write
 
     steps:
@@ -250,6 +306,7 @@ jobs:
         run: yarn type-check
 
       - name: Commit changes
+        id: commit
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -257,9 +314,19 @@ jobs:
           git add .
 
           if git diff --cached --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
             echo "No changes to commit."
             exit 0
           fi
 
           git commit -m "style: auto-fix formatting and lint"
           git push
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      # GITHUB_TOKEN pushes do not emit another push event. Dispatch CI
+      # explicitly so the auto-fix commit is checked and deployed.
+      - name: Trigger CI for auto-fix commit
+        if: steps.commit.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run ci-cd.yml --ref "${{ github.ref_name }}" --field mode=ci
