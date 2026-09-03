@@ -48,9 +48,9 @@ export const passkeysCase: AcademicCaseStudyContent = {
     ['con passkey ', 'FIDO2.'],
   ],
   accent: [true, false],
-  lead: "Una prova di concetto che esplora la progettazione sicura del sistema e l'autenticazione moderna, costruita attorno a un sistema di accesso senza password basato su FIDO2.",
+  lead: "Una prova di concetto che esplora la progettazione sicura dei sistemi attraverso un sistema di autenticazione senza password basato su FIDO2.",
   description:
-    "Invece di considerare la sicurezza come un livello aggiuntivo, il sistema è stato progettato in base ai flussi di autenticazione, alle credenziali, ai confini di fiducia e alle operazioni sensibili. La registrazione associava una chiave pubblica all'utente, mentre l'autenticazione utilizzava una cerimonia di risposta-sfida con ambito protetta dal browser e dall'autenticatore.",
+    "La sicurezza è stata trattata come un vincolo fondamentale di progettazione, determinando i flussi di autenticazione, la gestione delle credenziali, i confini di fiducia e le operazioni sensibili. L'autenticazione si basava su credenziali a chiave pubblica e flussi challenge-response con ambito definito.",
   notes: [
     {
       title: 'Domanda di ingegneria',
@@ -74,7 +74,7 @@ export const softwareEngineeringCase: AcademicCaseStudyContent = {
   accent: [false, false, true],
   lead: "Un progetto di gruppo completato che riunisce i metodi dei precedenti corsi di ingegneria del software attraverso l'intero ciclo di vita dello sviluppo.",
   description:
-    "Il nostro team ha sviluppato un'applicazione web TypeScript per pianificare e monitorare i tempi di apprendimento, organizzando il lavoro tramite ticket e traguardi. Abbiamo collaborato su requisiti, specifiche, progettazione, implementazione, test e documentazione. Ho contribuito a queste fasi assumendomi la responsabilità primaria dell'architettura e della gestione della qualità.",
+    "Il nostro team ha sviluppato un'applicazione web per monitorare il tempo di apprendimento, organizzando il lavoro tramite ticket e traguardi. Abbiamo collaborato su requisiti, specifiche, progettazione, implementazione, test e documentazione. La mia responsabilità principale riguardava l'architettura e la gestione della qualità.",
   notes: [
     {
       title: 'Domanda di ingegneria',

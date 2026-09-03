@@ -46,9 +46,8 @@ export const retailCase: WorkCaseStudyContent = {
   accent: [true, false],
   summary: 'Platforma operacyjna dla danych sklepu, zadań, przepływów pracy i raportowania w oparciu o Excel.',
   paragraphs: [
-    'Nasz zespół zbudował centralną platformę, na której pracownicy sklepu otrzymywali i realizowali zadania operacyjne, w tym dokumentowali wykonaną pracę za pomocą przesyłania zdjęć.',
-    'Każdy sklep miał swój własny profil zawierający dane o lokalizacji, układy pięter, godziny otwarcia, otwarte i zamknięte zadania oraz przepływy pracy związane ze zmianami lokalizacji i przesyłek pocztowych.',
-    'Analityka platformy zebrała dane dotyczące sklepów, zadań i powiązanych platform w raportach Excel. Przebieg działał również w odwrotną stronę: edytowane arkusze kalkulacyjne można było przesyłać i synchronizować z powrotem z bazą danych.',
+    'Nasz zespół stworzył centralną platformę do zarządzania danymi sklepów, zadaniami operacyjnymi i przepływami pracy. Każdy sklep miał ustrukturyzowany profil obejmujący dane lokalizacyjne, plany pięter, godziny otwarcia oraz procesy takie jak zmiany lokalizacji i kodu pocztowego.',
+    'Dane sklepów, zadań i inne dane platformy można było eksportować do raportów Excel w celu dalszej analizy. Proces działał również w drugą stronę: edytowane arkusze kalkulacyjne można było przesyłać i synchronizować z bazą danych.',
   ],
   facts: [
     { label: 'Zamiar', value: 'Zarządzanie sklepem i zadaniami' },
@@ -64,13 +63,13 @@ export const signageCase: WorkCaseStudyContent = {
   listCategory: 'Oznakowanie cyfrowe',
   category: 'Klient korporacyjny',
   type: 'Oznakowanie cyfrowe',
-  title: ['Cyfrowy', ['oznakowanie', ' kontrola'], 'system'],
-  accent: [false, true, false],
+  title: [['Oznakowanie ', 'cyfrowe'], 'system sterowania'],
+  accent: [false, false],
   summary:
     'Usługa Python i interfejs użytkownika Electron do zdalnego sterowania wyświetlaczem i monitorowania operacyjnego.',
   paragraphs: [
-    'Byłem odpowiedzialny za usługę w języku Python za pomocą urządzenia Electron frontend, które działało na odtwarzaczach Digital Signage i sterowało podłączonymi do nich wyświetlaczami podczas odtwarzania reklam.',
-    'Usługa komunikowała się z każdym wyświetlaczem poprzez RS-232 i przesyłała status odtwarzacza z powrotem do centralnej platformy operacji detalicznych w celu przeprowadzenia analiz. Operatorzy mogli łączyć się poprzez zdalną administrację i używać interfejsu Electron do kontrolowania usługi.',
+    'Byłem odpowiedzialny za usługę w języku Python z interfejsem Electron, która działała na odtwarzaczach Digital Signage i sterowała podłączonymi wyświetlaczami podczas odtwarzania reklam.',
+    'Usługa komunikowała się z wyświetlaczami przez RS-232, przesyłała status odtwarzacza do centralnej platformy i mogła być zarządzana zdalnie za pomocą interfejsu Electron.',
   ],
   facts: [
     { label: 'Moja odpowiedzialność', value: 'Usługa Python i interfejs użytkownika Electron' },
@@ -89,13 +88,14 @@ export const clientCase: WorkCaseStudyContent = {
   title: ['Konfigurowalne', 'platforma klienta'],
   accent: [true, false],
   summary:
-    'Wspólna podstawa aplikacji z modułami specyficznymi dla klienta dotyczącymi treści, komunikacji i kontroli dostępu.',
+    'Pakiety aplikacyjne wielokrotnego użytku łączone w platformy dostosowane do poszczególnych klientów w zakresie treści, komunikacji i kontroli dostępu.',
   paragraphs: [
-    'Nasz zespół połączył pakiety i funkcje wielokrotnego użytku z innych projektów w konfigurowalną platformę produktów, którą TopRed Media oferował klientom. Moduły takie jak treść CMS, artykuły, czat na żywo, wydarzenia, zespoły, role i uprawnienia można włączać i konfigurować indywidualnie dla każdego klienta.',
-    'Ten sam fundament wspierał przypadki użycia tak różne, jak komunikacja trenera personalnego z klientami czy koordynacja w przedszkolu, bez utrzymywania osobnego produktu dla każdego klienta.',
+    'W naszych projektach powtarzające się funkcje były tworzone jako pakiety wielokrotnego użytku zamiast wdrażane od nowa w każdej aplikacji.',
+    'Pakiety te stały się podstawą konfigurowalnej platformy, którą TopRed Media mogło dostosowywać do indywidualnych klientów.',
+    'Funkcje takie jak treści CMS, czat na żywo, wydarzenia, zespoły, role i uprawnienia można było łączyć i konfigurować dla każdego klienta, wspierając różne zastosowania, od treningu personalnego po komunikację w przedszkolu.',
   ],
   facts: [
-    { label: 'Zamiar', value: 'Treść i komunikacja' },
+    { label: 'Architektura', value: 'Modularna podstawa aplikacji' },
     { label: 'Moduły', value: 'Treść, czat, wydarzenia, zespoły, dostęp' },
     { label: 'Model', value: 'Funkcje włączone dla każdego klienta' },
   ],
@@ -109,8 +109,7 @@ export const workHero: WorkHeroContent = {
   title: ['Produkcja', 'oprogramowanie.'],
   accent: [false, true],
   introduction: [
-    'W firmie TopRed Media GmbH brałem udział w całym cyklu życia produkcyjnych aplikacji dla przedsiębiorstw, od początkowego rozwoju poprzez lata opracowywania funkcji, refaktoryzacji, integracji i konserwacji.',
-    'Pracując w zespole składającym się z trzech programistów, brałem udział w całym stosie, ponieważ wymagania, przepływy pracy i same produkty stale ewoluowały.',
+    'W TopRed Media GmbH uczestniczyłem w całym cyklu życia produkcyjnych aplikacji biznesowych, od początkowego wdrożenia przez lata dalszego rozwoju i utrzymania.',
   ],
   facts: [
     { label: 'Firma', value: 'TopRed Media GmbH' },
@@ -141,11 +140,11 @@ export const workContext: WorkContextContent = {
   },
   highlightsLabel: 'Przegląd najważniejszych wydarzeń',
   highlights: [
-    'Architektura backendu, modelowanie danych i przepływy pracy aplikacji',
+    'Rozwój backendu, pakiety wielokrotnego użytku i modułowe projektowanie aplikacji',
+    'Testy automatyczne, CI/CD, wdrażanie i konfiguracja serwerów',
     'Aplikacje jednostronicowe z Laravel, Vue i Inertia.js',
     'Buforowanie i ocena złożonych uprawnień użytkowników za pomocą Redis',
     'Wyszukiwanie i filtrowanie dużych zbiorów danych za pomocą Meilisearch',
-    'Dwukierunkowa synchronizacja programu Excel i bazy danych',
     'Integracja aplikacji z usługami zewnętrznymi i systemami fizycznymi',
   ],
 };
@@ -156,7 +155,7 @@ export const workClosing: WorkClosingContent = {
   title: ['O tych', 'projektowanie.'],
   accent: [false, true],
   description:
-    'Te projekty klientów i produkt będący własnością firmy są celowo opisywane na poziomie systemowym. Razem reprezentują one zakres oprogramowania produkcyjnego, nad którym pracowałem: przepływy pracy aplikacji, interfejsy użytkownika, dane, uprawnienia, wyszukiwanie, integracje, konserwację i interakcję oprogramowania z systemami fizycznymi.',
+    'Łącznie projekty te pokazują różnorodność systemów, nad którymi pracowałem przez sześć lat zawodowego tworzenia oprogramowania, od biznesowych aplikacji internetowych po oprogramowanie współpracujące z fizycznym sprzętem.',
   actions: [
     { label: 'Rozpocznij rozmowę', href: `mailto:${site.email}` },
     { label: 'Zobacz pracę na uniwersytecie', symbol: '→', to: APP_ROUTES.academic, variant: 'text' },

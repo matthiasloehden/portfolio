@@ -45,9 +45,8 @@ export const retailCase: WorkCaseStudyContent = {
   accent: [true, false],
   summary: 'Operative Plattform für Filialdaten, Aufgaben, Workflows und Excel-basierte Auswertungen.',
   paragraphs: [
-    'Unser Team entwickelte eine zentrale Plattform, über die Mitarbeitende in den Filialen operative Aufgaben erhielten und bearbeiteten. Erledigte Arbeiten konnten dabei unter anderem mit Foto-Uploads dokumentiert werden.',
-    'Jede Filiale verfügte über ein eigenes Profil mit Standortdaten, Grundrissen, Öffnungszeiten, offenen und abgeschlossenen Aufgaben sowie Workflows für Standort- und Postleitzahlenänderungen.',
-    'Die Analysefunktionen führten Filial-, Aufgaben- und weitere Plattformdaten in Excel-Berichten zusammen. Der Datenfluss funktionierte auch in Gegenrichtung: Bearbeitete Tabellen konnten hochgeladen und zurück in die Datenbank synchronisiert werden.',
+    'Unser Team entwickelte eine zentrale Plattform zur Verwaltung von Filialdaten, operativen Aufgaben und Workflows. Jede Filiale verfügte über ein strukturiertes Profil mit Standortdaten, Grundrissen, Öffnungszeiten und Prozessen wie Standort- und Postleitzahlenänderungen.',
+    'Filial-, Aufgaben- und weitere Plattformdaten konnten zur weiteren Analyse in Excel-Berichte exportiert werden. Der Prozess funktionierte auch in Gegenrichtung: Bearbeitete Tabellen konnten hochgeladen und zurück in die Datenbank synchronisiert werden.',
   ],
   facts: [
     { label: 'Zweck', value: 'Filial- und Aufgabenverwaltung' },
@@ -63,12 +62,12 @@ export const signageCase: WorkCaseStudyContent = {
   listCategory: 'Digital Signage',
   category: 'Unternehmenskunde',
   type: 'Digital Signage',
-  title: ['Digitales', ['Signage-', 'Steuerungssystem']],
-  accent: [false, true, false],
+  title: [['Digital ', 'Signage'], 'Steuerungssystem'],
+  accent: [false, false],
   summary: 'Python-Dienst und Electron-Oberfläche zur entfernten Displaysteuerung und Betriebsüberwachung.',
   paragraphs: [
-    'Ich war für einen Python-Dienst mit Electron-Frontend verantwortlich, der auf Digital-Signage-Playern lief und die angeschlossenen Displays während der Werbewiedergabe steuerte.',
-    'Der Dienst kommunizierte über RS-232 mit den Displays und übermittelte den Playerstatus zur Auswertung an die zentrale Plattform für Filialprozesse. Über eine Fernadministration konnten sich Mitarbeitende verbinden und den Dienst über die Electron-Oberfläche steuern.',
+    'Ich war für einen Python-Dienst mit Electron-Frontend verantwortlich, der auf Digital-Signage-Playern lief und angeschlossene Displays während der Werbewiedergabe steuerte.',
+    'Der Dienst kommunizierte über RS-232 mit den Displays, übermittelte den Playerstatus an die zentrale Plattform und konnte über die Electron-Oberfläche aus der Ferne verwaltet werden.',
   ],
   facts: [
     { label: 'Meine Verantwortung', value: 'Python-Dienst und Electron-Oberfläche' },
@@ -87,13 +86,14 @@ export const clientCase: WorkCaseStudyContent = {
   title: ['Konfigurierbare', 'Kundenplattform'],
   accent: [true, false],
   summary:
-    'Eine gemeinsame Anwendungsbasis mit kundenspezifischen Modulen für Inhalte, Kommunikation und Zugriffskontrolle.',
+    'Wiederverwendbare Anwendungspakete, kombiniert zu kundenspezifischen Plattformen für Inhalte, Kommunikation und Zugriffskontrolle.',
   paragraphs: [
-    'Unser Team bündelte wiederverwendbare Pakete und Funktionen aus anderen Projekten in einer konfigurierbaren Produktplattform, die TopRed Media seinen Kunden anbot. Module wie CMS-Inhalte, Artikel, Live-Chat, Veranstaltungen, Teams, Rollen und Berechtigungen ließen sich für jeden Kunden einzeln aktivieren und konfigurieren.',
-    'Dieselbe Grundlage unterstützte so unterschiedliche Anwendungsfälle wie die Kommunikation zwischen Personal Trainern und ihren Kunden oder die Koordination innerhalb eines Kindergartens, ohne für jeden Kunden ein separates Produkt pflegen zu müssen.',
+    'Projektübergreifend wurden wiederkehrende Funktionen als wiederverwendbare Pakete entwickelt, statt sie für jede Anwendung neu zu erstellen.',
+    'Diese Pakete bildeten die Grundlage einer konfigurierbaren Plattform, die TopRed Media an individuelle Kundenanforderungen anpassen konnte.',
+    'Funktionen wie CMS-Inhalte, Live-Chat, Veranstaltungen, Teams, Rollen und Berechtigungen ließen sich für jeden Kunden kombinieren und konfigurieren. So unterstützte die Plattform unterschiedliche Anwendungsfälle, vom Personal Training bis zur Kommunikation in Kindergärten.',
   ],
   facts: [
-    { label: 'Zweck', value: 'Inhalte und Kommunikation' },
+    { label: 'Architektur', value: 'Modulare Anwendungsgrundlage' },
     { label: 'Module', value: 'Inhalte, Chat, Veranstaltungen, Teams, Zugriff' },
     { label: 'Modell', value: 'Funktionen pro Kunde aktiviert' },
   ],
@@ -107,8 +107,7 @@ export const workHero: WorkHeroContent = {
   title: ['Produktive', 'Software.'],
   accent: [false, true],
   introduction: [
-    'Bei der TopRed Media GmbH arbeitete ich über den gesamten Lebenszyklus produktiver Unternehmensanwendungen hinweg: von der initialen Entwicklung über jahrelange Funktionserweiterungen und Refactorings bis zu Integrationen und Wartung.',
-    'In einem dreiköpfigen Entwicklungsteam arbeitete ich über den gesamten Stack hinweg, während sich Anforderungen, Abläufe und die Produkte selbst kontinuierlich weiterentwickelten.',
+    'Bei der TopRed Media GmbH arbeitete ich über den gesamten Lebenszyklus produktiver Unternehmensanwendungen hinweg, von der initialen Entwicklung über Jahre kontinuierlicher Weiterentwicklung bis zur Wartung.',
   ],
   facts: [
     { label: 'Unternehmen', value: 'TopRed Media GmbH' },
@@ -139,11 +138,11 @@ export const workContext: WorkContextContent = {
   },
   highlightsLabel: 'Schwerpunkte',
   highlights: [
-    'Backend-Architektur, Datenmodellierung und Anwendungsabläufe',
+    'Backend-Entwicklung, wiederverwendbare Pakete und modularer Anwendungsentwurf',
+    'Automatisierte Tests, CI/CD, Deployment und Serverkonfiguration',
     'Single-Page-Anwendungen mit Laravel, Vue und Inertia.js',
     'Caching und Auswertung komplexer Benutzerberechtigungen mit Redis',
     'Suche und Filterung großer Datenmengen mit Meilisearch',
-    'Bidirektionale Synchronisation zwischen Excel und Datenbank',
     'Integration von Anwendungen mit externen Diensten und physischen Systemen',
   ],
 };
@@ -154,7 +153,7 @@ export const workClosing: WorkClosingContent = {
   title: ['Über diese', 'Projekte.'],
   accent: [false, true],
   description:
-    'Diese Kundenprojekte und das unternehmenseigene Produkt werden bewusst auf Systemebene beschrieben. Gemeinsam zeigen sie die Bandbreite der produktiven Software, an der ich gearbeitet habe: Anwendungsabläufe, Benutzeroberflächen, Daten, Berechtigungen, Suche, Integrationen, Wartung und die Interaktion von Software mit physischen Systemen.',
+    'Zusammen zeigen diese Projekte die Bandbreite der Systeme, an denen ich in sechs Jahren professioneller Softwareentwicklung gearbeitet habe, von Unternehmens-Webanwendungen bis zu Software, die mit physischer Hardware interagiert.',
   actions: [
     { label: 'Kontakt aufnehmen', href: `mailto:${site.email}` },
     { label: 'Studienprojekte ansehen', symbol: '→', to: APP_ROUTES.academic, variant: 'text' },

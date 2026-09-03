@@ -47,9 +47,8 @@ export const retailCase: WorkCaseStudyContent = {
   summary:
     "Plateforme opérationnelle pour les données d'atelier, les tâches, les flux de travail et les rapports basés sur Excel.",
   paragraphs: [
-    'Notre équipe a construit une plate-forme centrale où les employés du magasin recevaient et accomplissaient des tâches opérationnelles, notamment en documentant le travail terminé avec le téléchargement de photos.',
-    "Chaque magasin disposait de son propre profil contenant des données de localisation, la disposition des étages, les heures d'ouverture, les tâches ouvertes et fermées et les flux de travail pour les changements d'emplacement et de poste.",
-    "Les analyses de la plate-forme ont rassemblé les données de l'atelier, des tâches et de la plate-forme associée dans des rapports Excel. Le flux fonctionnait également à l'envers : les feuilles de calcul modifiées pouvaient être téléchargées et synchronisées avec la base de données.",
+    "Notre équipe a développé une plateforme centrale pour gérer les données des magasins, les tâches opérationnelles et les flux de travail. Chaque magasin disposait d'un profil structuré regroupant les données de localisation, les plans d'étage, les horaires d'ouverture et des processus tels que les changements d'adresse et de code postal.",
+    "Les données des magasins, des tâches et de la plateforme pouvaient être exportées dans des rapports Excel pour une analyse approfondie. Le processus fonctionnait également en sens inverse : les feuilles de calcul modifiées pouvaient être importées et resynchronisées avec la base de données.",
   ],
   facts: [
     { label: 'But', value: 'Gestion de la boutique et des tâches' },
@@ -65,13 +64,13 @@ export const signageCase: WorkCaseStudyContent = {
   listCategory: 'Affichage numérique',
   category: "Client d'entreprise",
   type: 'Affichage numérique',
-  title: ['Numérique', ['signalisation', ' contrôle'], 'système'],
-  accent: [false, true, false],
+  title: [['Affichage ', 'numérique'], 'système de contrôle'],
+  accent: [false, false],
   summary:
     "Service Python et interface utilisateur Electron pour le contrôle de l'affichage à distance et la surveillance opérationnelle.",
   paragraphs: [
-    "J'étais responsable d'un service Python avec un Electron frontend qui fonctionnait sur des lecteurs d'affichage numérique et contrôlait leurs écrans connectés pendant la diffusion des publicités.",
-    "Le service communiquait avec chaque écran via RS-232 et renvoyait le statut du joueur à la plate-forme centrale des opérations de vente au détail à des fins d'analyse. Les opérateurs pouvaient se connecter via l'administration à distance et utiliser l'interface Electron pour contrôler le service.",
+    "J'étais responsable d'un service Python avec une interface Electron qui fonctionnait sur des lecteurs d'affichage numérique et contrôlait les écrans connectés pendant la diffusion des publicités.",
+    "Le service communiquait avec les écrans via RS-232, transmettait l'état du lecteur à la plateforme centrale et pouvait être administré à distance depuis l'interface Electron.",
   ],
   facts: [
     { label: 'Ma responsabilité', value: 'Service Python et interface utilisateur Electron' },
@@ -90,13 +89,14 @@ export const clientCase: WorkCaseStudyContent = {
   title: ['Configurable', 'plateforme client'],
   accent: [true, false],
   summary:
-    "Une base d'application partagée avec des modules spécifiques au client pour le contenu, la communication et le contrôle d'accès.",
+    "Des packages applicatifs réutilisables combinés en plateformes propres à chaque client pour le contenu, la communication et le contrôle d'accès.",
   paragraphs: [
-    "Notre équipe a regroupé les packages réutilisables et les fonctionnalités d'autres projets dans une plate-forme de produits configurable que TopRed Media a proposée aux clients. Des modules tels que le contenu CMS, les articles, le chat en direct, les événements, les équipes, les rôles et les autorisations peuvent être activés et configurés individuellement pour chaque client.",
-    "La même fondation prenait en charge des cas d'utilisation aussi différents que la communication entre un entraîneur personnel et les clients ou la coordination au sein d'un jardin d'enfants, sans maintenir un produit distinct pour chaque client.",
+    "Dans l'ensemble de nos projets, les fonctionnalités récurrentes étaient développées sous forme de packages réutilisables plutôt que recréées pour chaque application.",
+    'Ces packages sont devenus la base d’une plateforme configurable que TopRed Media pouvait adapter à chaque client.',
+    "Des fonctionnalités telles que le contenu CMS, le chat en direct, les événements, les équipes, les rôles et les autorisations pouvaient être combinées et configurées pour chaque client, afin de répondre à différents usages allant du coaching personnel à la communication en maternelle.",
   ],
   facts: [
-    { label: 'But', value: 'Contenu et communication' },
+    { label: 'Architecture', value: 'Base applicative modulaire' },
     { label: 'Modules', value: 'Contenu, chat, événements, équipes, accès' },
     { label: 'Modèle', value: 'Fonctionnalités activées par client' },
   ],
@@ -110,8 +110,7 @@ export const workHero: WorkHeroContent = {
   title: ['Production', 'logiciel.'],
   accent: [false, true],
   introduction: [
-    "Chez TopRed Media GmbH, j'ai contribué tout au long du cycle de vie des applications de production d'entreprise, du développement initial aux années de développement de fonctionnalités, de refactorisation, d'intégration et de maintenance.",
-    "Travaillant dans une équipe de trois développeurs, j'ai contribué à l'ensemble de la pile à mesure que les exigences, les flux de travail et les produits eux-mêmes évoluaient continuellement.",
+    "Chez TopRed Media GmbH, j'ai contribué à l'ensemble du cycle de vie d'applications métier en production, depuis leur développement initial jusqu'à plusieurs années d'évolution et de maintenance.",
   ],
   facts: [
     { label: 'Entreprise', value: 'TopRed Media GmbH' },
@@ -142,11 +141,11 @@ export const workContext: WorkContextContent = {
   },
   highlightsLabel: 'Points forts',
   highlights: [
-    'Architecture backend, modélisation des données et flux de travail des applications',
+    "Développement backend, packages réutilisables et conception modulaire d'applications",
+    'Tests automatisés, CI/CD, déploiement et configuration de serveurs',
     "Applications d'une seule page avec Laravel, Vue et Inertia.js",
     'Mise en cache et évaluation des autorisations utilisateur complexes avec Redis',
     'Recherche et filtrage de grands ensembles de données avec Meilisearch',
-    "Synchronisation bidirectionnelle d'Excel et de bases de données",
     "Intégration d'applications avec des services externes et des systèmes physiques",
   ],
 };
@@ -157,7 +156,7 @@ export const workClosing: WorkClosingContent = {
   title: ['À propos de ceux-ci', 'projets.'],
   accent: [false, true],
   description:
-    "Ces projets clients et le produit appartenant à l'entreprise sont intentionnellement décrits au niveau du système. Ensemble, ils représentent la gamme de logiciels de production sur lesquels j'ai travaillé : flux de travail d'application, interfaces utilisateur, données, autorisations, recherche, intégrations, maintenance et logiciels interagissant avec les systèmes physiques.",
+    "Ensemble, ces projets illustrent la diversité des systèmes sur lesquels j'ai travaillé au cours de six années de développement logiciel professionnel, des applications web d'entreprise aux logiciels interagissant avec du matériel physique.",
   actions: [
     { label: 'Démarrer une conversation', href: `mailto:${site.email}` },
     { label: 'Voir les travaux universitaires', symbol: '→', to: APP_ROUTES.academic, variant: 'text' },

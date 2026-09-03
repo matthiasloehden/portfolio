@@ -48,9 +48,9 @@ export const passkeysCase: AcademicCaseStudyContent = {
     ['mit ', 'FIDO2-Passkeys.'],
   ],
   accent: [true, false],
-  lead: 'Ein Proof of Concept für sicheren Systementwurf und moderne Authentifizierung auf Basis einer passwortlosen Anmeldung mit FIDO2.',
+  lead: 'Ein Proof of Concept zur Untersuchung sicheren Systemdesigns anhand eines FIDO2-basierten passwortlosen Authentifizierungssystems.',
   description:
-    'Sicherheit wurde nicht als zusätzliche Schicht behandelt, sondern die Architektur konsequent um Authentifizierungsabläufe, Anmeldedaten, Vertrauensgrenzen und sensible Operationen aufgebaut. Bei der Registrierung wurde dem Benutzer ein öffentlicher Schlüssel zugeordnet; die Authentifizierung nutzte ein begrenztes Challenge-Response-Verfahren, das durch Browser und Authenticator geschützt wurde.',
+    'Sicherheit wurde als zentrale Designvorgabe behandelt und prägte Authentifizierungsabläufe, den Umgang mit Anmeldedaten, Vertrauensgrenzen und sensible Operationen. Die Authentifizierung basierte auf Public-Key-Anmeldedaten und begrenzten Challenge-Response-Abläufen.',
   notes: [
     {
       title: 'Technische Fragestellung',
@@ -74,7 +74,7 @@ export const softwareEngineeringCase: AcademicCaseStudyContent = {
   accent: [false, false, true],
   lead: 'Ein abgeschlossenes Gruppenprojekt, das Methoden aus vorherigen Software-Engineering-Modulen über den gesamten Entwicklungslebenszyklus zusammenführte.',
   description:
-    'Unser Team entwickelte eine TypeScript-Webanwendung zur Planung und Erfassung von Lernzeiten und organisierte die Arbeit über Tickets und Meilensteine. Gemeinsam bearbeiteten wir Anforderungsanalyse, Spezifikation, Entwurf, Implementierung, Tests und Dokumentation. Ich wirkte in allen Phasen mit und trug die Hauptverantwortung für Architektur und Qualitätsmanagement.',
+    'Unser Team entwickelte eine Webanwendung zur Erfassung von Lernzeiten und organisierte die Arbeit über Tickets und Meilensteine. Gemeinsam bearbeiteten wir Anforderungsanalyse, Spezifikation, Entwurf, Implementierung, Tests und Dokumentation. Meine Hauptverantwortung lag bei Architektur und Qualitätsmanagement.',
   notes: [
     {
       title: 'Technische Fragestellung',

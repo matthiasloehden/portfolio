@@ -48,9 +48,9 @@ export const passkeysCase: AcademicCaseStudyContent = {
     ['avec ', 'Mots-clés FIDO2.'],
   ],
   accent: [true, false],
-  lead: "Une preuve de concept explorant la conception d'un système sécurisé et l'authentification moderne, construite autour d'un système de connexion sans mot de passe basé sur FIDO2.",
+  lead: "Une preuve de concept explorant la conception sécurisée de systèmes au moyen d'un système d'authentification sans mot de passe basé sur FIDO2.",
   description:
-    "Plutôt que de traiter la sécurité comme une couche supplémentaire, le système a été conçu autour des flux d'authentification, des informations d'identification, des limites de confiance et des opérations sensibles. L'enregistrement associait une clé publique à l'utilisateur, tandis que l'authentification utilisait une cérémonie défi-réponse protégée par le navigateur et l'authentificateur.",
+    "La sécurité a été considérée comme une contrainte de conception centrale, déterminant les flux d'authentification, la gestion des identifiants, les limites de confiance et les opérations sensibles. L'authentification reposait sur des identifiants à clé publique et des échanges défi-réponse à portée limitée.",
   notes: [
     {
       title: "Question d'ingénierie",
@@ -74,7 +74,7 @@ export const softwareEngineeringCase: AcademicCaseStudyContent = {
   accent: [false, false, true],
   lead: 'Un projet de groupe terminé réunissant les méthodes des cours de génie logiciel antérieurs tout au long du cycle de vie complet du développement.',
   description:
-    "Notre équipe a développé une application Web TypeScript pour planifier et suivre le temps d'apprentissage, en organisant le travail via des tickets et des jalons. Nous avons collaboré sur les exigences, les spécifications, la conception, la mise en œuvre, les tests et la documentation. J'ai contribué à toutes ces étapes tout en assumant la responsabilité principale de l'architecture et de la gestion de la qualité.",
+    "Notre équipe a développé une application web pour suivre le temps d'apprentissage, en organisant le travail à l'aide de tickets et de jalons. Nous avons collaboré sur les exigences, les spécifications, la conception, la mise en œuvre, les tests et la documentation. Ma responsabilité principale portait sur l'architecture et la gestion de la qualité.",
   notes: [
     {
       title: "Question d'ingénierie",

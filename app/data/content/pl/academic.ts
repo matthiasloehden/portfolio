@@ -48,9 +48,9 @@ export const passkeysCase: AcademicCaseStudyContent = {
     ['z ', 'Klucze FIDO2.'],
   ],
   accent: [true, false],
-  lead: 'Weryfikacja koncepcji badająca bezpieczny projekt systemu i nowoczesne uwierzytelnianie, zbudowana wokół systemu logowania bez hasła opartego na FIDO2.',
+  lead: 'Weryfikacja koncepcji badająca bezpieczne projektowanie systemów za pomocą bezhasłowego systemu uwierzytelniania opartego na FIDO2.',
   description:
-    'Zamiast traktować bezpieczeństwo jako dodatkową warstwę, system został zaprojektowany w oparciu o przepływy uwierzytelniania, dane uwierzytelniające, granice zaufania i wrażliwe operacje. Rejestracja wiązała klucz publiczny z użytkownikiem, podczas gdy uwierzytelnianie wykorzystywało ceremonię wyzwanie-odpowiedź o określonym zakresie, chronioną przez przeglądarkę i moduł uwierzytelniający.',
+    'Bezpieczeństwo potraktowano jako podstawowe ograniczenie projektowe, które kształtowało przepływy uwierzytelniania, obsługę danych uwierzytelniających, granice zaufania i operacje wrażliwe. Uwierzytelnianie opierało się na danych uwierzytelniających klucza publicznego i przepływach wyzwanie–odpowiedź o ograniczonym zakresie.',
   notes: [
     {
       title: 'Pytanie inżynierskie',
@@ -74,7 +74,7 @@ export const softwareEngineeringCase: AcademicCaseStudyContent = {
   accent: [false, false, true],
   lead: 'Ukończony projekt grupowy łączący metody z wcześniejszych kursów inżynierii oprogramowania w całym cyklu życia oprogramowania.',
   description:
-    'Nasz zespół opracował aplikację internetową TypeScript do planowania i śledzenia czasu nauki, organizowania pracy poprzez bilety i kamienie milowe. Współpracowaliśmy przy wymaganiach, specyfikacji, projektowaniu, wdrażaniu, testowaniu i dokumentacji. Brałem udział w tych etapach, biorąc jednocześnie główną odpowiedzialność za architekturę i zarządzanie jakością.',
+    'Nasz zespół opracował aplikację internetową do śledzenia czasu nauki, organizując pracę za pomocą zgłoszeń i kamieni milowych. Współpracowaliśmy przy wymaganiach, specyfikacji, projektowaniu, wdrażaniu, testowaniu i dokumentacji. Moją główną odpowiedzialnością były architektura i zarządzanie jakością.',
   notes: [
     {
       title: 'Pytanie inżynierskie',

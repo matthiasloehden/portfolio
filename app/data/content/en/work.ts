@@ -93,7 +93,7 @@ export const clientCase: WorkCaseStudyContent = {
     'Features such as CMS content, live chat, events, teams, roles, and permissions could be combined and configured per client, supporting different use cases from personal training to kindergarten communication.',
   ],
   facts: [
-    { label: 'Architecture', value: 'Reusable feature packages' },
+    { label: 'Architecture', value: 'Modular application foundation' },
     { label: 'Modules', value: 'Content, chat, events, teams, access' },
     { label: 'Model', value: 'Features enabled per client' },
   ],
@@ -107,8 +107,7 @@ export const workHero: WorkHeroContent = {
   title: ['Production', 'software.'],
   accent: [false, true],
   introduction: [
-    'At TopRed Media GmbH, I contributed across the full lifecycle of production enterprise applications, from initial development through years of feature development, reusable package development, CI/CD, and long-term maintenance.',
-    'Working in a three-developer team, I contributed across the stack as requirements, workflows, infrastructure, and the products themselves continuously evolved.',
+    'At TopRed Media GmbH, I contributed across the full lifecycle of production enterprise applications, from initial development through years of continued development and maintenance.',
   ],
   facts: [
     { label: 'Company', value: 'TopRed Media GmbH' },
@@ -144,7 +143,6 @@ export const workContext: WorkContextContent = {
     'Single-page applications with Laravel, Vue, and Inertia.js',
     'Caching and evaluating complex user permissions with Redis',
     'Search and filtering of large datasets with Meilisearch',
-    'Bidirectional Excel and database synchronization',
     'Integrating applications with external services and physical systems',
   ],
 };
@@ -155,7 +153,7 @@ export const workClosing: WorkClosingContent = {
   title: ['About these', 'projects.'],
   accent: [false, true],
   description:
-    'Together, these projects represent the breadth of my production software engineering work, from reusable packages and application workflows to integrations, deployment, long-term maintenance, and software interacting with physical systems.',
+    'Together, these projects show the range of systems I worked on across six years of professional software development, from enterprise web applications to software interacting with physical hardware.',
   actions: [
     { label: 'Start a conversation', href: `mailto:${site.email}` },
     { label: 'View university work', symbol: '→', to: APP_ROUTES.academic, variant: 'text' },

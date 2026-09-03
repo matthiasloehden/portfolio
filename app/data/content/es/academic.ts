@@ -48,9 +48,9 @@ export const passkeysCase: AcademicCaseStudyContent = {
     ['con ', 'Claves de acceso FIDO2.'],
   ],
   accent: [true, false],
-  lead: 'Una prueba de concepto que explora el diseño de sistemas seguros y la autenticación moderna, construida alrededor de un sistema de inicio de sesión sin contraseña basado en FIDO2.',
+  lead: 'Una prueba de concepto que explora el diseño seguro de sistemas mediante un sistema de autenticación sin contraseña basado en FIDO2.',
   description:
-    'En lugar de tratar la seguridad como una capa adicional, el sistema se diseñó en torno a flujos de autenticación, credenciales, límites de confianza y operaciones confidenciales. El registro asociaba una clave pública con el usuario, mientras que la autenticación utilizaba una ceremonia de desafío-respuesta protegida por el navegador y el autenticador.',
+    'La seguridad se trató como una restricción fundamental del diseño que determinó los flujos de autenticación, la gestión de credenciales, los límites de confianza y las operaciones sensibles. La autenticación se basó en credenciales de clave pública y flujos de desafío-respuesta de alcance limitado.',
   notes: [
     {
       title: 'pregunta de ingenieria',
@@ -74,7 +74,7 @@ export const softwareEngineeringCase: AcademicCaseStudyContent = {
   accent: [false, false, true],
   lead: 'Un proyecto grupal completado que reúne métodos de cursos anteriores de ingeniería de software a lo largo de todo el ciclo de vida de desarrollo.',
   description:
-    'Nuestro equipo desarrolló una aplicación web TypeScript para planificar y rastrear el tiempo de aprendizaje, organizando el trabajo a través de tickets e hitos. Colaboramos en requisitos, especificaciones, diseño, implementación, pruebas y documentación. Contribuí en estas etapas mientras asumía la responsabilidad principal de la arquitectura y la gestión de calidad.',
+    'Nuestro equipo desarrolló una aplicación web para registrar el tiempo de aprendizaje y organizó el trabajo mediante tickets e hitos. Colaboramos en requisitos, especificaciones, diseño, implementación, pruebas y documentación. Mi principal responsabilidad fue la arquitectura y la gestión de calidad.',
   notes: [
     {
       title: 'pregunta de ingenieria',
