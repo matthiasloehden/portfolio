@@ -48,7 +48,7 @@ export const passkeysCase: AcademicCaseStudyContent = {
     ['con passkey ', 'FIDO2.'],
   ],
   accent: [true, false],
-  lead: "Una prova di concetto che esplora la progettazione sicura dei sistemi attraverso un sistema di autenticazione senza password basato su FIDO2.",
+  lead: 'Una prova di concetto che esplora la progettazione sicura dei sistemi attraverso un sistema di autenticazione senza password basato su FIDO2.',
   description:
     "La sicurezza è stata trattata come un vincolo fondamentale di progettazione, determinando i flussi di autenticazione, la gestione delle credenziali, i confini di fiducia e le operazioni sensibili. L'autenticazione si basava su credenziali a chiave pubblica e flussi challenge-response con ambito definito.",
   notes: [

@@ -87,7 +87,7 @@ export const clientCase: WorkCaseStudyContent = {
   title: ['Piattaforma per clienti', 'configurabile'],
   accent: [false, true],
   summary:
-    "Pacchetti applicativi riutilizzabili combinati in piattaforme specifiche per ogni cliente per contenuti, comunicazione e controllo degli accessi.",
+    'Pacchetti applicativi riutilizzabili combinati in piattaforme specifiche per ogni cliente per contenuti, comunicazione e controllo degli accessi.',
   paragraphs: [
     'Nei nostri progetti, le funzionalità ricorrenti venivano sviluppate come pacchetti riutilizzabili invece di essere ricostruite per ogni applicazione.',
     'Questi pacchetti sono diventati la base di una piattaforma configurabile che TopRed Media poteva adattare ai singoli clienti.',

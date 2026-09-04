@@ -48,7 +48,7 @@ export const retailCase: WorkCaseStudyContent = {
     "Plateforme opérationnelle pour les données d'atelier, les tâches, les flux de travail et les rapports basés sur Excel.",
   paragraphs: [
     "Notre équipe a développé une plateforme centrale pour gérer les données des magasins, les tâches opérationnelles et les flux de travail. Chaque magasin disposait d'un profil structuré regroupant les données de localisation, les plans d'étage, les horaires d'ouverture et des processus tels que les changements d'adresse et de code postal.",
-    "Les données des magasins, des tâches et de la plateforme pouvaient être exportées dans des rapports Excel pour une analyse approfondie. Le processus fonctionnait également en sens inverse : les feuilles de calcul modifiées pouvaient être importées et resynchronisées avec la base de données.",
+    'Les données des magasins, des tâches et de la plateforme pouvaient être exportées dans des rapports Excel pour une analyse approfondie. Le processus fonctionnait également en sens inverse : les feuilles de calcul modifiées pouvaient être importées et resynchronisées avec la base de données.',
   ],
   facts: [
     { label: 'But', value: 'Gestion de la boutique et des tâches' },
@@ -93,7 +93,7 @@ export const clientCase: WorkCaseStudyContent = {
   paragraphs: [
     "Dans l'ensemble de nos projets, les fonctionnalités récurrentes étaient développées sous forme de packages réutilisables plutôt que recréées pour chaque application.",
     'Ces packages sont devenus la base d’une plateforme configurable que TopRed Media pouvait adapter à chaque client.',
-    "Des fonctionnalités telles que le contenu CMS, le chat en direct, les événements, les équipes, les rôles et les autorisations pouvaient être combinées et configurées pour chaque client, afin de répondre à différents usages allant du coaching personnel à la communication en maternelle.",
+    'Des fonctionnalités telles que le contenu CMS, le chat en direct, les événements, les équipes, les rôles et les autorisations pouvaient être combinées et configurées pour chaque client, afin de répondre à différents usages allant du coaching personnel à la communication en maternelle.',
   ],
   facts: [
     { label: 'Architecture', value: 'Base applicative modulaire' },
