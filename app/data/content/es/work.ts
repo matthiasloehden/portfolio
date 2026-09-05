@@ -46,7 +46,8 @@ export const retailCase: WorkCaseStudyContent = {
   accent: [true, false],
   summary: 'Plataforma operativa para datos de tienda, tareas, flujos de trabajo e informes basados ​​en Excel.',
   paragraphs: [
-    'Nuestro equipo desarrolló una plataforma central para gestionar datos de las tiendas, tareas operativas y flujos de trabajo. Cada tienda tenía un perfil estructurado con datos de ubicación, planos, horarios de apertura y procesos como cambios de ubicación y código postal.',
+    'Nuestro equipo desarrolló una plataforma central para gestionar datos de las tiendas, tareas operativas y flujos de trabajo.',
+    'Cada tienda tenía un perfil estructurado con datos de ubicación, planos, horarios de apertura y procesos como cambios de ubicación y código postal.',
     'Los datos de las tiendas, las tareas y otros datos de la plataforma podían exportarse a informes de Excel para su posterior análisis. El proceso también funcionaba a la inversa: las hojas de cálculo editadas podían cargarse y sincronizarse de nuevo con la base de datos.',
   ],
   facts: [

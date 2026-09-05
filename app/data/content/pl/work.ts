@@ -46,7 +46,8 @@ export const retailCase: WorkCaseStudyContent = {
   accent: [true, false],
   summary: 'Platforma operacyjna dla danych sklepu, zadań, przepływów pracy i raportowania w oparciu o Excel.',
   paragraphs: [
-    'Nasz zespół stworzył centralną platformę do zarządzania danymi sklepów, zadaniami operacyjnymi i przepływami pracy. Każdy sklep miał ustrukturyzowany profil obejmujący dane lokalizacyjne, plany pięter, godziny otwarcia oraz procesy takie jak zmiany lokalizacji i kodu pocztowego.',
+    'Nasz zespół stworzył centralną platformę do zarządzania danymi sklepów, zadaniami operacyjnymi i przepływami pracy.',
+    'Każdy sklep miał ustrukturyzowany profil obejmujący dane lokalizacyjne, plany pięter, godziny otwarcia oraz procesy takie jak zmiany lokalizacji i kodu pocztowego.',
     'Dane sklepów, zadań i inne dane platformy można było eksportować do raportów Excel w celu dalszej analizy. Proces działał również w drugą stronę: edytowane arkusze kalkulacyjne można było przesyłać i synchronizować z bazą danych.',
   ],
   facts: [

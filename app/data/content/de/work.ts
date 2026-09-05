@@ -45,7 +45,8 @@ export const retailCase: WorkCaseStudyContent = {
   accent: [true, false],
   summary: 'Operative Plattform für Filialdaten, Aufgaben, Workflows und Excel-basierte Auswertungen.',
   paragraphs: [
-    'Unser Team entwickelte eine zentrale Plattform zur Verwaltung von Filialdaten, operativen Aufgaben und Workflows. Jede Filiale verfügte über ein strukturiertes Profil mit Standortdaten, Grundrissen, Öffnungszeiten und Prozessen wie Standort- und Postleitzahlenänderungen.',
+    'Unser Team entwickelte eine zentrale Plattform zur Verwaltung von Filialdaten, operativen Aufgaben und Workflows.',
+    'Jede Filiale verfügte über ein strukturiertes Profil mit Standortdaten, Grundrissen, Öffnungszeiten und Prozessen wie Standort- und Postleitzahlenänderungen.',
     'Filial-, Aufgaben- und weitere Plattformdaten konnten zur weiteren Analyse in Excel-Berichte exportiert werden. Der Prozess funktionierte auch in Gegenrichtung: Bearbeitete Tabellen konnten hochgeladen und zurück in die Datenbank synchronisiert werden.',
   ],
   facts: [

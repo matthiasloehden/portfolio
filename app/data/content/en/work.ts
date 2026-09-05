@@ -45,7 +45,8 @@ export const retailCase: WorkCaseStudyContent = {
   accent: [true, false],
   summary: 'Operational platform for shop data, tasks, workflows, and Excel-based reporting.',
   paragraphs: [
-    'Our team built a central platform for managing shop data, operational tasks, and workflows. Each shop had a structured profile covering location data, floor layouts, opening hours, and processes such as location and postal changes.',
+    'Our team built a central platform for managing shop data, operational tasks, and workflows.',
+    'Each shop had a structured profile covering location data, floor layouts, opening hours, and processes such as location and postal changes.',
     'Shop, task, and related platform data could be exported into Excel reports for further analysis. The process also worked in reverse: edited spreadsheets could be uploaded and synchronized back to the database.',
   ],
   facts: [
