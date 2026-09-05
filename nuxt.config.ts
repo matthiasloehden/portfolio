@@ -1,5 +1,6 @@
 import tailwindcss from '@tailwindcss/vite';
 import { DEFAULT_LOCALE, LOCALE_DEFINITIONS } from './app/config/locales';
+import { PROTECTED_DOCUMENT_ROUTE_PATHS } from './app/config/protected-documents';
 import { APP_ROUTE_PATHS } from './app/config/routes';
 
 const baseURL = process.env.NUXT_APP_BASE_URL || '/';
@@ -7,7 +8,7 @@ const prerenderRoutes = LOCALE_DEFINITIONS.flatMap(({ code }) =>
   Object.values(APP_ROUTE_PATHS).map((path) =>
     code === DEFAULT_LOCALE ? path : `/${code}${path === '/' ? '' : path}`,
   ),
-);
+).concat(PROTECTED_DOCUMENT_ROUTE_PATHS);
 export default defineNuxtConfig({
   ssr: true,
 

@@ -1294,6 +1294,55 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@noble/ciphers@npm:^2.1.1":
+  version: 2.4.0
+  resolution: "@noble/ciphers@npm:2.4.0"
+  checksum: 10c0/f8c0cfec0c96554a379385e0a851e4f4eb3ceb1ac645885d8f94f6e75b8d56233e4a434413cb2bf37ec08960cc05dad1ddf98d25311e990ea6505c56a1c1ca95
+  languageName: node
+  linkType: hard
+
+"@noble/curves@npm:^2.0.1":
+  version: 2.4.0
+  resolution: "@noble/curves@npm:2.4.0"
+  dependencies:
+    "@noble/hashes": "npm:2.4.0"
+  checksum: 10c0/b60b737f65cc4e128dd94fea467df1ed73c5c0c089ef1bdb61614a0897db1fa7151d7f95bb7205854a9030d3f80a879e00f3bb74990befde061184ae43dfaec6
+  languageName: node
+  linkType: hard
+
+"@noble/curves@npm:~2.0.0":
+  version: 2.0.1
+  resolution: "@noble/curves@npm:2.0.1"
+  dependencies:
+    "@noble/hashes": "npm:2.0.1"
+  checksum: 10c0/e0b329eb9229e862d3b7203e0444bd479e9ecf2d5990181908dad416aab69106717ca696fc7b12ad0eb19d710f58c454646b27ce517a4298ab9abc89a9bdb6ee
+  languageName: node
+  linkType: hard
+
+"@noble/hashes@npm:2.0.1, @noble/hashes@npm:~2.0.0":
+  version: 2.0.1
+  resolution: "@noble/hashes@npm:2.0.1"
+  checksum: 10c0/e81769ce21c3b1c80141a3b99bd001f17edea09879aa936692ae39525477386d696101cd573928a304806efb2b9fa751e1dd83241c67d0c84d30091e85c79bdb
+  languageName: node
+  linkType: hard
+
+"@noble/hashes@npm:2.4.0, @noble/hashes@npm:^2.0.1":
+  version: 2.4.0
+  resolution: "@noble/hashes@npm:2.4.0"
+  checksum: 10c0/f5820a38c52886073a69722a030688ad188bbacb822d01554545371259961c2b916266c57c013c2ce5a0d78aec977142fc68fd2a79be4c97b0644fcee9bb35f6
+  languageName: node
+  linkType: hard
+
+"@noble/post-quantum@npm:^0.5.3":
+  version: 0.5.4
+  resolution: "@noble/post-quantum@npm:0.5.4"
+  dependencies:
+    "@noble/curves": "npm:~2.0.0"
+    "@noble/hashes": "npm:~2.0.0"
+  checksum: 10c0/0fd2ecc41148796c27819fbdf3b48c4bc2fe0efb0ba6ca184192c2b1b2bf5e5a01d2b1216e8fe03ed8782374d188b7dd7906e6c42f4fefb68236470d3840d6c1
+  languageName: node
+  linkType: hard
+
 "@nodelib/fs.scandir@npm:2.1.5":
   version: 2.1.5
   resolution: "@nodelib/fs.scandir@npm:2.1.5"
@@ -2844,6 +2893,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@scure/base@npm:^2.0.0":
+  version: 2.4.0
+  resolution: "@scure/base@npm:2.4.0"
+  checksum: 10c0/985a4bdcafa4289e0cb8b6d53453347308d5ff6ffcbe84d8fac102374fb419b52db565e98fa3931b79a4be1cc3218583065bbca27dfaabca687aac0f3db3639d
+  languageName: node
+  linkType: hard
+
 "@sentry-internal/tracing@npm:7.120.4":
   version: 7.120.4
   resolution: "@sentry-internal/tracing@npm:7.120.4"
@@ -3796,6 +3852,19 @@ __metadata:
   bin:
     acorn: bin/acorn
   checksum: 10c0/be771be2135cc07910cf76f444ad514d7dcfd6d4a8026e597e93155275abc8ef61eee12211d52146e9d962874269b634f397464942087be013c89d0c54c5f8e5
+  languageName: node
+  linkType: hard
+
+"age-encryption@npm:^0.3.1":
+  version: 0.3.1
+  resolution: "age-encryption@npm:0.3.1"
+  dependencies:
+    "@noble/ciphers": "npm:^2.1.1"
+    "@noble/curves": "npm:^2.0.1"
+    "@noble/hashes": "npm:^2.0.1"
+    "@noble/post-quantum": "npm:^0.5.3"
+    "@scure/base": "npm:^2.0.0"
+  checksum: 10c0/39fbbb4b318679e1ae501320ab3d9908b9997cab07d7ff204a19f4d45ef83e1bb9c1e031d3badf5d246e3d6c9187d1ec34d58e8fa00b1208634cc7907087bb53
   languageName: node
   linkType: hard
 
@@ -5468,7 +5537,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"esbuild@npm:^0.28.0":
+"esbuild@npm:^0.28.0, esbuild@npm:~0.28.0":
   version: 0.28.2
   resolution: "esbuild@npm:0.28.2"
   dependencies:
@@ -7425,12 +7494,14 @@ __metadata:
     "@tailwindcss/vite": "npm:^4.3.3"
     "@types/node": "npm:^26.1.2"
     "@types/three": "npm:^0.185.0"
+    age-encryption: "npm:^0.3.1"
     nuxt: "npm:^4.5.1"
     oxfmt: "npm:^0.61.0"
     oxlint: "npm:^1.76.0"
     playwright-core: "npm:^1.62.1"
     tailwindcss: "npm:^4.3.3"
     three: "npm:^0.185.1"
+    tsx: "npm:^4.23.12"
     typescript: "npm:6.0.3"
     vite: "npm:^8.2.0"
     vitest: "npm:^4.1.11"
@@ -10623,6 +10694,21 @@ __metadata:
   version: 2.8.1
   resolution: "tslib@npm:2.8.1"
   checksum: 10c0/9c4759110a19c53f992d9aae23aac5ced636e99887b51b9e61def52611732872ff7668757d4e4c61f19691e36f4da981cd9485e869b4a7408d689f6bf1f14e62
+  languageName: node
+  linkType: hard
+
+"tsx@npm:^4.23.12":
+  version: 4.23.12
+  resolution: "tsx@npm:4.23.12"
+  dependencies:
+    esbuild: "npm:~0.28.0"
+    fsevents: "npm:~2.3.3"
+  dependenciesMeta:
+    fsevents:
+      optional: true
+  bin:
+    tsx: dist/cli.mjs
+  checksum: 10c0/cdd7f03754021fb337c13839f25f5f5edee01ed12e1e176da50cc34bc5c5fc4e7b533aeba89127055be969d4ff292c6accdb6b9d977ed022c524349eca6ff841
   languageName: node
   linkType: hard
 

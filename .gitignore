@@ -25,6 +25,9 @@ test-results/
 .env.*
 !.env.example
 
+# Local plaintext application documents
+/private-documents/
+
 # Editors and operating systems
 .idea/
 .vscode/
