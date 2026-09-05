@@ -166,7 +166,7 @@ function getBooleanValue(control: BackgroundSettingDefinition): boolean {
     </SharedAccordionGroup>
 
     <SharedSettingsResetButton
-      class="my-4"
+      class="mt-4"
       :label="t('display.background.reset')"
       :disabled="!hasOverrides"
       :disabled-reason="t('display.background.resetDisabled')"

@@ -416,9 +416,10 @@ test.describe('Display settings', () => {
     await chooseSelectOption(background, 'None');
     await expect(page.locator('.background-scene-active')).toHaveCount(0);
     await expect(getPerformanceSelect(dialog)).toBeDisabled();
-    await expect(dialog.getByRole('checkbox', { name: 'Performance stats' })).toBeDisabled();
 
     await openBackgroundAdvancedSettings(dialog);
+    await expect(dialog.getByRole('checkbox', { name: 'Performance stats' })).toBeDisabled();
+
     await expandSettingsAccordion(dialog, 'Animations');
 
     await expect(dialog.getByRole('checkbox', { name: 'Idle motion' })).toBeDisabled();

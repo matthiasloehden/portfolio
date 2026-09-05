@@ -128,7 +128,7 @@ function getColorDescription(token: ThemeColorToken): string {
       </SharedAccordionGroup>
 
       <SharedSettingsResetButton
-        class="my-4"
+        class="mt-4"
         :label="t('display.theme.resetColors')"
         :disabled="!hasCurrentThemeColorOverrides"
         :disabled-reason="t('display.theme.resetColorsDisabled')"

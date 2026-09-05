@@ -330,15 +330,6 @@ onMounted(async () => {
                   @update:model-value="onPerformanceModeChange"
                 />
 
-                <SharedToggleField
-                  class="mt-3"
-                  :label="t('display.background.performanceStats')"
-                  :description="t('display.background.performanceStatsDescription')"
-                  :checked="backgroundPerformance.showStats"
-                  :disabled="controlsDisabled"
-                  @change="setBackgroundPerformanceStatsEnabled"
-                />
-
                 <SettingsPageButton
                   ref="backgroundPageTrigger"
                   class="mt-3"
@@ -365,6 +356,13 @@ onMounted(async () => {
                   class="mt-4"
                   :end-border="false"
                 >
+                  <SharedToggleField
+                    :label="t('display.background.performanceStats')"
+                    :description="t('display.background.performanceStatsDescription')"
+                    :checked="backgroundPerformance.showStats"
+                    :disabled="controlsDisabled"
+                    @change="setBackgroundPerformanceStatsEnabled"
+                  />
                   <SharedAccordion
                     :label="t('display.background.animations')"
                     :heading-level="3"
