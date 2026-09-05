@@ -47,7 +47,7 @@ export const retailCase: WorkCaseStudyContent = {
   summary:
     "Plateforme opérationnelle pour les données d'atelier, les tâches, les flux de travail et les rapports basés sur Excel.",
   paragraphs: [
-    "Notre équipe a développé une plateforme centrale pour gérer les données des magasins, les tâches opérationnelles et les flux de travail.",
+    'Notre équipe a développé une plateforme centrale pour gérer les données des magasins, les tâches opérationnelles et les flux de travail.',
     "Chaque magasin disposait d'un profil structuré regroupant les données de localisation, les plans d'étage, les horaires d'ouverture et des processus tels que les changements d'adresse et de code postal.",
     'Les données des magasins, des tâches et de la plateforme pouvaient être exportées dans des rapports Excel pour une analyse approfondie. Le processus fonctionnait également en sens inverse : les feuilles de calcul modifiées pouvaient être importées et resynchronisées avec la base de données.',
   ],
